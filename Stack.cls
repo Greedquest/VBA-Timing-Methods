@@ -31,10 +31,11 @@ Public Function Peek() As Variant
     End If
 End Function
 
-Private Sub LetSet(ByRef variable As Variant, ByVal Value As Variant)
-    If IsObject(Value) Then
-        Set variable = Value
+Private Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
+    If IsObject(value) Then
+        Set variable = value
     Else
-        variable = Value
+        variable = value
     End If
 End Sub
+

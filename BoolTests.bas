@@ -40,14 +40,14 @@ Private Sub DefaultPropertyLetGet()
     
     'Arrange:
     Dim b As New Bool
-    b.Value = False
+    b.value = False
     
     'Act:
     b = True
     
     'Assert:
-    Assert.AreEqual True, b.Value
-    Assert.AreEqual True, (b) 'should just be b - this is an issue with the assert class
+    Assert.AreEqual True, b.value
+    Assert.AreEqual True, (b)                    'should just be b - this is an issue with the assert class
 
 TestExit:
     Exit Sub
@@ -68,9 +68,9 @@ Private Sub ClassConstructor()
     Set c = Bool.Create(a)                       'implicit conversion with CBool
     
     'Assert:
-    Assert.AreEqual True, b.Value
-    Assert.AreEqual False, a.Value
-    Assert.AreEqual a.Value, c.Value
+    Assert.AreEqual True, b.value
+    Assert.AreEqual False, a.value
+    Assert.AreEqual a.value, c.value
     Assert.AreNotSame a, c                       'c only has the same value as a
 
 TestExit:
@@ -92,7 +92,7 @@ Private Sub AssigningByReferenceCanOverwrite()
     copy = False
 
     'Assert:
-    Assert.AreEqual False, base.Value
+    Assert.AreEqual False, base.value
     Assert.AreSame base, copy
 
 TestExit:

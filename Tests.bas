@@ -20,7 +20,7 @@ Option Explicit
 '                         ByVal wParam As Long, _
 '                         ByVal lParam As Long) As Long
 Public Sub testInfiniteRecursion()
-'TODO
+    'TODO
     TickerAPI.StartTimer AddressOf RecursiveProc, True
 End Sub
 
@@ -39,3 +39,5 @@ End Sub
 Public Sub testAsyncTicking()
     TickerAPI.StartTimer AddressOf SafeTickingProc, False
 End Sub
+
+

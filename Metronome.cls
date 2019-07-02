@@ -24,59 +24,64 @@ Private this As TMetronome
 Public Event Tick()
 
 Public Sub Start()
-    
+    Controls.isRunning = True
 End Sub
 
 Public Sub Pause()
-
+    Controls.isRunning = False
 End Sub
 
-Public Function Controls() As IMetronomeControls
+Friend Function Controls() As IMetronomeControls 'TODO change scope
     Set Controls = Me
 End Function
 
-
 Private Property Get IMetronomeControls_isRunning() As Boolean
-    Err.Raise 5 'TODO implement interface member
+    IMetronomeControls_isRunning = this.isRunning
 End Property
 
 Private Property Let IMetronomeControls_isRunning(ByVal value As Boolean)
-    Err.Raise 5 'TODO implement interface member
+    If this.isRunning <> value Then 'only do stuff if it would change things
+        If value = True Then
+            If MetronomeCollection.tryInitialiseTimer(Me) Then this.isRunning = True
+        Else
+            If MetronomeCollection.tryTerminateTimer(Me) Then this.isRunning = False
+        End If
+    End If
 End Property
 
 Private Property Get IMetronomeControls_isFirstTickSynchronous() As Boolean
-    Err.Raise 5 'TODO implement interface member
+    IMetronomeControls_isFirstTickSynchronous = this.isFirstTickSynchronous
 End Property
 
 Private Property Let IMetronomeControls_isFirstTickSynchronous(ByVal value As Boolean)
-    Err.Raise 5 'TODO implement interface member
+    this.isFirstTickSynchronous = value
 End Property
 
 Private Property Get IMetronomeControls_timerID() As Long
-    Err.Raise 5 'TODO implement interface member
+    IMetronomeControls_timerID = this.timerID
 End Property
 
 Private Property Let IMetronomeControls_timerID(ByVal value As Long)
-    Err.Raise 5 'TODO implement interface member
+    this.timerID = value
 End Property
 
 Private Property Get IMetronomeControls_remainingTicks() As Long
-    Err.Raise 5 'TODO implement interface member
+    IMetronomeControls_remainingTicks = this.remainingTicks
 End Property
 
 Private Property Let IMetronomeControls_remainingTicks(ByVal value As Long)
-    Err.Raise 5 'TODO implement interface member
+    this.remainingTicks = value
 End Property
 
 Private Property Get IMetronomeControls_tickIntervalMillis() As Long
-    Err.Raise 5 'TODO implement interface member
+    IMetronomeControls_tickIntervalMillis = this.tickIntervalMillis
 End Property
 
 Private Property Let IMetronomeControls_tickIntervalMillis(ByVal value As Long)
-    Err.Raise 5 'TODO implement interface member
+    this.tickIntervalMillis = value
 End Property
 
 Private Sub IMetronomeControls_Tick()
-    Err.Raise 5 'TODO implement interface member
+    RaiseEvent Tick
 End Sub
 

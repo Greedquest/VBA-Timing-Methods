@@ -51,17 +51,21 @@ End Type
 
 Private this As tCallback
 
-'@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Raises CreateTimerError if there is an API error")
+'@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Raises CreateTimerError if there is an API error"
     'If outTimerID = -1 Then outTimerID = getUniqueID(timerFunction)
     'Set this.recursionStack = New Stack
     If runImmediately Then
         Dim makeTimer As Bool
-        Set makeTimer = Bool.Create(True) 'TODO can raise error
+        Set makeTimer = Bool.Create(True)        'TODO can raise error
         this.recursionStack.Push makeTimer
-        tryCallProc timerFunction, makeTimer 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
-        If Not this.recursionStack.Pop Then Exit Function
+        If Not tryCallProc(timerFunction, makeTimer) Then     'NOTE this will always be true as errors are untrappable and pointer is assumed valid
+            raiseError SynchronousCallError, "StartTimer"
+        End If
+        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
+        Set makeTimer = this.recursionStack.Pop
+        If Not makeTimer Then Exit Function
     End If
     Dim newTimerID As Long
     If Not tryCreateTimer(timerFunction, newTimerID, delayMillis) Then
@@ -178,8 +182,6 @@ cleanFail:
     
 End Function
 
-
-
 Private Function getUniqueID() As Long
     Static i As Long
     i = i + 1
@@ -188,17 +190,17 @@ Private Function getUniqueID() As Long
 End Function
 
 Private Sub log(ByVal loggerLevel As LogLevel, ByVal source As String, ByVal message As String)
-    If Not logmanager.IsEnabled(loggerLevel) Then 'check a logger is registered
-        logmanager.Register DebugLogger.Create("TickerAPI" & loggerLevel, loggerLevel)
+    If Not LogManager.IsEnabled(loggerLevel) Then 'check a logger is registered
+        LogManager.Register DebugLogger.Create("TickerAPI" & loggerLevel, loggerLevel)
     End If
-    logmanager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", source, message)
+    LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", source, message)
 End Sub
 
 Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDescription As String)
-    If Not logmanager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        logmanager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
+    If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
+        LogManager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
     End If
-    logmanager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", source, errNum, errDescription)
+    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", source, errNum, errDescription)
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As String = "raiseError")

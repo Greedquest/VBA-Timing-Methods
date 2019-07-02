@@ -24,21 +24,21 @@ Option Explicit
 #End If
 
 Private Type tBool
-    Value As Boolean
+    value As Boolean
 End Type
 
 Private this As tBool
 
 '@Description("Truthy encapsulated value")
 '@DefaultMember
-Public Property Get Value() As Boolean
-Attribute Value.VB_Description = "Truthy encapsulated value"
-Attribute Value.VB_UserMemId = 0
-    Value = this.Value
+Public Property Get value() As Boolean
+Attribute value.VB_Description = "Truthy encapsulated value"
+Attribute value.VB_UserMemId = 0
+    value = this.value
 End Property
 
-Public Property Let Value(ByVal newVal As Boolean)
-    this.Value = newVal
+Public Property Let value(ByVal newVal As Boolean)
+    this.value = newVal
 End Property
 
 '@Description("Create instance of Bool class from objPtr")
@@ -54,6 +54,7 @@ End Function
 Public Function Create(ByVal initialValue As Variant) As Bool
 Attribute Create.VB_Description = "Class Constructor takes Boolean or Boolean-like values"
     Dim result As New Bool
-    result.Value = CBool(initialValue)
+    result.value = CBool(initialValue)
     Set Create = result
 End Function
+

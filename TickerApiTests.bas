@@ -34,10 +34,10 @@ Private Sub ModuleCleanup()
     'this method runs once per module.
     Set Assert = Nothing
     Set Fakes = Nothing
-    Dim id As Variant
-    For Each id In tempIDs.Keys
-        ApiKillTimer Application.HWnd, id
-    Next id
+    Dim ID As Variant
+    For Each ID In tempIDs.Keys
+        ApiKillTimer Application.HWnd, ID
+    Next ID
     TickerAPI.KillAllTimers
 End Sub
 
@@ -76,7 +76,7 @@ TestFail:
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub KillByInvalidFunctionNoError()                        'TODO Rename test
+Private Sub KillByInvalidFunctionNoError()       'TODO Rename test
     On Error GoTo TestFail
     
     'Arrange:
@@ -94,7 +94,7 @@ TestFail:
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub StartExistingTimerNoError()                        'TODO Rename test
+Private Sub StartExistingTimerNoError()          'TODO Rename test
     On Error GoTo TestFail
     
     'Arrange:
@@ -113,9 +113,10 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
 '@TestMethod("Uncategorized")
-Private Sub KillNonExistentTimerRaisesDestroyTimerError()                        'TODO Rename test
-    Const ExpectedError As Long = DestroyTimerError             'TODO Change to expected error number
+Private Sub KillNonExistentTimerRaisesDestroyTimerError() 'TODO Rename test
+    Const ExpectedError As Long = DestroyTimerError 'TODO Change to expected error number
     On Error GoTo TestFail
     
     'Arrange:
