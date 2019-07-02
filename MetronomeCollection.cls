@@ -58,7 +58,7 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
     
 End Sub
 
-Public Function tryInitialiseTimer(ticker As IMetronomeControls) As Boolean
+Friend Function tryInitialiseTimer(ticker As IMetronomeControls) As Boolean
     On Error GoTo cleanFail
     ticker.timerID = TickerAPI.StartTimer(AddressOf WaitableTimerCallbackProc, ticker.isFirstTickSynchronous, ticker.tickIntervalMillis)
     this.activeTickers.Add key:=ticker.timerID, item:=ticker
@@ -74,7 +74,7 @@ cleanFail:
     
 End Function
 
-Public Function tryTerminateTimer(ticker As IMetronomeControls) As Boolean
+Friend Function tryTerminateTimer(ticker As IMetronomeControls) As Boolean
     On Error GoTo cleanFail
     TickerAPI.KillTimerByID ticker.timerID
     this.activeTickers.Remove ticker.timerID
@@ -90,7 +90,7 @@ cleanFail:
     
 End Function
 
-Public Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IMetronomeControls) As Boolean
+Private Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IMetronomeControls) As Boolean
 
     If Not this.activeTickers.Exists(timerID) Then
         tryGetTickerFromID = False
