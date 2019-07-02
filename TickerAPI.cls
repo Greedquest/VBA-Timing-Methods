@@ -13,7 +13,7 @@ Attribute VB_Description = "API for setting up timers to callback functions, wra
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
 Option Explicit
 
-'@Description("Windows Timer Message https://docs.microsoft.com/windows/desktop/winmsg/wm-timer")
+''@Description("Windows Timer Message https://docs.microsoft.com/windows/desktop/winmsg/wm-timer")
 Public Enum WindowsMessage
     WM_TIMER = &H113
     WM_NOTIFY = &H4E                             'arbitrary, sounds nice though
@@ -44,21 +44,23 @@ Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA"
                          Optional ByVal unused3 As Long) As Long
 
 Private Type tCallback
-    timerIDs As New Scripting.Dictionary
-    functionSet As New Scripting.Dictionary
+    timerIDs As New Dictionary
+    functionSet As New Dictionary
     recursionStack As New Stack
 End Type
 
 Private this As tCallback
 
+'@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
+Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Raises CreateTimerError if there is an API error"
     'If outTimerID = -1 Then outTimerID = getUniqueID(timerFunction)
     'Set this.recursionStack = New Stack
     If runImmediately Then
         Dim makeTimer As Bool
         Set makeTimer = Bool.Create(True) 'TODO can raise error
         this.recursionStack.Push makeTimer
-        tryCallProc timerFunction, makeTimer
+        tryCallProc timerFunction, makeTimer 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
         If Not this.recursionStack.Pop Then Exit Function
     End If
     Dim newTimerID As Long
@@ -69,7 +71,9 @@ Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmedi
     End If
 End Function
 
+'@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As Long)
+Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
             raiseError DestroyTimerError, "KillTimerByID"
@@ -79,7 +83,9 @@ Public Sub KillTimerByID(ByVal timerID As Long)
     End If
 End Sub
 
+'@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimersByFunction(ByVal timerFunction As Long)
+Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
     Dim key As Variant
     For Each key In this.timerIDs.Keys
         If this.timerIDs(key) = timerFunction Then
@@ -89,6 +95,29 @@ Public Sub KillTimersByFunction(ByVal timerFunction As Long)
             End If
         End If
     Next key
+End Sub
+
+'@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors")
+Public Sub KillAllTimers()
+Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors"
+    'NOTE this procedure is called when raising errors so must not raise any itself
+    log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
+    If this.timerIDs.Count = 0 Then
+        Dim i As Long
+        log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
+        Do                                       'loop through all timers for this hwnd
+            i = i + 1
+        Loop While tryKillTimer(i) Or i < 100
+    Else
+        Dim timerID As Variant
+        For Each timerID In this.timerIDs
+            On Error Resume Next                 'no point returning success since there's nothing we can do about it
+            ApiKillTimer 0, this.timerIDs(timerID)
+            tryKillTimer this.timerIDs(timerID)
+            log DebugLevel, "KillAllTimers", printf("Killing {0}", timerID)
+        Next timerID
+        this.timerIDs.RemoveAll
+    End If
 End Sub
 
 '@Description("Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise")
@@ -149,28 +178,7 @@ cleanFail:
     
 End Function
 
-'@Description("Function loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left")
-Public Sub KillAllTimers()
-Attribute KillAllTimers.VB_Description = "Function loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left"
-    'NOTE this procedure is called when raising errors so must not raise any itself
-    log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
-    If this.timerIDs.Count = 0 Then
-        Dim i As Long
-        log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
-        Do                                       'loop through all timers for this hwnd
-            i = i + 1
-        Loop While tryKillTimer(i) Or i < 100
-    Else
-        Dim timerID As Variant
-        For Each timerID In this.timerIDs
-            On Error Resume Next                 'no point returning success since there's nothing we can do about it
-            ApiKillTimer 0, this.timerIDs(timerID)
-            tryKillTimer this.timerIDs(timerID)
-            log DebugLevel, "KillAllTimers", printf("Killing {0}", timerID)
-        Next timerID
-        this.timerIDs.RemoveAll
-    End If
-End Sub
+
 
 Private Function getUniqueID() As Long
     Static i As Long
@@ -194,7 +202,6 @@ Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDesc
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As String = "raiseError")
-
     KillAllTimers
     Select Case errorCode
         Case TimerError.DestroyTimerError
