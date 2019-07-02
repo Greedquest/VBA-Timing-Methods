@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Ext_KEY = "Rubberduck" ,"Predeclared Class Module"
 '@Folder("Tests")
 
 Option Explicit
@@ -16,10 +15,14 @@ Option Explicit
 Private WithEvents ticker As Metronome
 Attribute ticker.VB_VarHelpID = -1
 
-Sub Init()
-    Set ticker = MetronomeCollection.Add(1000, True, -1)
+Public Sub Init()
+    ticker.Start
 End Sub
 
+Private Sub Class_Initialize()
+    Application.StatusBar = Now
+    Set ticker = MetronomeCollection.Add(1000, True, -1)
+End Sub
 
 Private Sub ticker_Tick()
     Application.StatusBar = Now

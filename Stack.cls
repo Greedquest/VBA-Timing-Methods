@@ -31,6 +31,10 @@ Public Function Peek() As Variant
     End If
 End Function
 
+Public Property Get Count() As Long
+    Count = col.Count
+End Property
+
 Private Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
         Set variable = value

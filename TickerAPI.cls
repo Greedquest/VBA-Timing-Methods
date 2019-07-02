@@ -8,6 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "API for setting up timers to callback functions, wraps Windows Timers"
+'@Exposed
 '@Folder("API")
 '@PredeclaredID
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
@@ -40,7 +41,7 @@ Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA"
                          ByVal lpPrevWndFunc As Long, _
                          ByRef timerFlag As Bool, _
                          Optional ByVal message As WindowsMessage = WM_NOTIFY, _
-                         Optional ByVal unused2 As Long, _
+                         Optional ByVal timerID As Long = 0, _
                          Optional ByVal unused3 As Long) As Long
 
 Private Type tCallback
@@ -228,5 +229,6 @@ End Sub
 Private Sub Class_Terminate()
     KillAllTimers
 End Sub
+
 
 

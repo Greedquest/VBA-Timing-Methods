@@ -7,6 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+'@Exposed
 '@Folder("TimerAPI")
 
 Option Explicit
@@ -14,6 +15,7 @@ Option Explicit
 
 Private Type TTimer
     activeTickers As New Dictionary
+    synchronousTickers As New Stack
 End Type
 
 Private this As TTimer
@@ -31,6 +33,7 @@ End Function
 
 Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Dim ticker As IMetronomeControls
+    log DebugLevel, "CallbackNotify", printf("Callback called with ID {0}", timerID)
     If Not tryGetTickerFromID(timerID, ticker) Then
         'Rogue timerID shouldn't be messaging our private callback! Disable it
         If message = WM_NOTIFY Then
@@ -59,6 +62,12 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
 End Sub
 
 Friend Function tryInitialiseTimer(ticker As IMetronomeControls) As Boolean
+    
+    'synchronous ticks
+    If ticker.isFirstTickSynchronous Then
+        this.synchronousTickers.Push ticker
+    End If
+    
     On Error GoTo cleanFail
     ticker.timerID = TickerAPI.StartTimer(AddressOf WaitableTimerCallbackProc, ticker.isFirstTickSynchronous, ticker.tickIntervalMillis)
     this.activeTickers.Add key:=ticker.timerID, item:=ticker
@@ -91,14 +100,25 @@ cleanFail:
 End Function
 
 Private Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IMetronomeControls) As Boolean
-
-    If Not this.activeTickers.Exists(timerID) Then
+    
+    Const synchronousTimerID As Long = 0 'NOTE this should really be defined in TickerAPI TryCallProc or another public place
+    
+    'it's possible we are in a synchronous stack - the ticker for a given timer won't have an ID corresponding to a timer yet
+    If timerID = synchronousTimerID Then
+        If this.synchronousTickers.Count = 0 Then
+            tryGetTickerFromID = False
+        Else
+            tryGetTickerFromID = True
+            Set outTicker = this.synchronousTickers.Pop
+        End If
+        
+    ElseIf Not this.activeTickers.Exists(timerID) Then
         tryGetTickerFromID = False
+        
     Else
         Set outTicker = this.activeTickers.item(timerID)
         tryGetTickerFromID = True
     End If
-    
 End Function
 
 Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDescription As String)
