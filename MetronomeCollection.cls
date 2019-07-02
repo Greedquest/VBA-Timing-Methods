@@ -6,8 +6,7 @@ Attribute VB_Name = "MetronomeCollection"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
-Attribute VB_Ext_KEY = "Rubberduck" ,"Predeclared Class Module"
+Attribute VB_Exposed = True
 '@Folder("TimerAPI")
 
 Option Explicit
@@ -25,7 +24,7 @@ Public Function Add(ByVal tickInterval As Long, ByVal runFirstTickSynchronously 
         .Controls.tickIntervalMillis = tickInterval
         .Controls.remainingTicks = autoExpireTickCount
         .Controls.isFirstTickSynchronous = runFirstTickSynchronously
-        Set Add = .Controls 'UpCast IMetronomeControls to Metronome
+        Set Add = .Controls                      'UpCast IMetronomeControls to Metronome
     End With
     
 End Function
@@ -44,7 +43,6 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
             If Err.Number <> 0 Then logError "CallbackNotify", Err.Number, Err.Description
             On Error GoTo 0
         End If
-        
         Exit Sub
     End If
     'Good callback, do we want to trigger a tick event?

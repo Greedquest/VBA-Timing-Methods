@@ -6,7 +6,7 @@ Attribute VB_Name = "TickerAPI"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Attribute VB_Description = "API for setting up timers to callback functions, wraps Windows Timers"
 '@Folder("API")
 '@PredeclaredID
@@ -53,14 +53,14 @@ Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
-Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Raises CreateTimerError if there is an API error"
+Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     'If outTimerID = -1 Then outTimerID = getUniqueID(timerFunction)
     'Set this.recursionStack = New Stack
     If runImmediately Then
         Dim makeTimer As Bool
         Set makeTimer = Bool.Create(True)        'TODO can raise error
         this.recursionStack.Push makeTimer
-        If Not tryCallProc(timerFunction, makeTimer) Then     'NOTE this will always be true as errors are untrappable and pointer is assumed valid
+        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
             raiseError SynchronousCallError, "StartTimer"
         End If
         'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner

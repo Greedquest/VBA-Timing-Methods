@@ -53,8 +53,8 @@ Private Sub TestCleanup()
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub TestKillByIdInvalidIdRaisesTimerNotFoundError() 'TODO Rename test
-    Const ExpectedError As Long = TimerError.TimerNotFoundError 'TODO Change to expected error number
+Private Sub TestKillByIdInvalidIdRaisesTimerNotFoundError()
+    Const ExpectedError As Long = TimerError.TimerNotFoundError
     On Error GoTo TestFail
 
     'Arrange:
@@ -76,7 +76,7 @@ TestFail:
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub KillByInvalidFunctionNoError()       'TODO Rename test
+Private Sub KillByInvalidFunctionNoError()
     On Error GoTo TestFail
     
     'Arrange:
@@ -94,11 +94,11 @@ TestFail:
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub StartExistingTimerNoError()          'TODO Rename test
+Private Sub StartExistingTimerNoError()
     On Error GoTo TestFail
     
     'Arrange:
-    tempIDs.Add 1, SetTimer(Application.HWnd, 1, 10000, AddressOf SafeCallbackProc)
+    tempIDs.Add 1, ApiSetTimer(Application.HWnd, 1, 10000, AddressOf SafeCallbackProc)
             
     'Act:
     Dim apiID As Long
@@ -115,14 +115,14 @@ TestFail:
 End Sub
 
 '@TestMethod("Uncategorized")
-Private Sub KillNonExistentTimerRaisesDestroyTimerError() 'TODO Rename test
-    Const ExpectedError As Long = DestroyTimerError 'TODO Change to expected error number
+Private Sub KillNonExistentTimerRaisesDestroyTimerError()
+    Const ExpectedError As Long = DestroyTimerError
     On Error GoTo TestFail
     
     'Arrange:
     TickerAPI.StartTimer AddressOf QuietNoOpCallback, False
     Dim killSuccess As Boolean
-    killSuccess = killTimer(Application.HWnd, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
+    killSuccess = ApiKillTimer(Application.HWnd, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone

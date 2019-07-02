@@ -6,10 +6,11 @@ Attribute VB_Name = "IMetronomeControls"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '@Folder("TimerAPI")
 Option Explicit
 
+'@IgnoreModule EncapsulatePublicField
 Public isRunning As Boolean
 Public isFirstTickSynchronous As Boolean
 Public timerID As Long
@@ -17,6 +18,5 @@ Public remainingTicks As Long
 Public tickIntervalMillis As Long
 
 Public Sub Tick()
-
 End Sub
 

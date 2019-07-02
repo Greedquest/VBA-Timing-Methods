@@ -3,7 +3,7 @@ Option Explicit
 Option Private Module
 
 '@TestModule
-'@IgnoreModule UseMeaningfulName, ProcedureNotUsed, LineLabelNotUsed
+'@IgnoreModule
 '@Folder("API.Utils.Tests")
 
 Private Assert As Rubberduck.PermissiveAssertClass

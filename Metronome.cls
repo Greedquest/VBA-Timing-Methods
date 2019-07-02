@@ -6,7 +6,7 @@ Attribute VB_Name = "Metronome"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '@Folder("TimerAPI")
 Option Explicit
 Implements IMetronomeControls
@@ -31,7 +31,7 @@ Public Sub Pause()
     Controls.isRunning = False
 End Sub
 
-Friend Function Controls() As IMetronomeControls 'TODO change scope
+Friend Function Controls() As IMetronomeControls 'TODO decide scope
     Set Controls = Me
 End Function
 
@@ -40,7 +40,7 @@ Private Property Get IMetronomeControls_isRunning() As Boolean
 End Property
 
 Private Property Let IMetronomeControls_isRunning(ByVal value As Boolean)
-    If this.isRunning <> value Then 'only do stuff if it would change things
+    If this.isRunning <> value Then              'only do stuff if it would change things
         If value = True Then
             If MetronomeCollection.tryInitialiseTimer(Me) Then this.isRunning = True
         Else

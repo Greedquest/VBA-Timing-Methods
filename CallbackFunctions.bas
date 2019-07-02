@@ -2,6 +2,7 @@ Attribute VB_Name = "CallbackFunctions"
 
 Option Explicit
 '@Folder("Tests.Callbacks")
+'@IgnoreModule ParameterNotUsed
 
 Public Sub SafeCallbackProc(ByRef createTimer As Bool, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Debug.Print "Callback called " & Time

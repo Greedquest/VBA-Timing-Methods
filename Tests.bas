@@ -20,7 +20,7 @@ Option Explicit
 '                         ByVal wParam As Long, _
 '                         ByVal lParam As Long) As Long
 Public Sub testInfiniteRecursion()
-    'TODO
+    'TODO Bug infinite recursion can't be stopped as timer messages hang about even when timers are killed - flush message queue or otherwise prevent timers being made during recursion
     TickerAPI.StartTimer AddressOf RecursiveProc, True
 End Sub
 

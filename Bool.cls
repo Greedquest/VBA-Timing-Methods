@@ -6,7 +6,7 @@ Attribute VB_Name = "Bool"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 Attribute VB_Description = "Boolean object that can be passed byRef"
 '@Folder("API.Utils")
 '@ModuleDescription("Boolean object that can be passed byRef")
@@ -42,7 +42,7 @@ Public Property Let value(ByVal newVal As Boolean)
 End Property
 
 '@Description("Create instance of Bool class from objPtr")
-Public Function FromPtr(ByVal pData As LongPtr) As Bool 'TODO fails in VB6 as no LongPtr
+Public Function FromPtr(ByVal pData As LongPtr) As Bool 'NOTE fails in VBA6 as no LongPtr
 Attribute FromPtr.VB_Description = "Create instance of Bool class from objPtr"
     Dim result As New Bool
     CopyMemory result, pData, LenB(pData)
