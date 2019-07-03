@@ -14,16 +14,24 @@ Option Explicit
 
 Private WithEvents ticker As Metronome
 Attribute ticker.VB_VarHelpID = -1
+Private WithEvents ticker2 As Metronome
+Attribute ticker2.VB_VarHelpID = -1
 
 Public Sub Init()
     ticker.Start
+    ticker2.Start
 End Sub
 
 Private Sub Class_Initialize()
-    Application.StatusBar = Now
-    Set ticker = MetronomeCollection.Add(1000, True, -1)
+    Set ticker = MetronomeCollection.Add(4000, True, -1)
+    Set ticker2 = MetronomeCollection.Add(1000, True, -1)
 End Sub
 
 Private Sub ticker_Tick()
-    Application.StatusBar = Now
+    Application.Speech.Speak "Dum", True
 End Sub
+
+Private Sub ticker2_Tick()
+    Application.Speech.Speak "Chaa", True
+End Sub
+

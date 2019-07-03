@@ -108,8 +108,8 @@ Private Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IM
         If this.synchronousTickers.Count = 0 Then
             tryGetTickerFromID = False
         Else
-            tryGetTickerFromID = True
             Set outTicker = this.synchronousTickers.Pop
+            tryGetTickerFromID = True
         End If
         
     ElseIf Not this.activeTickers.Exists(timerID) Then
