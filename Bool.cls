@@ -16,7 +16,7 @@ Option Explicit
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
 ''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
-#If Win64 Then
+#If VBA7 Then
     Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As Long)
     Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
 #Else
@@ -43,12 +43,16 @@ Public Property Let value(ByVal newVal As Boolean)
 End Property
 
 '@Description("Create instance of Bool class from objPtr")
-Public Function FromPtr(ByVal pData As LongPtr) As Bool 'NOTE fails in VBA6 as no LongPtr
+#If VBA7 Then
+Public Function FromPtr(ByVal pData As LongPtr) As Bool
 Attribute FromPtr.VB_Description = "Create instance of Bool class from objPtr"
-    Dim result As New Bool
-    CopyMemory result, pData, LenB(pData)
-    Set FromPtr = result
-    ZeroMemory result, LenB(pData)               ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+#Else
+Public Function FromPtr(ByVal pData As Long) As Bool
+#End If
+Dim result As Object
+CopyMemory result, pData, LenB(pData)
+Set FromPtr = result
+ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 '@Description("Class Constructor takes Boolean or Boolean-like values")

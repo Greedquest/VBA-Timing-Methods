@@ -101,7 +101,7 @@ End Function
 
 Private Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IMetronomeControls) As Boolean
     
-    Const synchronousTimerID As Long = 0 'NOTE this should really be defined in TickerAPI TryCallProc or another public place
+    Const synchronousTimerID As Long = 0         'NOTE this should really be defined in TickerAPI TryCallProc or another public place
     
     'it's possible we are in a synchronous stack - the ticker for a given timer won't have an ID corresponding to a timer yet
     If timerID = synchronousTimerID Then
