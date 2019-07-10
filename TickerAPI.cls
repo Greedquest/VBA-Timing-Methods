@@ -25,7 +25,10 @@ Public Enum TimerError
     DestroyTimerError
     TimerNotFoundError
     SynchronousCallError
+    TimerApiLockedError
 End Enum
+
+Private Const Default_Lock As Boolean = True
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
                          ByVal HWnd As Long, _
@@ -48,6 +51,7 @@ Private Type tCallback
     timerIDs As New Dictionary
     functionSet As New Dictionary
     recursionStack As New Stack
+    isLocked As Boolean
 End Type
 
 Private this As tCallback
@@ -215,6 +219,8 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
             Err.Description = "Couldn't create Timer"
         Case TimerError.SynchronousCallError
             Err.Description = "Error when running synchronously"
+        Case TimerError.TimerApiLockedError
+            Err.Description = "Call the Unlock method before attempting to use the API"
         Case Else
             'rethrow error
     End Select
@@ -222,7 +228,16 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
     Err.Raise errorCode
 End Sub
 
+Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
+    If this.isLocked Then raiseError TimerApiLockedError, source
+End Sub
+
+Public Sub UnlockTimer()
+    this.isLocked = False
+End Sub
+
 Private Sub Class_Initialize()
+    this.isLocked = Default_Lock
     KillAllTimers
 End Sub
 
