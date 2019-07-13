@@ -209,6 +209,7 @@ Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDesc
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As String = "raiseError")
+    'BUG raising an unhandled error crashes if there are any messages queued, so we also need to flush the queue before raising errors
     KillAllTimers
     Select Case errorCode
         Case TimerError.DestroyTimerError
