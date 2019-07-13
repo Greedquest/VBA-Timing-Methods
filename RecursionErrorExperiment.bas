@@ -4,8 +4,33 @@ Option Explicit
 Private Const timerDelay As Long = 2000
 Private id As Long
 
-Public Sub immediateCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
+                         ByVal HWnd As Long, _
+                         ByVal nIDEvent As Long, _
+                         ByVal uElapse As Long, _
+                         ByVal lpTimerFunc As Long) As Long
 
+Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
+                         ByVal HWnd As Long, _
+                         ByVal nIDEvent As Long) As Long
+
+Sub toggleTimer()
+    Static runningID As Long
+    Const defaultID As Long = 100
+    
+    If runningID = 0 Then
+        ApiKillTimer Application.HWnd, defaultID
+        runningID = -defaultID
+    End If
+    
+    If runningID = -defaultID Then
+        Debug.Print "Starting"
+        runningID = ApiSetTimer(Application.HWnd, defaultID, timerDelay, AddressOf CallbackFunctions.SafeTickingProc)
+    Else
+        Debug.Print "Stopping"
+        ApiKillTimer Application.HWnd, defaultID
+        runningID = -defaultID
+    End If
 End Sub
 
 Private Sub problematicSelfStartingCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
