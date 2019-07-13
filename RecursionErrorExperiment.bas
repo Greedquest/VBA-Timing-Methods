@@ -5,7 +5,9 @@ Option Explicit
 Private Sub problematicSelfStartingCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Static i As Long
     i = i + 1
-    Debug.Print i; ": Self starter callback called"
+    Debug.Print i; ": Self starter callback called - killing old timer"
+    TickerAPI.KillTimerByID timerID
+    Debug.Print i; ": Creating new timer"
     TickerAPI.StartTimer AddressOf problematicSelfStartingCallback, False, 1000
 End Sub
 
