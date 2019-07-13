@@ -237,6 +237,10 @@ Public Sub UnlockTimer()
     this.isLocked = False
 End Sub
 
+Public Sub immediateCall()
+    
+End Sub
+
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
     KillAllTimers

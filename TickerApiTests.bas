@@ -34,10 +34,10 @@ Private Sub ModuleCleanup()
     'this method runs once per module.
     Set Assert = Nothing
     Set Fakes = Nothing
-    Dim ID As Variant
-    For Each ID In tempIDs.Keys
-        ApiKillTimer Application.HWnd, ID
-    Next ID
+    Dim id As Variant
+    For Each id In tempIDs.Keys
+        ApiKillTimer Application.HWnd, id
+    Next id
     TickerAPI.KillAllTimers
 End Sub
 

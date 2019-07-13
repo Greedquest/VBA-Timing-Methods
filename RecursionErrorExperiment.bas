@@ -1,6 +1,12 @@
 Attribute VB_Name = "RecursionErrorExperiment"
 '@Folder("Tests")
 Option Explicit
+Private Const timerDelay As Long = 2000
+Private id As Long
+
+Public Sub immediateCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+
+End Sub
 
 Private Sub problematicSelfStartingCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Static i As Long
@@ -12,8 +18,12 @@ Private Sub problematicSelfStartingCallback(ByVal createTimer As Long, ByVal mes
     On Error GoTo 0
     
 continueAsNormal:
-    Debug.Print i; ": Creating new timer"
-    TickerAPI.StartTimer AddressOf problematicSelfStartingCallback, False, 1000
+    If i < 5 Then
+        Debug.Print i; ": Creating new timer"
+        TickerAPI.StartTimer AddressOf problematicSelfStartingCallback, False, timerDelay
+    Else
+        Debug.Print i; ": Recursion limit reached"
+    End If
     Exit Sub
     
 checkError:
@@ -28,5 +38,15 @@ End Sub
 
 
 Sub testSelfStarter()
-    TickerAPI.StartTimer AddressOf problematicSelfStartingCallback, False, 1000
+    Debug.Print "hi"
+    id = TickerAPI.StartTimer(AddressOf problematicSelfStartingCallback, False, timerDelay)
+    Debug.Print "ho"
+    'Application.Wait TimeSerial(Hour(Now), Minute(Now), Second(Now) + 8)
+
+End Sub
+
+Sub endSelfStarter()
+    Debug.Print "silver lining"
+    On Error Resume Next
+    TickerAPI.KillTimerByID id
 End Sub
