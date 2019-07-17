@@ -1,7 +1,8 @@
 Attribute VB_Name = "RecursionErrorExperiment"
 '@Folder("Tests")
 Option Explicit
-Private Const timerDelay As Long = 2000
+Private Const defaultTimerDelay As Long = 1000
+Private Const MillisToSeconds As Double = 1 / 1000
 Private id As Long
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
@@ -33,45 +34,45 @@ Sub toggleTimer()
     End If
 End Sub
 
-Private Sub problematicSelfStartingCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
-    Static i As Long
-    i = i + 1
-    Debug.Print i; ": Self starter callback called - killing old timer"
-    
-    On Error GoTo checkError
-    TickerAPI.KillTimerByID timerID
-    On Error GoTo 0
-    
-continueAsNormal:
-    If i < 5 Then
-        Debug.Print i; ": Creating new timer"
-        TickerAPI.StartTimer AddressOf problematicSelfStartingCallback, False, timerDelay
-    Else
-        Debug.Print i; ": Recursion limit reached"
-    End If
-    Exit Sub
-    
-checkError:
-    If Err.Number = TimerError.TimerNotFoundError Or Err.Number = TimerError.DestroyTimerError Then
-        'do nothing
-    Else
-        Debug.Print Err.Number, Err.Description
-    End If
-    Resume continueAsNormal
-        
-End Sub
+Sub testVariousMessageDelays()
+'Possible delay sources:
+' - DoEvents Loop
+' - Application.Wait (synchronous sleep)
+' - Api Sleep / Application.OnTime (Async sleep)
+' - Actual work; tight timer loop
+' - UI work; calculation / edit cells
 
-
-Sub testSelfStarter()
-    Debug.Print "hi"
-    id = TickerAPI.StartTimer(AddressOf problematicSelfStartingCallback, False, timerDelay)
-    Debug.Print "ho"
-    'Application.Wait TimeSerial(Hour(Now), Minute(Now), Second(Now) + 8)
+'QUs:
+'Do messages ever build up
+' - from one/ multiple sources
+' - with different delays
 
 End Sub
 
-Sub endSelfStarter()
-    Debug.Print "silver lining"
-    On Error Resume Next
-    TickerAPI.KillTimerByID id
+Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
+    Dim endTime As Single
+    endTime = timer + delayMillis
+    Do While timer < endTime
+        DoEvents
+    Loop
 End Sub
+
+Public Sub applicationWaitDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
+    Application.Wait futureTime(delayMillis)
+End Sub
+
+Public Sub tightLoopDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
+    Dim endTime As Single
+    endTime = timer + delayMillis
+    Do While timer < endTime
+        'do nothing :(
+    Loop
+End Sub
+
+Public Sub applicationOnTimeDelay(ByVal callback As String, Optional ByVal delayMillis As Long = defaultTimerDelay)
+    Application.OnTime futureTime(delayMillis), callback
+End Sub
+
+Private Function futureTime(ByVal delayMillis As Long) As Variant
+    futureTime = TimeSerial(Hour(Now), Minute(Now), Second(Now) + delayMillis * MillisToSeconds)
+End Function

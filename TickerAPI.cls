@@ -237,8 +237,8 @@ Public Sub UnlockTimer()
     this.isLocked = False
 End Sub
 
-Public Sub immediateCall()
-    
+Public Sub ImmediateCall()
+    Me.StartTimer AddressOf QuietTerminatingProc, False, 0
 End Sub
 
 Private Sub Class_Initialize()

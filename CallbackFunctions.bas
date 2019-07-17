@@ -28,7 +28,10 @@ Public Sub SafeTickingProc(ByVal windowHandle As Long, ByVal message As WindowsM
     Static i As Long
     Debug.Print "Ticking "; i
     i = i + 1
-    If i > 10 Then TickerAPI.KillTimerByID timerID 'stop timer
+    If i > 10 Then
+        On Error Resume Next
+        TickerAPI.KillTimerByID timerID 'stop timer
+    End If
 End Sub
 
 Public Sub RecursiveProc(ByRef createTimer As Bool, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
@@ -41,3 +44,11 @@ Public Sub RecursiveProc(ByRef createTimer As Bool, ByVal message As WindowsMess
     createTimer = i = 1
 End Sub
 
+Public Sub UnlockCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+    TickerAPI.UnlockTimer
+    If message = WM_NOTIFY Then
+        Bool.FromPtr(createTimer) = False
+    Else
+        TickerAPI.KillTimerByID timerID
+    End If
+End Sub
