@@ -235,15 +235,19 @@ End Sub
 
 Public Sub UnlockApi()
     this.isLocked = False
+    log DebugLevel, "UnlockApi", "API unlocking called"
 End Sub
 
 Private Sub scheduleUnlock()
-    Me.StartTimer AddressOf UnlockCallbackProc, False, 0
+    Me.StartTimer AddressOf TickerAPITimerProcs.UnlockCallbackProc, False, 0
 End Sub
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
     KillAllTimers
+    
+    'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
+    If this.isLocked Then scheduleUnlock
 End Sub
 
 Private Sub Class_Terminate()

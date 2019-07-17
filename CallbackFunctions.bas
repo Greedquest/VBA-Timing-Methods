@@ -62,12 +62,3 @@ Public Sub RecursiveProc(ByRef createTimer As Bool, ByVal message As WindowsMess
     i = i - 1
     createTimer = i = 1
 End Sub
-
-Public Sub UnlockCallbackProc(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
-    TickerAPI.UnlockApi
-    If message = WM_NOTIFY Then
-        Bool.FromPtr(createTimer) = False
-    Else
-        TickerAPI.KillTimerByID timerID
-    End If
-End Sub
