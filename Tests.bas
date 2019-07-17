@@ -33,11 +33,15 @@ Public Sub testAsyncTerminating()                'TickerAPI.killalltimers
 End Sub
 
 Public Sub testSyncTicking()
-    TickerAPI.StartTimer AddressOf SafeTickingProc, True
+    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True
 End Sub
 
 Public Sub testAsyncTicking()
-    TickerAPI.StartTimer AddressOf SafeTickingProc, False
+    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, False
 End Sub
 
-
+Public Sub testInterwovenTicking()
+    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True, 1000
+    doEventsDelay 500
+    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True, 1000
+End Sub

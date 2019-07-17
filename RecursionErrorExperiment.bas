@@ -3,22 +3,22 @@ Attribute VB_Name = "RecursionErrorExperiment"
 Option Explicit
 Private Const defaultTimerDelay As Long = 1000
 Private Const MillisToSeconds As Double = 1 / 1000
+Private Const defaultID As Long = 100
 Private id As Long
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
                          ByVal HWnd As Long, _
-                         ByVal nIDEvent As Long, _
-                         ByVal uElapse As Long, _
-                         ByVal lpTimerFunc As Long) As Long
+                         Optional ByVal nIDEvent As Long = defaultID, _
+                         Optional ByVal uElapse As Long = defaultTimerDelay, _
+                         Optional ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
                          ByVal HWnd As Long, _
                          ByVal nIDEvent As Long) As Long
-
-Sub toggleTimer()
+                         
+Private Sub toggleDefaultTimer()
     Static runningID As Long
-    Const defaultID As Long = 100
-    
+       
     If runningID = 0 Then
         ApiKillTimer Application.HWnd, defaultID
         runningID = -defaultID
@@ -26,7 +26,7 @@ Sub toggleTimer()
     
     If runningID = -defaultID Then
         Debug.Print "Starting"
-        runningID = ApiSetTimer(Application.HWnd, defaultID, timerDelay, AddressOf CallbackFunctions.SafeTickingProc)
+        runningID = ApiSetTimer(Application.HWnd, lpTimerFunc:=AddressOf CallbackFunctions.SafeTickingProc)
     Else
         Debug.Print "Stopping"
         ApiKillTimer Application.HWnd, defaultID
@@ -49,9 +49,13 @@ Sub testVariousMessageDelays()
 
 End Sub
 
+Sub testOneSource()
+    'TickerAPI.StartTimer AddressOf SafeTickingProc
+End Sub
+
 Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Dim endTime As Single
-    endTime = timer + delayMillis
+    endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
         DoEvents
     Loop
@@ -63,7 +67,7 @@ End Sub
 
 Public Sub tightLoopDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Dim endTime As Single
-    endTime = timer + delayMillis
+    endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
         'do nothing :(
     Loop

@@ -233,12 +233,12 @@ Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
     If this.isLocked Then raiseError TimerApiLockedError, source
 End Sub
 
-Public Sub UnlockTimer()
+Public Sub UnlockApi()
     this.isLocked = False
 End Sub
 
-Public Sub ImmediateCall()
-    Me.StartTimer AddressOf QuietTerminatingProc, False, 0
+Private Sub scheduleUnlock()
+    Me.StartTimer AddressOf UnlockCallbackProc, False, 0
 End Sub
 
 Private Sub Class_Initialize()
@@ -249,5 +249,6 @@ End Sub
 Private Sub Class_Terminate()
     KillAllTimers
 End Sub
+
 
 
