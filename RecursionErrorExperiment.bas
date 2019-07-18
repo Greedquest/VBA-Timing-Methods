@@ -7,29 +7,31 @@ Private Const defaultID As Long = 100
 Private id As Long
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal HWnd As Long, _
+                         ByVal hWnd As Long, _
                          Optional ByVal nIDEvent As Long = defaultID, _
                          Optional ByVal uElapse As Long = defaultTimerDelay, _
                          Optional ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal HWnd As Long, _
+                         ByVal hWnd As Long, _
                          ByVal nIDEvent As Long) As Long
                          
+Private Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByVal lpMsg As LongPtr, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As Long) As Boolean
+                        
 Private Sub toggleDefaultTimer()
     Static runningID As Long
        
     If runningID = 0 Then
-        ApiKillTimer Application.HWnd, defaultID
+        ApiKillTimer Application.hWnd, defaultID
         runningID = -defaultID
     End If
     
     If runningID = -defaultID Then
         Debug.Print "Starting"
-        runningID = ApiSetTimer(Application.HWnd, lpTimerFunc:=AddressOf CallbackFunctions.SafeTickingProc)
+        runningID = ApiSetTimer(Application.hWnd, lpTimerFunc:=AddressOf CallbackFunctions.SafeTickingProc)
     Else
         Debug.Print "Stopping"
-        ApiKillTimer Application.HWnd, defaultID
+        ApiKillTimer Application.hWnd, defaultID
         runningID = -defaultID
     End If
 End Sub
