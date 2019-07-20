@@ -31,13 +31,13 @@ End Enum
 Private Const Default_Lock As Boolean = True
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hWnd As Long, _
+                         ByVal hwnd As Long, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
                          ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hWnd As Long, _
+                         ByVal hwnd As Long, _
                          ByVal nIDEvent As Long) As Long
 
 Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
@@ -46,6 +46,7 @@ Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA"
                          Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                          Optional ByVal timerID As Long = 0, _
                          Optional ByVal unused3 As Long) As Long
+                           
 
 Private Type tCallback
     timerIDs As New Dictionary
@@ -59,8 +60,7 @@ Private this As tCallback
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
-    'If outTimerID = -1 Then outTimerID = getUniqueID(timerFunction)
-    'Set this.recursionStack = New Stack
+    
     If runImmediately Then
         Dim makeTimer As Bool
         Set makeTimer = Bool.Create(True)        'TODO can raise error
@@ -153,7 +153,7 @@ End Function
 Private Function tryCreateTimer(ByVal timerFunction As Long, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = ApiSetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
+        outTimerID = ApiSetTimer(Application.hwnd, getUniqueID, delayMillis, timerFunction)
         this.timerIDs(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
@@ -171,10 +171,10 @@ End Function
 Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = ApiKillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = ApiKillTimer(Application.hwnd, timerID) 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = ApiKillTimer(Application.hWnd, timerID)
+        tryKillTimer = ApiKillTimer(Application.hwnd, timerID)
     End If
 
 cleanExit:
@@ -239,7 +239,7 @@ Public Sub UnlockApi()
 End Sub
 
 Private Sub scheduleUnlock()
-    Me.StartTimer AddressOf TickerAPITimerProcs.UnlockCallbackProc, False, 0
+    'Me.StartTimer AddressOf TickerAPITimerProcs.UnlockCallbackProc, False, 0
 End Sub
 
 Private Sub Class_Initialize()
@@ -253,6 +253,5 @@ End Sub
 Private Sub Class_Terminate()
     KillAllTimers
 End Sub
-
 
 

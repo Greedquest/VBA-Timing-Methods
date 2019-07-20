@@ -45,3 +45,5 @@ Public Sub testInterwovenTicking()
     doEventsDelay 500
     TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True, 1000
 End Sub
+
+

@@ -7,13 +7,13 @@ Option Private Module
 '@Folder("Tests")
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hWnd As Long, _
+                         ByVal hwnd As Long, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
                          ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hWnd As Long, _
+                         ByVal hwnd As Long, _
                          ByVal nIDEvent As Long) As Long
                          
 Private tempIDs As Dictionary
@@ -36,7 +36,7 @@ Private Sub ModuleCleanup()
     Set Fakes = Nothing
     Dim id As Variant
     For Each id In tempIDs.Keys
-        ApiKillTimer Application.hWnd, id
+        ApiKillTimer Application.hwnd, id
     Next id
     TickerAPI.KillAllTimers
 End Sub
@@ -98,7 +98,7 @@ Private Sub StartExistingTimerNoError()
     On Error GoTo TestFail
     
     'Arrange:
-    tempIDs.Add 1, ApiSetTimer(Application.hWnd, 1, 10000, AddressOf SafeCallbackProc)
+    tempIDs.Add 1, ApiSetTimer(Application.hwnd, 1, 10000, AddressOf SafeCallbackProc)
             
     'Act:
     Dim apiID As Long
@@ -122,7 +122,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     'Arrange:
     TickerAPI.StartTimer AddressOf QuietNoOpCallback, False
     Dim killSuccess As Boolean
-    killSuccess = ApiKillTimer(Application.hWnd, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
+    killSuccess = ApiKillTimer(Application.hwnd, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone
