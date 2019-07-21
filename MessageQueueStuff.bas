@@ -31,23 +31,25 @@ Public Const QS_TIMER As Long = &H10
 Public Const QS_ALLINPUT As Long = &H4FF
 Private Const WM_TIMER As Long = &H113
 
-Private Sub t()
-    Debug.Print "Posting... "; PostMessage(Application.hwnd, WM_TIMER, 0, 0)
-    
-    Dim result As Long
-    result = GetQueueStatus(QS_TIMER)
-    Debug.Print "Status: "; result
+Function tryScheduleProc(timerProc As LongPtr, ByVal arg As Object) As Boolean
+    Debug.Print "Scheduling..."
+    tryScheduleProc = PostMessage(Application.hwnd, WM_TIMER, objPtr(arg), timerProc)
+End Function
+
+Sub asyncProc(ByVal hwnd As Long, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+    Debug.Print "asyncProc called (should be called second)"
 End Sub
 
-Public Sub t2()
-    Dim endTime As Single
-    endTime = 2 + timer
-    Dim outMsg As tagMSG
-    Do Until PeekMessage(outMsg, Application.hwnd, 0, 0, PM_NOREMOVE) Or timer > endTime
-        PostMessage Application.hwnd, WM_TIMER, 0, 0
-    Loop
-    Debug.Print outMsg.lParam
-    
+Sub syncProc()
+    Debug.Print "syncProc called (should be called first)"
+End Sub
+
+Sub test()
+    If tryScheduleProc(AddressOf asyncProc, New Collection) Then
+        syncProc
+    Else
+        Debug.Print "Error trying to schedule proc"
+    End If
 End Sub
 
 Public Sub PrintMessageQueue(Optional filterLow As Long = 0, Optional filterHigh As Long = 0)

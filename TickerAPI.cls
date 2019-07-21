@@ -272,27 +272,27 @@ Public Function tryScheduleUnlock() As Boolean
     
     'Promote message from autogen queue
     Dim msg As tagMSG
-
-    If Not waitForMessage(msg, timerID, 1000, PM_NOREMOVE) Then
-        tryKillTimer timerID
-    End If
+'
+'    If Not waitForMessage(msg, timerID, 1000, PM_NOREMOVE) Then
+'        tryKillTimer timerID
+'    End If
         
 End Function
 
-Private Function waitForMessage(outMsg As tagMSG, ByVal timerID As Long, Optional ByVal delayMillis As Long = 1000, Optional ByVal flags As Long = PM_NOREMOVE) As Boolean
-    Dim endTime As Single
-    endTime = timer + delayMillis * MillisToSeconds
-
-    Do While timer < endTime
-        If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
-
-            If outMsg.wParam = timerID Then 'check whether it's the message we're after
-                waitForMessage = True
-                Exit Do
-            End If
-        End If
-    Loop
-End Function
+'Private Function waitForMessage(outMsg As tagMSG, ByVal timerID As Long, Optional ByVal delayMillis As Long = 1000, Optional ByVal flags As Long = PM_NOREMOVE) As Boolean
+'    Dim endTime As Single
+'    endTime = timer + delayMillis * MillisToSeconds
+'
+'    Do While timer < endTime
+'        If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
+'
+'            If outMsg.wParam = timerID Then 'check whether it's the message we're after
+'                waitForMessage = True
+'                Exit Do
+'            End If
+'        End If
+'    Loop
+'End Function
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
@@ -300,7 +300,7 @@ Private Sub Class_Initialize()
     KillAllTimers
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
-    If this.isLocked Then scheduleUnlock
+    If this.isLocked Then tryScheduleUnlock
 End Sub
 
 Private Sub Class_Terminate()
