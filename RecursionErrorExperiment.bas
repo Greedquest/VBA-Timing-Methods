@@ -9,13 +9,13 @@ Private id As Long
 Public hasBeenRun As Boolean
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hwnd As Long, _
+                         ByVal hWnd As Long, _
                          Optional ByVal nIDEvent As Long = defaultID, _
                          Optional ByVal uElapse As Long = defaultTimerDelay, _
                          Optional ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hwnd As Long, _
+                         ByVal hWnd As Long, _
                          Optional ByVal nIDEvent As Long = defaultID) As Long
                          
 'Private Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByVal lpMsg As LongPtr, ByVal hwnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As Long) As Boolean
@@ -35,10 +35,10 @@ Private Sub testCallbackProc(ByVal windowHandle As Long, ByVal message As Window
     
 End Sub
 
-Public Sub quietSelfDestructingTimerProc(ByVal hwnd As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+Public Sub quietSelfDestructingTimerProc(ByVal hWnd As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Debug.Print timerID; " Arrived"
     If timerID = defaultID Then
-        ApiKillTimer hwnd, timerID
+        ApiKillTimer hWnd, timerID
     Else
         ApiKillTimer 0, timerID
     End If
@@ -48,17 +48,17 @@ Private Sub toggleDefaultTimer()
     Static runningID As Long
        
     If runningID = 0 Then
-        ApiKillTimer Application.hwnd, defaultID
+        ApiKillTimer Application.hWnd, defaultID
         runningID = -defaultID
     End If
     
     If runningID = -defaultID Then
         Debug.Print "Starting"
         hasBeenRun = False
-        runningID = ApiSetTimer(Application.hwnd, lpTimerFunc:=AddressOf testCallbackProc)
+        runningID = ApiSetTimer(Application.hWnd, lpTimerFunc:=AddressOf testCallbackProc)
     Else
         Debug.Print "Stopping"
-        ApiKillTimer Application.hwnd, defaultID
+        ApiKillTimer Application.hWnd, defaultID
         runningID = -defaultID
     End If
 End Sub
@@ -89,13 +89,13 @@ End Sub
 Public Sub testMessagePromotion()                'YEPPPPPP
     Dim quickTimer As Long, slowTimer As Long
     quickTimer = ApiSetTimer(0, 0, uElapse:=10, lpTimerFunc:=AddressOf quietSelfDestructingTimerProc)
-    slowTimer = ApiSetTimer(Application.hwnd, uElapse:=1000, lpTimerFunc:=AddressOf quietSelfDestructingTimerProc)
+    slowTimer = ApiSetTimer(Application.hWnd, uElapse:=1000, lpTimerFunc:=AddressOf quietSelfDestructingTimerProc)
     tightLoopDelay 1200                          'allow messages to build up
     
     Dim msg As tagMSG
     If Not tryPeekMessgageDelay(msg, 40, PM_NOREMOVE) Then
         Debug.Print "No message found"
-        ApiKillTimer Application.hwnd, slowTimer
+        ApiKillTimer Application.hWnd, slowTimer
         ApiKillTimer 0, quickTimer
     End If
     Debug.Print printf("lParam: {0}, wParam: {1}", msg.lParam, msg.wParam)
@@ -113,7 +113,7 @@ Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMilli
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
-        If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
+        If PeekMessage(outMsg, Application.hWnd, WM_TIMER, WM_TIMER, flags) Then
             'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
             If outMsg.wParam = timerID Then ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True

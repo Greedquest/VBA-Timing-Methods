@@ -32,13 +32,13 @@ Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hwnd As Long, _
+                         ByVal hWnd As Long, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
                          ByVal lpTimerFunc As Long) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hwnd As Long, _
+                         ByVal hWnd As Long, _
                          ByVal nIDEvent As Long) As Long
 
 Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
@@ -146,7 +146,7 @@ End Sub
 Private Sub clearAllMessages(Optional timerIDs As Dictionary)
     Dim tmpMsg As tagMSG
     Dim i As Long
-    Do While PeekMessage(tmpMsg, Application.hwnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
+    Do While PeekMessage(tmpMsg, Application.hWnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
         'if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
         i = i + 1
     Loop
@@ -177,7 +177,7 @@ End Function
 Private Function tryCreateTimer(ByVal timerFunction As Long, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = ApiSetTimer(Application.hwnd, getUniqueID, delayMillis, timerFunction)
+        outTimerID = ApiSetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
         this.timerIDs(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
@@ -196,10 +196,10 @@ Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = ApiKillTimer(Application.hwnd, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = ApiKillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = ApiKillTimer(Application.hwnd, timerID)
+        tryKillTimer = ApiKillTimer(Application.hWnd, timerID)
     End If
 
 cleanExit:
