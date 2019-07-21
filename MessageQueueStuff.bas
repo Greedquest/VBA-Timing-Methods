@@ -61,8 +61,12 @@ Public Sub PrintMessageQueue(Optional filterLow As Long = 0, Optional filterHigh
         End If
     Loop
     'put them back?
-    Dim key
-    For Each key In dict.Keys
-        Debug.Print key, dict(key)
-    Next key
+    If results.Count = 0 Then
+        Debug.Print "No Messages"
+    Else
+        Dim key
+        For Each key In results.Keys
+            Debug.Print key, results(key)
+        Next key
+    End If
 End Sub
