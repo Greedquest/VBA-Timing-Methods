@@ -109,17 +109,13 @@ Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Loop
 End Sub
 
-Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMillis As Long = defaultTimerDelay, Optional ByVal flags As Long = PM_REMOVE) As Boolean
+Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMillis As Long = defaultTimerDelay, Optional ByVal flags As Long = PM_REMOVE, Optional ByVal timerID As Long = defaultID) As Boolean
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
         If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
-            
-            Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
-            '            If outMsg.wParam = 0 Then 'the function pointer is null - not a cutom callback
-            '                Dim postSuccess As Boolean
-            '                postSuccess = PostMessage(outMsg.hwnd, outMsg.message, outMsg.wParam, outMsg.lParam)
-            If outMsg.wParam = defaultID Or outMsg.lParam = 0 Then
+            'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
+            If outMsg.wParam = timerID Then ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True
                 Exit Do
             End If

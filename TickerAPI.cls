@@ -29,6 +29,7 @@ Public Enum TimerError
 End Enum
 
 Private Const Default_Lock As Boolean = True
+Private Const Default_Max_Timer_Count As Long = 100
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
                          ByVal hwnd As Long, _
@@ -49,10 +50,11 @@ Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA"
                            
 
 Private Type tCallback
-    timerIDs As New Dictionary
-    functionSet As New Dictionary
+    timerIDs As New Dictionary 'SetTimer ID: Callback Fn
+    'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
+    maxTimerCount As Long
 End Type
 
 Private this As tCallback
@@ -60,7 +62,7 @@ Private this As tCallback
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
-    
+    checkIfLocked "StartTimer"
     If runImmediately Then
         Dim makeTimer As Bool
         Set makeTimer = Bool.Create(True)        'TODO can raise error
@@ -83,6 +85,7 @@ End Function
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As Long)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
+    checkIfLocked "KillTimerByID"
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
             raiseError DestroyTimerError, "KillTimerByID"
@@ -95,6 +98,7 @@ End Sub
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimersByFunction(ByVal timerFunction As Long)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
+    checkIfLocked "KillTimersByFunction"
     Dim key As Variant
     For Each key In this.timerIDs.Keys
         If this.timerIDs(key) = timerFunction Then
@@ -110,23 +114,43 @@ End Sub
 Public Sub KillAllTimers()
 Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors"
     'NOTE this procedure is called when raising errors so must not raise any itself
+    
+    'don't use normal checking method as that raises an error
+    If this.isLocked Then
+        log WarnLevel, "KillAllTimers", "API is locked"
+        Exit Sub
+    End If
+        
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     If this.timerIDs.Count = 0 Then
+        'we have no info about what already exists
         Dim i As Long
         log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
         Do                                       'loop through all timers for this hwnd
             i = i + 1
-        Loop While tryKillTimer(i) Or i < 100
+        Loop While tryKillTimer(i) Or i < this.maxTimerCount
+        clearAllMessages timerIDs:=Nothing
     Else
         Dim timerID As Variant
         For Each timerID In this.timerIDs
             On Error Resume Next                 'no point returning success since there's nothing we can do about it
             ApiKillTimer 0, this.timerIDs(timerID)
             tryKillTimer this.timerIDs(timerID)
-            log DebugLevel, "KillAllTimers", printf("Killing {0}", timerID)
+            log DebugLevel, "KillAllTimers", printf("Killing timer #{0}", timerID)
         Next timerID
+        clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
     End If
+End Sub
+
+Private Sub clearAllMessages(Optional timerIDs As Dictionary)
+    Dim tmpMsg As tagMSG
+    Dim i As Long
+    Do While PeekMessage(tmpMsg, Application.hwnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
+        'if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
+        i = i + 1
+    Loop
+    log InfoLevel, "clearAllMessages", printf("Cleared {0} messages", i)
 End Sub
 
 '@Description("Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise")
@@ -169,6 +193,7 @@ cleanFail:
 End Function
 
 Private Function tryKillTimer(ByVal timerID As Long) As Boolean
+    'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
         tryKillTimer = ApiKillTimer(Application.hwnd, timerID) 'kill the timer associated with that fn  & ID
@@ -238,12 +263,40 @@ Public Sub UnlockApi()
     log DebugLevel, "UnlockApi", "API unlocking called"
 End Sub
 
-Private Sub scheduleUnlock()
-    'Me.StartTimer AddressOf TickerAPITimerProcs.UnlockCallbackProc, False, 0
-End Sub
+Public Function tryScheduleUnlock() As Boolean
+    Dim timerID As Long
+    If Not tryCreateTimer(AddressOf TickerAPITimerProcs.UnlockCallbackProc, timerID, 0) Then
+        tryScheduleUnlock = False
+        Exit Function
+    End If
+    
+    'Promote message from autogen queue
+    Dim msg As tagMSG
+
+    If Not waitForMessage(msg, timerID, 1000, PM_NOREMOVE) Then
+        tryKillTimer timerID
+    End If
+        
+End Function
+
+Private Function waitForMessage(outMsg As tagMSG, ByVal timerID As Long, Optional ByVal delayMillis As Long = 1000, Optional ByVal flags As Long = PM_NOREMOVE) As Boolean
+    Dim endTime As Single
+    endTime = timer + delayMillis * MillisToSeconds
+
+    Do While timer < endTime
+        If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
+
+            If outMsg.wParam = timerID Then 'check whether it's the message we're after
+                waitForMessage = True
+                Exit Do
+            End If
+        End If
+    Loop
+End Function
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
+    this.maxTimerCount = Default_Max_Timer_Count
     KillAllTimers
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise

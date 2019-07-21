@@ -50,3 +50,19 @@ Public Sub t2()
     
 End Sub
 
+Public Sub PrintMessageQueue(Optional filterLow As Long = 0, Optional filterHigh As Long = 0)
+    Dim msg As tagMSG
+    Dim results As New Dictionary
+    Do While PeekMessage(msg, Application.hwnd, filterLow, filterHigh, PM_REMOVE)
+        If results.Exists(msg.message) Then
+            results(msg.message) = results(msg.message) + 1
+        Else
+            results(msg.message) = 1
+        End If
+    Loop
+    'put them back?
+    Dim key
+    For Each key In dict.Keys
+        Debug.Print key, dict(key)
+    Next key
+End Sub

@@ -45,6 +45,7 @@ End Sub
 Private Sub TestInitialize()
     Debug.Print String(50, "-")
     Set TickerAPI = New TickerAPI
+    TickerAPI.UnlockApi 'for simplicity
 End Sub
 
 '@TestCleanup
