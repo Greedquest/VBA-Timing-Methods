@@ -117,10 +117,11 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
     'NOTE this procedure is called when raising errors so must not raise any itself
     
     'don't use normal checking method as that raises an error
-    If this.isLocked Then
-        log WarnLevel, "KillAllTimers", "API is locked"
-        Exit Sub
-    End If
+    'should be immune to locking
+'    If this.isLocked Then
+'        log WarnLevel, "KillAllTimers", "API is locked"
+'        Exit Sub
+'    End If
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     If this.timerIDs.Count = 0 Then
@@ -180,14 +181,14 @@ Private Function tryScheduleProc(ByVal timerProc As LongPtr) As Boolean
 
     'messages must be associated with a valid timer, so let's make one
     Dim validationTimerID As Long
-    Const INFINITE_INTERVAL As Long = &HFFFFFFFF
+    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
     If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
         tryScheduleProc = False
         Exit Function
     End If
     
     'Post fake message to queue
-    If Not PostMessage(Application.hWnd, WM_TIMER, validationTimerID, timerProc) Then
+    If PostMessage(Application.hWnd, WM_TIMER, validationTimerID, timerProc) = False Then
         tryKillTimer validationTimerID
         tryScheduleProc = False
         Exit Function
@@ -236,6 +237,7 @@ cleanFail:
 End Function
 
 Private Function getUniqueID() As Long
+'TODO if we keep track of ids then they should always be consecutive with max 1 gap
     Static i As Long
     i = i + 1
     getUniqueID = i
@@ -302,5 +304,3 @@ End Sub
 Private Sub Class_Terminate()
     KillAllTimers
 End Sub
-
-
