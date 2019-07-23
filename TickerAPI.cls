@@ -31,18 +31,18 @@ End Enum
 Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
 
-Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hWnd As Long, _
+Private Declare PtrSafe Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
+                         ByVal hWnd As LongPtr, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
-                         ByVal lpTimerFunc As Long) As Long
+                         ByVal lpTimerFunc As LongPtr) As Long
 
-Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hWnd As Long, _
+Private Declare PtrSafe Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
+                         ByVal hWnd As LongPtr, _
                          ByVal nIDEvent As Long) As Long
 
-Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
-                         ByVal lpPrevWndFunc As Long, _
+Private Declare PtrSafe Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
+                         ByVal lpPrevWndFunc As LongPtr, _
                          ByRef timerFlag As Bool, _
                          Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                          Optional ByVal timerID As Long = 0, _
@@ -60,7 +60,7 @@ End Type
 Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
-Public Function StartTimer(ByVal timerFunction As Long, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
+Public Function StartTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartTimer"
     If runImmediately Then
@@ -74,6 +74,7 @@ Attribute StartTimer.VB_Description = "Create new timer instance with optional s
         Set makeTimer = this.recursionStack.Pop
         If Not makeTimer Then Exit Function
     End If
+    
     Dim newTimerID As Long
     If Not tryCreateTimer(timerFunction, newTimerID, delayMillis) Then
         raiseError CreateTimerError, "StartTimer"
@@ -96,7 +97,7 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
 End Sub
 
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
-Public Sub KillTimersByFunction(ByVal timerFunction As Long)
+Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
     checkIfLocked "KillTimersByFunction"
     Dim key As Variant
@@ -159,7 +160,7 @@ Attribute timerExists.VB_Description = "Checks the runningSet for the item with 
     timerExists = this.timerIDs.Exists(timerID)
 End Property
 
-Private Function tryCallProc(ByVal timerFunction As Long, ByRef timerFlag As Bool) As Boolean
+Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As Bool) As Boolean
     On Error GoTo cleanFail
     CallWindowProc timerFunction, timerFlag, WM_NOTIFY 'not sure what the return value of this is so no useful try result
     tryCallProc = True
@@ -174,7 +175,29 @@ cleanFail:
     
 End Function
 
-Private Function tryCreateTimer(ByVal timerFunction As Long, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
+'@Description("Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created")
+Private Function tryScheduleProc(ByVal timerProc As LongPtr) As Boolean
+
+    'messages must be associated with a valid timer, so let's make one
+    Dim validationTimerID As Long
+    Const INFINITE_INTERVAL As Long = &HFFFFFFFF
+    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
+        tryScheduleProc = False
+        Exit Function
+    End If
+    
+    'Post fake message to queue
+    If Not PostMessage(Application.hWnd, WM_TIMER, validationTimerID, timerProc) Then
+        tryKillTimer validationTimerID
+        tryScheduleProc = False
+        Exit Function
+    End If
+    
+    tryScheduleProc = True
+        
+End Function
+
+Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
         outTimerID = ApiSetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
@@ -264,35 +287,8 @@ Public Sub UnlockApi()
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
-    Dim timerID As Long
-    If Not tryCreateTimer(AddressOf TickerAPITimerProcs.UnlockCallbackProc, timerID, 0) Then
-        tryScheduleUnlock = False
-        Exit Function
-    End If
-    
-    'Promote message from autogen queue
-    Dim msg As tagMSG
-'
-'    If Not waitForMessage(msg, timerID, 1000, PM_NOREMOVE) Then
-'        tryKillTimer timerID
-'    End If
-        
+    tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
 End Function
-
-'Private Function waitForMessage(outMsg As tagMSG, ByVal timerID As Long, Optional ByVal delayMillis As Long = 1000, Optional ByVal flags As Long = PM_NOREMOVE) As Boolean
-'    Dim endTime As Single
-'    endTime = timer + delayMillis * MillisToSeconds
-'
-'    Do While timer < endTime
-'        If PeekMessage(outMsg, Application.hwnd, WM_TIMER, WM_TIMER, flags) Then
-'
-'            If outMsg.wParam = timerID Then 'check whether it's the message we're after
-'                waitForMessage = True
-'                Exit Do
-'            End If
-'        End If
-'    Loop
-'End Function
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
