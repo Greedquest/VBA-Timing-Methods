@@ -3,9 +3,10 @@ Option Explicit
 
 '@Folder("Tests")
 
-Private Sub asyncProc(ByVal hWnd As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+Private Sub asyncProc(ByVal hwnd As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Debug.Print "asyncProc called (should be called second)"
-    killTimer hWnd, timerID
+    killTimer hwnd, timerID
+    Err.Raise 5 'see what happens... :)
 End Sub
 
 Private Sub syncProc()
@@ -23,7 +24,7 @@ End Sub
 Private Function tryScheduleProc(ByVal timerProc As LongPtr, ByVal arg As Object) As Boolean
     Debug.Print "Scheduling..."
     'make a validation timer - this won't expire for a long time
-    'Debug.Print "Create a validation timer:"; SetTimer(Application.hWnd, objPtr(arg), &H7FFFFFFF, timerProc)
-    tryScheduleProc = PostMessage(Application.hWnd, WM_TIMER, objPtr(arg), timerProc)
-    PrintMessageQueue
+    Debug.Print "Create a validation timer:"; SetTimer(Application.hwnd, objPtr(arg), &H7FFFFFFF, timerProc)
+    tryScheduleProc = PostMessage(Application.hwnd, WM_TIMER, objPtr(arg), timerProc)
+    'PrintMessageQueue
 End Function
