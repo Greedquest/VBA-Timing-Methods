@@ -74,7 +74,7 @@ End Function
 
 Private Sub asyncProc(ByVal hwnd As Long, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Debug.Print "asyncProc called (should be called second)"
-    killTimer hwnd, timerID
+    KillTimer hwnd, timerID
 End Sub
 
 Private Sub syncProc()

@@ -5,7 +5,7 @@ Option Explicit
 
 Private Sub asyncProc(ByVal hwnd As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Debug.Print "asyncProc called (should be called second)"
-    killTimer hwnd, timerID
+    KillTimer hwnd, timerID
     Err.Raise 5 'see what happens... :)
 End Sub
 
