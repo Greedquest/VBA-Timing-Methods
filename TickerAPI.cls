@@ -28,33 +28,54 @@ Public Enum TimerError
     TimerApiLockedError
 End Enum
 
-Private Const Default_Lock As Boolean = True
-Private Const Default_Max_Timer_Count As Long = 100
-
-Private Declare PtrSafe Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
+Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
                          ByVal hwnd As LongPtr, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
                          ByVal lpTimerFunc As LongPtr) As Long
 
-Private Declare PtrSafe Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
+Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
                          ByVal hwnd As LongPtr, _
                          ByVal nIDEvent As Long) As Long
 
-Private Declare PtrSafe Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
+Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
                          ByVal lpPrevWndFunc As LongPtr, _
                          ByRef timerFlag As Bool, _
                          Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                          Optional ByVal timerID As Long = 0, _
                          Optional ByVal unused3 As Long) As Long
-                           
+                         
+Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" ( _
+                         ByVal dwExStyle As Long, _
+                         ByVal lpClassName As String, _
+                         ByVal lpWindowName As String, _
+                         ByVal dwStyle As Long, _
+                         ByVal x As Long, _
+                         ByVal y As Long, _
+                         ByVal nWidth As Long, _
+                         ByVal nHeight As Long, _
+                         ByVal hWndParent As LongPtr, _
+                         ByVal hMenu As LongPtr, _
+                         ByVal hInstance As LongPtr, _
+                         lpParam As LongPtr) As LongPtr
 
+Private Declare Function DestroyWindow Lib "user32" ( _
+                         ByVal hwnd As Long) As Long
+
+Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" ( _
+                         ByVal lpClassName As String, _
+                         ByVal lpWindowName As String) As LongPtr
+
+Private Const Default_Lock As Boolean = True
+Private Const Default_Max_Timer_Count As Long = 100
+                           
 Private Type tCallback
-    timerIDs As New Dictionary 'SetTimer ID: Callback Fn
+    timerIDs As New Dictionary                   'SetTimer ID: Callback Fn
     'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
     maxTimerCount As Long
+    windowHandle As LongPtr
 End Type
 
 Private this As tCallback
@@ -118,10 +139,10 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
     
     'don't use normal checking method as that raises an error
     'should be immune to locking
-'    If this.isLocked Then
-'        log WarnLevel, "KillAllTimers", "API is locked"
-'        Exit Sub
-'    End If
+    '    If this.isLocked Then
+    '        log WarnLevel, "KillAllTimers", "API is locked"
+    '        Exit Sub
+    '    End If
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     If this.timerIDs.Count = 0 Then
@@ -237,7 +258,7 @@ cleanFail:
 End Function
 
 Private Function getUniqueID() As Long
-'TODO if we keep track of ids then they should always be consecutive with max 1 gap
+    'TODO if we keep track of ids then they should always be consecutive with max 1 gap
     Static i As Long
     i = i + 1
     getUniqueID = i
@@ -292,6 +313,17 @@ Public Function tryScheduleUnlock() As Boolean
     tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
 End Function
 
+'Private Function tryGenerateWindowHandle(ByRef outHwnd As LongPtr) As Boolean
+'    Const className As String = "Static"
+'    Const windowName As String = "TickerAPI"
+'    Const HWND_MESSAGE As Long = (-3&)
+'    outHwnd = FindWindow(className, windowName)
+'    If outHwnd = 0 Then 'no window found, make one
+'        outHwnd = CreateWindowEx(0, className, windowName, HWND_MESSAGE, 0, 0, 0, 0, 0, 0, 0, 0)
+'    End If
+'    If outHwnd <> 0 Then tryGenerateWindowHandle = True
+'End Function
+
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
@@ -304,3 +336,5 @@ End Sub
 Private Sub Class_Terminate()
     KillAllTimers
 End Sub
+
+
