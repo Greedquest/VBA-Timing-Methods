@@ -44,27 +44,6 @@ Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA"
                          Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                          Optional ByVal timerID As Long = 0, _
                          Optional ByVal unused3 As Long) As Long
-                         
-Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" ( _
-                         ByVal dwExStyle As Long, _
-                         ByVal lpClassName As String, _
-                         ByVal lpWindowName As String, _
-                         ByVal dwStyle As Long, _
-                         ByVal x As Long, _
-                         ByVal y As Long, _
-                         ByVal nWidth As Long, _
-                         ByVal nHeight As Long, _
-                         ByVal hWndParent As LongPtr, _
-                         ByVal hMenu As LongPtr, _
-                         ByVal hInstance As LongPtr, _
-                         lpParam As LongPtr) As LongPtr
-
-Private Declare Function DestroyWindow Lib "user32" ( _
-                         ByVal hwnd As Long) As Long
-
-Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" ( _
-                         ByVal lpClassName As String, _
-                         ByVal lpWindowName As String) As LongPtr
 
 Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
@@ -307,17 +286,6 @@ End Sub
 Public Function tryScheduleUnlock() As Boolean
     tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
 End Function
-
-'Private Function tryGenerateWindowHandle(ByRef outHwnd As LongPtr) As Boolean
-'    Const className As String = "Static"
-'    Const windowName As String = "TickerAPI"
-'    Const HWND_MESSAGE As Long = (-3&)
-'    outHwnd = FindWindow(className, windowName)
-'    If outHwnd = 0 Then 'no window found, make one
-'        outHwnd = CreateWindowEx(0, className, windowName, HWND_MESSAGE, 0, 0, 0, 0, 0, 0, 0, 0)
-'    End If
-'    If outHwnd <> 0 Then tryGenerateWindowHandle = True
-'End Function
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
