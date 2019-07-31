@@ -5,10 +5,11 @@ END
 Attribute VB_Name = "ResourceManager"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
+Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 '@Folder("API.Utils.ResourceManager")
 '@Exposed
+'@PredeclaredId
 Option Explicit
 
 Private Type tResourceManager
@@ -105,7 +106,7 @@ Attribute ReleaseResource.VB_Description = "Attempt to destroy specified resourc
         End If
     Else
         If Not this.Destroyer.tryDestroy(resource) Then
-            Err.Raise DestroyResourceError, Description:="Unable to destroy respource"
+            Err.Raise DestroyResourceError, Description:="Unable to destroy specified resource"
             Exit Function
         End If
         ReleaseResource = True
@@ -118,7 +119,7 @@ Attribute ObtainResource.VB_Description = "First tries to locate matching resour
     Dim resource As Variant
     If Not this.Locator.tryLocate(resource, resourceIdentifier) Then
         If Not this.Creator.tryCreate(resource, resourceIdentifier, resourceArgs) Then
-            Err.Raise ObtainResourceError, Description:="Couldn't locate or create that resource"
+            Err.Raise ObtainResourceError, Description:="Couldn't locate or create specified resource"
             Exit Function
         End If
     End If
