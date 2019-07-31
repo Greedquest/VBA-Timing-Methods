@@ -80,13 +80,13 @@ Friend Function isNothing(ByVal arg As Variant) As Boolean
     End If
 End Function
 
-Friend Function LetSet(ByRef variable As Variant, ByVal value As Variant) As Boolean
+Friend Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
         Set variable = value
     Else
         variable = value
     End If
-End Function
+End Sub
 
 '''Public interface
 
@@ -118,7 +118,7 @@ Public Function ObtainResource(ByVal resourceIdentifier As Variant, Optional ByV
 Attribute ObtainResource.VB_Description = "First tries to locate matching resources (ignoring resourceArgs), if that fails then attempts to create one. Returns the resource if found, RaisesError if unable to find or create one."
     Dim resource As Variant
     If Not this.Locator.tryLocate(resource, resourceIdentifier) Then
-        If Not this.Creator.tryCreate(resource, resourceIdentifier, resourceArgs) Then
+        If Not this.Creator.tryCreate(resourceIdentifier, resourceArgs, resource) Then
             Err.Raise ObtainResourceError, Description:="Couldn't locate or create specified resource"
             Exit Function
         End If

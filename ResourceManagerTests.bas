@@ -97,3 +97,14 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+
+Sub t()
+    Dim manager As ResourceManager
+    Dim dictResource As New DictionaryResource
+    Set manager = ResourceManager.Create(dictResource, dictResource)
+    Dim key As String
+    key = manager.ObtainResource("Barry", 101)
+    Debug.Assert dictResource.encapsulated.Exists(key)
+    Debug.Assert dictResource.encapsulated.item(key) = 101
+    key = manager.ObtainResource("Barry")
+End Sub

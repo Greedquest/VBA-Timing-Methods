@@ -11,6 +11,6 @@ Attribute VB_Exposed = True
 '@Exposed
 Option Explicit
 
-Public Function tryCreate(ByRef outResource As Variant, Optional ByVal resourceIdentifier As Variant, Optional ByVal resourceArgs As Variant) As Boolean
+Public Function tryCreate(Optional ByVal resourceIdentifier As Variant, Optional ByVal resourceArgs As Variant, Optional ByRef outResource As Variant) As Boolean
     tryCreate = False
 End Function
