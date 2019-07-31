@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Attribute VB_Description = "Simple LIFO Stack implementation which wraps a VBA.Collection"
 Option Explicit
-'@Folder("API.Utils")
+'@Folder("API.Utils.Stack")
 '@ModuleDescription("Simple LIFO Stack implementation which wraps a VBA.Collection")
 
 Private col As New Collection

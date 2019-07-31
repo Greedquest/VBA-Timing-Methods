@@ -26,7 +26,7 @@ End Enum
 Private this As tResourceManager
 
 Private Sub Class_Initialize()
-    'set defaults so that the fresh resourceManager isn't totally invalid
+    'set defaults so that the fresh ResourceManager isn't totally invalid
     Set Me.Creator = New IResourceCreator
     Set Me.Destroyer = New IResourceDestroyer
     Set Me.Locator = New IResourceLocator
