@@ -39,21 +39,22 @@ Sub startSubclassing()
 '    startTicking
     Set messageWindow = ApiWindow.Create()
     If messageWindow Is Nothing Then
-        Debug.Print "Couldn't make a handle: "; messageHwnd
+        Debug.Print "Couldn't make a handle: "
         Exit Sub
     End If
     Dim helloWorldSubclassID As Long
     If Not messageWindow.tryAddSubclass(AddressOf SubclassHelloWorldProc, helloWorldSubclassID) Then
         Debug.Print "Unable to subclass"
         Set messageWindow = Nothing
+        Exit Sub
     End If
-    startTicking
+    'startTicking
 End Sub
 
 '
 '
-'Sub stopSubclassing()
-'    'KillTimer messageHwnd, 1
+Sub stopSubclassing()
+    'KillTimer messageHwnd, 1
 '    Dim hwnd As LongPtr
 '    hwnd = FindWindow("STATIC", "Barry")
 '    Debug.Print hwnd, messageHwnd
@@ -61,11 +62,12 @@ End Sub
 '        Debug.Print "Ended fine"
 '    End If
 '    Debug.Print destroyWindow(messageHwnd)
-'End Sub
+    Set messageWindow = Nothing
+End Sub
 
 Sub sendMessage()
-    Debug.Print messageHwnd, PM_MY_MESSAGE
-    Debug.Print PostLongMessage(messageHwnd, PM_MY_MESSAGE, 0, 0)
+'    Debug.Print messageHwnd, PM_MY_MESSAGE
+'    Debug.Print PostLongMessage(messageHwnd, PM_MY_MESSAGE, 0, 0)
 End Sub
 
 Sub startTicking()

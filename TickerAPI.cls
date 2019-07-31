@@ -61,6 +61,7 @@ Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
+Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartTimer"
     If runImmediately Then
         Dim makeTimer As Bool
@@ -84,6 +85,7 @@ End Function
 
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As Long)
+Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     checkIfLocked "KillTimerByID"
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
@@ -96,6 +98,7 @@ End Sub
 
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
+Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
     checkIfLocked "KillTimersByFunction"
     Dim key As Variant
     For Each key In this.timerIDs.Keys
@@ -110,6 +113,7 @@ End Sub
 
 '@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors")
 Public Sub KillAllTimers()
+Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors"
     'NOTE this procedure is called when raising errors so must not raise any itself
     
     'don't use normal checking method as that raises an error
@@ -153,6 +157,7 @@ End Sub
 
 '@Description("Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise")
 Private Property Get timerExists(ByVal timerID As Long) As Boolean
+Attribute timerExists.VB_Description = "Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise"
     timerExists = this.timerIDs.Exists(timerID)
 End Property
 
@@ -173,6 +178,7 @@ End Function
 
 '@Description("Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created")
 Private Function tryScheduleProc(ByVal timerProc As LongPtr) As Boolean
+Attribute tryScheduleProc.VB_Description = "Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created"
 
     'messages must be associated with a valid timer, so let's make one
     Dim validationTimerID As Long

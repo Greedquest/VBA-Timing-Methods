@@ -60,18 +60,18 @@ Private Sub ClassConstructor()
     On Error GoTo TestFail
     
     'Arrange:
-    Dim A As Bool, b As Bool, c As Bool
+    Dim a As Bool, b As Bool, c As Bool
     
     'Act:
     Set b = Bool.Create(True)
-    Set A = Bool.Create(False)
-    Set c = Bool.Create(A)                       'implicit conversion with CBool
+    Set a = Bool.Create(False)
+    Set c = Bool.Create(a)                       'implicit conversion with CBool
     
     'Assert:
     Assert.AreEqual True, b.value
-    Assert.AreEqual False, A.value
-    Assert.AreEqual A.value, c.value
-    Assert.AreNotSame A, c                       'c only has the same value as a
+    Assert.AreEqual False, a.value
+    Assert.AreEqual a.value, c.value
+    Assert.AreNotSame a, c                       'c only has the same value as a
 
 TestExit:
     Exit Sub

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 '@Exposed
-'@Folder("TimerAPI")
+'@Folder("SecondLevelAPI")
 Option Explicit
 
 '@IgnoreModule EncapsulatePublicField

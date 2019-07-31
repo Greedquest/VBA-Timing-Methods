@@ -1,5 +1,5 @@
 Attribute VB_Name = "WaitableCallback"
-'@Folder("TimerAPI")
+'@Folder("SecondLevelAPI")
 Option Explicit
 
 Public Const InfiniteTicks As Long = -1

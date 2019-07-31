@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Ext_KEY = "Rubberduck" ,"Predeclared Class Module"
 '@Folder("SubClassing")
 
 Option Explicit
@@ -122,7 +121,7 @@ End Function
 
 Public Function tryAddSubclass(ByVal SUBCLASSPROC As LongPtr, ByRef outSubclassID As LongPtr) As Boolean
     outSubclassID = getUniqueID
-    tryAddSubclass = ApiSetWindowSubclass(this.handle, SUBCLASSPROC, outSubclassID)
+    tryAddSubclass = ApiSetWindowSubclass(this.handle, SUBCLASSPROC, outSubclassID) <> 0
 End Function
 
 Public Function tryRemoveSubclass(ByVal SUBCLASSPROC As LongPtr, ByVal subClassID As LongPtr) As Boolean
