@@ -24,7 +24,7 @@ End Sub
 
 '@TestInitialize
 Private Sub TestInitialize()
-    'this method runs before every test in the module.
+    Set ResourceManager = New ResourceManager 'reset default instance?
 End Sub
 
 '@TestCleanup
