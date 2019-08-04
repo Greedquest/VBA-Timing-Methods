@@ -49,7 +49,7 @@ Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
                            
 Private Type tCallback
-    timerIDs As New Dictionary                   'SetTimer ID: Callback Fn
+    timerIDs As Scripting.Dictionary                   'SetTimer ID: Callback Fn
     'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
@@ -281,7 +281,7 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
 End Sub
 
 Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
-    If this.isLocked Then raiseError TimerApiLockedError, source
+    'If this.isLocked Then raiseError TimerApiLockedError, source
 End Sub
 
 Public Sub UnlockApi()
@@ -290,12 +290,13 @@ Public Sub UnlockApi()
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
-    tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
+    'tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
 End Function
 
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
+    Set this.timerIDs = PersistentDict.Create(TypeName(Me)).Data
     KillAllTimers
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
