@@ -125,12 +125,13 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     If this.timerIDs.Count = 0 Then
+        'NOTE Assuming persistent dict does its job then there should be no timers unaccounted for
         'we have no info about what already exists
-        Dim i As Long
-        log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
-        Do                                       'loop through all timers for this hwnd
-            i = i + 1
-        Loop While tryKillTimer(i) Or i < this.maxTimerCount
+'        Dim i As Long
+'        log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
+'        Do                                       'loop through all timers for this hwnd
+'            i = i + 1
+'        Loop While tryKillTimer(i) Or i < this.maxTimerCount
         clearAllMessages timerIDs:=Nothing
     Else
         Dim timerID As Variant
@@ -146,10 +147,11 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
 End Sub
 
 Private Sub clearAllMessages(Optional timerIDs As Dictionary)
+    'TODO when custom window handle is used, there will be no need to validate timerIDs
     Dim tmpMsg As tagMSG
     Dim i As Long
     Do While PeekMessage(tmpMsg, Application.hwnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
-        'if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
+        'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
         i = i + 1
     Loop
     log InfoLevel, "clearAllMessages", printf("Cleared {0} messages", i)
