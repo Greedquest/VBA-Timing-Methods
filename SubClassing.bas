@@ -14,7 +14,7 @@ Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (By
 Private Declare Function destroyWindow Lib "user32" Alias "DestroyWindow" (ByVal hWnd As Long) As Long
 Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As LongPtr
 
-Private Declare Function PostLongMessage Lib "user32" Alias "PostMessageA" (ByVal hWnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Long
+Public Declare Function PostLongMessage Lib "user32" Alias "PostMessageA" (ByVal hWnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Long
 
 Private Function SubclassHelloWorldProc(ByVal hWnd As LongPtr, ByVal uMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
     Debug.Print "Oi"; uMsg
