@@ -6,12 +6,12 @@ Public Const PM_REMOVE As Long = &H1
 Public Const PM_NOREMOVE As Long = &H0
 
 Public Type tagPOINT
-    x As Long
-    y As Long
+    X As Long
+    Y As Long
 End Type
 
 Public Type tagMSG
-    hwnd As LongPtr
+    hWnd As LongPtr
     message As Long
     wParam As LongPtr
     lParam As LongPtr
@@ -24,8 +24,8 @@ End Type
 
 Public Declare Function GetQueueStatus Lib "user32" (ByVal flags As Long) As Long
 
-Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByRef lpMsg As tagMSG, ByVal hwnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As Long) As Boolean
-Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Boolean
+Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByRef lpMsg As tagMSG, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As Long) As Boolean
+Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hWnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Boolean
 Public Declare PtrSafe Function DispatchMessage Lib "user32" Alias "DispatchMessageA" (lpMsg As tagMSG) As LongPtr
 
 Public Const QS_TIMER As Long = &H10
@@ -39,8 +39,8 @@ Private Function tryScheduleProc(timerProc As LongPtr, ByVal arg As Object) As B
     
     '''
     'make a validation timer
-    Debug.Print "Create a validation timer:"; SetTimer(Application.hwnd, 1, &H7FFFFFFF, timerProc)
-    successful = PostMessage(Application.hwnd, WM_TIMER, objPtr(arg), timerProc)
+    Debug.Print "Create a validation timer:"; SetTimer(Application.hWnd, 1, &H7FFFFFFF, timerProc)
+    successful = PostMessage(Application.hWnd, WM_TIMER, objPtr(arg), timerProc)
 '    Debug.Print "Create Timer:"; SetTimer(Application.hwnd, 1, 0, timerProc)
 '    tightLoopDelay 100
 ''    'PrintMessageQueue
@@ -72,9 +72,9 @@ Private Function tryScheduleProc(timerProc As LongPtr, ByVal arg As Object) As B
 tryScheduleProc = True
 End Function
 
-Private Sub asyncProc(ByVal hwnd As Long, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+Private Sub asyncProc(ByVal hWnd As Long, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Debug.Print "asyncProc called (should be called second)"
-    KillTimer hwnd, timerID
+    KillTimer hWnd, timerID
 End Sub
 
 Private Sub syncProc()
@@ -93,7 +93,7 @@ End Sub
 Public Sub PrintMessageQueue(Optional filterLow As Long = 0, Optional filterHigh As Long = 0)
     Dim msg As tagMSG
     Dim results As New Dictionary
-    Do While PeekMessage(msg, Application.hwnd, filterLow, filterHigh, PM_REMOVE)
+    Do While PeekMessage(msg, Application.hWnd, filterLow, filterHigh, PM_REMOVE)
         If results.Exists(msg.message) Then
             results(msg.message) = results(msg.message) + 1
         Else

@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-'@Folder("API.Utils.ResourceManager.Tests")
+'@Folder("Old.ResourceManager.Tests")
 Option Explicit
 
 '@ModuleDescription("Example dictionary resource; the resource provided is a key in the encapsulated dictionary. No locator is provided so obtain resource fails with the same resourceIdentifier.)

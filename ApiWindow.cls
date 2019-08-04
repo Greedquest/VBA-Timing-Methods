@@ -24,8 +24,8 @@ Private Declare Function APiCreateWindowEx Lib "user32" Alias "CreateWindowExA" 
                          ByVal lpClassName As String, _
                          ByVal lpWindowName As String, _
                          ByVal dwStyle As WindowStyle, _
-                         ByVal x As Long, _
-                         ByVal y As Long, _
+                         ByVal X As Long, _
+                         ByVal Y As Long, _
                          ByVal nWidth As Long, _
                          ByVal nHeight As Long, _
                          ByVal hWndParent As LongPtr, _
@@ -34,26 +34,26 @@ Private Declare Function APiCreateWindowEx Lib "user32" Alias "CreateWindowExA" 
                          ByVal lpParam As LongPtr) As LongPtr
 
 Private Declare Function ApiDestroyWindow Lib "user32" Alias _
-                         "DestroyWindow" (ByVal hwnd As Long) As Boolean
+                         "DestroyWindow" (ByVal hWnd As Long) As Boolean
 
 Private Declare Function ApiFindWindow Lib "user32" Alias "FindWindowA" ( _
                          ByVal lpClassName As String, _
                          ByVal lpWindowName As String) As LongPtr
                          
 Private Declare Function ApiDefSubclassProc Lib "comctl32.dll" Alias "#413" ( _
-                         ByVal hwnd As LongPtr, _
+                         ByVal hWnd As LongPtr, _
                          ByVal uMsg As Long, _
                          ByVal wParam As LongPtr, _
                          ByVal lParam As LongPtr) As Boolean
 
 Private Declare Function ApiSetWindowSubclass Lib "comctl32.dll" Alias "#410" ( _
-                         ByVal hwnd As LongPtr, _
+                         ByVal hWnd As LongPtr, _
                          ByVal pfnSubclass As LongPtr, _
                          ByVal uIdSubclass As LongPtr, _
                          Optional ByVal dwRefData As LongPtr) As Boolean
 
 Private Declare Function ApiRemoveWindowSubclass Lib "comctl32.dll" Alias "#412" ( _
-                         ByVal hwnd As LongPtr, _
+                         ByVal hWnd As LongPtr, _
                          ByVal pfnSubclass As LongPtr, _
                          ByVal uIdSubclass As LongPtr) As Boolean
                          

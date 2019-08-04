@@ -29,13 +29,13 @@ Public Enum TimerError
 End Enum
 
 Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hwnd As LongPtr, _
+                         ByVal hWnd As LongPtr, _
                          ByVal nIDEvent As Long, _
                          ByVal uElapse As Long, _
                          ByVal lpTimerFunc As LongPtr) As Long
 
 Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hwnd As LongPtr, _
+                         ByVal hWnd As LongPtr, _
                          ByVal nIDEvent As Long) As Long
 
 Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
@@ -150,7 +150,7 @@ Private Sub clearAllMessages(Optional timerIDs As Dictionary)
     'TODO when custom window handle is used, there will be no need to validate timerIDs
     Dim tmpMsg As tagMSG
     Dim i As Long
-    Do While PeekMessage(tmpMsg, Application.hwnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
+    Do While PeekMessage(tmpMsg, Application.hWnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
         'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
         i = i + 1
     Loop
@@ -191,7 +191,7 @@ Attribute tryScheduleProc.VB_Description = "Schedules something to run immediate
     End If
     
     'Post fake message to queue
-    If PostMessage(Application.hwnd, WM_TIMER, validationTimerID, timerProc) = False Then
+    If PostMessage(Application.hWnd, WM_TIMER, validationTimerID, timerProc) = False Then
         tryKillTimer validationTimerID
         tryScheduleProc = False
         Exit Function
@@ -204,7 +204,7 @@ End Function
 Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = ApiSetTimer(Application.hwnd, getUniqueID, delayMillis, timerFunction)
+        outTimerID = ApiSetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
         this.timerIDs(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
@@ -223,10 +223,10 @@ Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = ApiKillTimer(Application.hwnd, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = ApiKillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = ApiKillTimer(Application.hwnd, timerID)
+        tryKillTimer = ApiKillTimer(Application.hWnd, timerID)
     End If
 
 cleanExit:
