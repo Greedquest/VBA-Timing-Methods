@@ -98,43 +98,46 @@ End Sub
 Public Sub KillAllTimers()
 Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors"
     'NOTE this procedure is called when raising errors so must not raise any itself
-    
-    'don't use normal checking method as that raises an error
-    'should be immune to locking
-    '    If this.isLocked Then
-    '        log WarnLevel, "KillAllTimers", "API is locked"
-    '        Exit Sub
-    '    End If
+    '
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     
+    'Try to just remove message window, if that fails then kill manually
+    Dim timerID As Variant
     If this.timerIDs.Count = 0 Then
-        'NOTE Assuming persistent dict does its job then there should be no timers unaccounted for
-        'we have no info about what already exists
-'        Dim i As Long
-'        log DebugLevel, "KillAllTimers", "Looping through and killing possible timers on window handle"
-'        Do                                       'loop through all timers for this hwnd
-'            i = i + 1
-'        Loop While tryKillTimer(i) Or i < this.maxTimerCount
-        clearAllMessages timerIDs:=Nothing
+        'do nothing
+    ElseIf tryDestroyMessageWindowByName(this.messageWindow.name, this.messageWindow.handle) Then
+        'NOTE this stuff is just in case tryKillTimer does other cleaning up
+        For Each timerID In this.timerIDs
+            tryKillTimer timerID
+        Next timerID
+        clearAllMessages this.timerIDs
+        this.timerIDs.RemoveAll
     Else
-        Dim timerID As Variant
         For Each timerID In this.timerIDs
             On Error Resume Next                 'no point returning success since there's nothing we can do about it
             WinAPI.KillTimer 0, this.timerIDs(timerID)
-            tryKillTimer this.timerIDs(timerID)
             log DebugLevel, "KillAllTimers", printf("Killing timer #{0}", timerID)
         Next timerID
         clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
     End If
+    
+    'Connect new message handler
+    If tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
+        log DebugLevel, "KillAllTimers", printf("Reset message loop for window '{0}'", this.messageWindow.name)
+    Else
+        log FatalLevel, "KillAllTimers", printf("tryHookMessageHandler can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
+        Exit Sub
+    End If
+        
 End Sub
 
 Private Sub clearAllMessages(Optional timerIDs As Dictionary)
     'TODO when custom window handle is used, there will be no need to validate timerIDs
     Dim tmpMsg As tagMSG
     Dim i As Long
-    Do While PeekMessage(tmpMsg, Application.hWnd, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
+    Do While WinAPI.PeekMessage(tmpMsg, this.messageWindow.handle, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
         'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
         i = i + 1
     Loop
@@ -175,7 +178,7 @@ Attribute tryScheduleProc.VB_Description = "Schedules something to run immediate
     End If
     
     'Post fake message to queue
-    If PostMessage(Application.hWnd, WM_TIMER, validationTimerID, timerProc) = False Then
+    If PostMessage(this.messageWindow.handle, WM_TIMER, validationTimerID, timerProc) = False Then
         tryKillTimer validationTimerID
         tryScheduleProc = False
         Exit Function
@@ -188,7 +191,7 @@ End Function
 Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = WinAPI.SetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
+        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, getUniqueID, delayMillis, timerFunction)
         this.timerIDs(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
@@ -207,10 +210,10 @@ Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = WinAPI.KillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = WinAPI.KillTimer(Application.hWnd, timerID)
+        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID)
     End If
 
 cleanExit:
@@ -280,26 +283,20 @@ Public Function tryScheduleUnlock() As Boolean
 End Function
 
 Private Sub Class_Initialize()
-    'NOTE we could possibly check if cache has been invalidated here - or just hope:)
+    'Set up defaults
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
     this.messageWindow.name = TypeName(Me) & Default_Message_Window_Suffix
     
-    'try and set up message window; it'd better work or we can't do much else
-    'This comes first as killing timers relies on the handle to the window they point to
-    If Not tryDestroyMessageWindowByName(this.messageWindow.name, this.messageWindow.handle) Then
-        log ErrorLevel, "tryDestroyMessageWindowByName", "Existing message window can't be destroyed"
-        'NOTE if this fails, we can use the cached IDs to destroy the timers one by one
-        'This would still require finding and setting the window handle
-        
-    ElseIf Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
-        log FatalLevel, "tryHookMessageHandler", printf("Can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
-        
-    End If
-    
     'Kill existing timers
     Set this.timerIDs = Cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
-    'KillAllTimers
+    KillAllTimers
+    
+'    'Attach a message window
+'    If Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
+'        log FatalLevel, "tryHookMessageHandler", printf("Can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
+'
+'    End If
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
     If this.isLocked Then tryScheduleUnlock
@@ -309,4 +306,9 @@ Private Sub Class_Terminate()
     KillAllTimers
 End Sub
 
+
+'For Testing
+Friend Property Get messageWindowHandle() As LongPtr
+    messageWindowHandle = this.messageWindow.handle
+End Property
 

@@ -123,7 +123,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     'Arrange:
     TickerAPI.StartTimer AddressOf QuietNoOpCallback, False
     Dim killSuccess As Boolean
-    killSuccess = ApiKillTimer(Application.hWnd, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
+    killSuccess = ApiKillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone

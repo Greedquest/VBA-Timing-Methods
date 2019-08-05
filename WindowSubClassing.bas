@@ -30,14 +30,23 @@ Public Function tryGetMessageWindow(ByVal windowName As String, ByRef outHandle 
 End Function
 
 Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
-    Static subClassIDs As Dictionary 'id:windowProc pairs
+    Static subClassIDs As Dictionary 'windowHandle:Dict[windowproc:id]
     If subClassIDs Is Nothing Then Set subClassIDs = Cache.loadObject("subClassIDs", New Dictionary)
+        
+    Dim instanceID As Long
+    'Only let one instance of each windowProc per windowHandle
+    If Not subClassIDs.Exists(windowHandle) Then subClassIDs.Add windowHandle, New Dictionary
+    Dim procDict As Scripting.Dictionary
+    Set procDict = subClassIDs(windowHandle)
+    If procDict.Exists(windowProc) Then
+        instanceID = procDict(windowProc)
+    Else
+        instanceID = procDict.Count
+        procDict.Add windowProc, instanceID
+    End If
     
-    If SetWindowSubclass(windowHandle, windowProc, subClassIDs.Count) Then
-        On Error Resume Next
-        subClassIDs.Add subClassIDs.Count, windowProc 'NOTE never remove from this collection or id generation gets confused
-        trySubclassWindow = Err.Number = 0
-        On Error GoTo 0
+    If SetWindowSubclass(windowHandle, windowProc, instanceID) Then
+        trySubclassWindow = True
     End If
     
 End Function
@@ -57,7 +66,7 @@ Public Function tryDestroyMessageWindowByName(ByVal windowName As String, Option
     Dim successful As Boolean
     outHandle = WinAPI.FindWindow(className, windowName)
     If outHandle <> 0 Then
-        successful = WinAPI.DestroyWindow(handle)
+        successful = WinAPI.DestroyWindow(outHandle)
         'set to 0 if destroyed to mark handle invalid
         If successful Then outHandle = 0
     Else

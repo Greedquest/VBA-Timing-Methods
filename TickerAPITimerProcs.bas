@@ -17,6 +17,7 @@ End Sub
 
 Public Function MessageWindowProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
     
+    Debug.Print "Message #"; uMsg
     Select Case uMsg
     
         Case Else

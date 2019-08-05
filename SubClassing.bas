@@ -1,5 +1,5 @@
 Attribute VB_Name = "SubClassing"
-'@Folder("SubClassing")
+'@Folder("Old.SubClassing")
 Option Explicit
 
 Private messageWindow As ApiWindow

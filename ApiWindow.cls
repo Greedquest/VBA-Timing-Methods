@@ -7,14 +7,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder("SubClassing")
+'@Folder("Old.SubClassing")
 
 Option Explicit
 '@PredeclaredId
-
-Public Enum WindowStyle
-    HWND_MESSAGE = (-3&)
-End Enum
 
 Private Const default_className As String = "Static"
 Private Const default_windowName As String = "TickerAPI"

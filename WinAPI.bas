@@ -20,6 +20,10 @@ Public Type tagMSG
     #End If
 End Type
 
+Public Enum WindowStyle
+    HWND_MESSAGE = (-3&)
+End Enum
+
 Public Enum QueueStatusFlag
     QS_TIMER = &H10
     QS_ALLINPUT = &H4FF
@@ -37,60 +41,72 @@ Public Enum WindowsMessage
 End Enum
 
 'Messages
-Public Declare Function GetQueueStatus Lib "user32" (ByVal flags As QueueStatusFlag) As Long
-Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByRef lpMsg As tagMSG, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As PeekMessageFlag) As Boolean
-Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hWnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Boolean
-Public Declare PtrSafe Function DispatchMessage Lib "user32" Alias "DispatchMessageA" (lpMsg As tagMSG) As LongPtr
+Public Declare Function GetQueueStatus Lib "user32" ( _
+                        ByVal flags As QueueStatusFlag) As Long
 
+Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
+                        ByRef lpMsg As tagMSG, _
+                        ByVal hWnd As LongPtr, _
+                        ByVal wMsgFilterMin As WindowsMessage, _
+                        ByVal wMsgFilterMax As WindowsMessage, _
+                        ByVal wRemoveMsg As PeekMessageFlag) As Boolean
+
+Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
+                        ByVal hWnd As LongPtr, _
+                        ByVal msg As WindowsMessage, _
+                        ByVal wParam As LongPtr, _
+                        ByVal lParam As LongPtr) As Boolean
+
+Public Declare Function DispatchMessage Lib "user32" Alias "DispatchMessageA" ( _
+                        ByRef lpMsg As tagMSG) As LongPtr
 
 'Windows
 Public Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" ( _
-                         ByVal dwExStyle As Long, ByVal className As String, ByVal windowName As String, _
-                         ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, _
-                         ByVal nWidth As Integer, ByVal nHeight As Integer, _
-                         ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, _
-                         ByVal hInstance As LongPtr, ByVal lpParam As LongPtr) As LongPtr
+                        ByVal dwExStyle As Long, ByVal className As String, ByVal windowName As String, _
+                        ByVal dwStyle As Long, ByVal X As Long, ByVal Y As Long, _
+                        ByVal nWidth As Long, ByVal nHeight As Long, _
+                        ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, _
+                        ByVal hInstance As LongPtr, ByVal lpParam As LongPtr) As LongPtr
 
-Public Declare Function DestroyWindow Lib "user32" _
-                         (ByVal windowHandle As LongPtr) As Boolean
+Public Declare Function DestroyWindow Lib "user32" ( _
+                        ByVal hWnd As LongPtr) As Boolean
 
 Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" ( _
-                         ByVal lpClassName As String, _
-                         ByVal lpWindowName As String) As LongPtr
+                        ByVal lpClassName As String, _
+                        ByVal lpWindowName As String) As LongPtr
                          
 'Subclassing
 Public Declare Function DefSubclassProc Lib "comctl32.dll" Alias "#413" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal uMsg As Long, _
-                         ByVal wParam As LongPtr, _
-                         ByVal lParam As LongPtr) As Boolean
+                        ByVal hWnd As LongPtr, _
+                        ByVal uMsg As WindowsMessage, _
+                        ByVal wParam As LongPtr, _
+                        ByVal lParam As LongPtr) As Boolean
 
 Public Declare Function SetWindowSubclass Lib "comctl32.dll" Alias "#410" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal pfnSubclass As LongPtr, _
-                         ByVal uIdSubclass As LongPtr, _
-                         Optional ByVal dwRefData As LongPtr) As Boolean
+                        ByVal hWnd As LongPtr, _
+                        ByVal pfnSubclass As LongPtr, _
+                        ByVal uIdSubclass As LongPtr, _
+                        Optional ByVal dwRefData As LongPtr) As Boolean
 
 Public Declare Function RemoveWindowSubclass Lib "comctl32.dll" Alias "#412" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal pfnSubclass As LongPtr, _
-                         ByVal uIdSubclass As LongPtr) As Boolean
+                        ByVal hWnd As LongPtr, _
+                        ByVal pfnSubclass As LongPtr, _
+                        ByVal uIdSubclass As LongPtr) As Boolean
 
 'Timers
 Public Declare Function SetTimer Lib "user32" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal nIDEvent As Long, _
-                         ByVal uElapse As Long, _
-                         ByVal lpTimerFunc As LongPtr) As Long
+                        ByVal hWnd As LongPtr, _
+                        ByVal nIDEvent As Long, _
+                        ByVal uElapse As Long, _
+                        ByVal lpTimerFunc As LongPtr) As Long
 
 Public Declare Function KillTimer Lib "user32" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal nIDEvent As Long) As Long
+                        ByVal hWnd As LongPtr, _
+                        ByVal nIDEvent As Long) As Long
                          
 Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
-                         ByVal lpPrevWndFunc As LongPtr, _
-                         ByRef timerFlag As Bool, _
-                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
-                         Optional ByVal timerID As Long = 0, _
-                         Optional ByVal unused3 As Long) As Long
-
+                        ByVal lpPrevWndFunc As LongPtr, _
+                        ByRef timerFlag As Bool, _
+                        Optional ByVal message As WindowsMessage = WM_NOTIFY, _
+                        Optional ByVal timerID As Long = 0, _
+                        Optional ByVal unused3 As Long) As Long
