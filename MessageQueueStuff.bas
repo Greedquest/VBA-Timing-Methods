@@ -2,34 +2,6 @@ Attribute VB_Name = "MessageQueueStuff"
 '@Folder("Tests")
 Option Explicit
 
-Public Const PM_REMOVE As Long = &H1
-Public Const PM_NOREMOVE As Long = &H0
-
-Public Type tagPOINT
-    X As Long
-    Y As Long
-End Type
-
-Public Type tagMSG
-    hWnd As LongPtr
-    message As Long
-    wParam As LongPtr
-    lParam As LongPtr
-    time As Long
-    cursor As tagPOINT
-    #If Mac Then
-    lPrivate As Long
-    #End If
-End Type
-
-Public Declare Function GetQueueStatus Lib "user32" (ByVal flags As Long) As Long
-
-Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" (ByRef lpMsg As tagMSG, ByVal hWnd As LongPtr, ByVal wMsgFilterMin As Long, ByVal wMsgFilterMax As Long, ByVal wRemoveMsg As Long) As Boolean
-Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" (ByVal hWnd As LongPtr, ByVal msg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As Boolean
-Public Declare PtrSafe Function DispatchMessage Lib "user32" Alias "DispatchMessageA" (lpMsg As tagMSG) As LongPtr
-
-Public Const QS_TIMER As Long = &H10
-Public Const QS_ALLINPUT As Long = &H4FF
 Private Const WM_TIMER As Long = &H113
 
 Private Function tryScheduleProc(timerProc As LongPtr, ByVal arg As Object) As Boolean

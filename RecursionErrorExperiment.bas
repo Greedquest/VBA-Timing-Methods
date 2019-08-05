@@ -128,9 +128,9 @@ Public Sub checkingForTimerMessageDelay(Optional ByVal delayMillis As Long = def
     endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
         Dim newStatus As Long
-        newStatus = MessageQueueStuff.GetQueueStatus(QS_TIMER)
+        newStatus = GetQueueStatus(QS_TIMER)
         If (newStatus And &HFFFF0000) Then
-            Debug.Print Toolbox.Strings.Format("New status: {0:x8} {1:x8}", newStatus, MessageQueueStuff.GetQueueStatus(QS_TIMER)) '0010 0010 - 0010 0000
+            Debug.Print Toolbox.Strings.Format("New status: {0:x8} {1:x8}", newStatus, GetQueueStatus(QS_TIMER)) '0010 0010 - 0010 0000
             Exit Do
         End If
         'DoEvents

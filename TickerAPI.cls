@@ -14,12 +14,6 @@ Attribute VB_Description = "API for setting up timers to callback functions, wra
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
 Option Explicit
 
-''@Description("Windows Timer Message https://docs.microsoft.com/windows/desktop/winmsg/wm-timer")
-Public Enum WindowsMessage
-    WM_TIMER = &H113
-    WM_NOTIFY = &H4E                             'arbitrary, sounds nice though
-End Enum
-
 Public Enum TimerError
     CreateTimerError = vbObjectError + 1
     DestroyTimerError
@@ -27,23 +21,6 @@ Public Enum TimerError
     SynchronousCallError
     TimerApiLockedError
 End Enum
-
-Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal nIDEvent As Long, _
-                         ByVal uElapse As Long, _
-                         ByVal lpTimerFunc As LongPtr) As Long
-
-Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hWnd As LongPtr, _
-                         ByVal nIDEvent As Long) As Long
-
-Private Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
-                         ByVal lpPrevWndFunc As LongPtr, _
-                         ByRef timerFlag As Bool, _
-                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
-                         Optional ByVal timerID As Long = 0, _
-                         Optional ByVal unused3 As Long) As Long
 
 Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
@@ -124,6 +101,7 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
     '    End If
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
+    
     If this.timerIDs.Count = 0 Then
         'NOTE Assuming persistent dict does its job then there should be no timers unaccounted for
         'we have no info about what already exists
@@ -137,7 +115,7 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
         Dim timerID As Variant
         For Each timerID In this.timerIDs
             On Error Resume Next                 'no point returning success since there's nothing we can do about it
-            ApiKillTimer 0, this.timerIDs(timerID)
+            WinAPI.KillTimer 0, this.timerIDs(timerID)
             tryKillTimer this.timerIDs(timerID)
             log DebugLevel, "KillAllTimers", printf("Killing timer #{0}", timerID)
         Next timerID
@@ -204,7 +182,7 @@ End Function
 Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = ApiSetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
+        outTimerID = WinAPI.SetTimer(Application.hWnd, getUniqueID, delayMillis, timerFunction)
         this.timerIDs(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
@@ -223,10 +201,10 @@ Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = ApiKillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = WinAPI.KillTimer(Application.hWnd, timerID) 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = ApiKillTimer(Application.hWnd, timerID)
+        tryKillTimer = WinAPI.KillTimer(Application.hWnd, timerID)
     End If
 
 cleanExit:
@@ -298,7 +276,7 @@ End Function
 Private Sub Class_Initialize()
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
-    Set this.timerIDs = PersistentDict.Create(TypeName(Me)).Data
+    Set this.timerIDs = Cache.loadObject(TypeName(Me), New Scripting.Dictionary)
     KillAllTimers
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise

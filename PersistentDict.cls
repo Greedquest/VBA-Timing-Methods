@@ -20,32 +20,14 @@ Public Function Create(ByVal name As String) As PersistentDict
     End With
 End Function
 
-Public Property Get Data() As Scripting.Dictionary
-    Set Data = dict
-End Property
-
-
 Friend Property Get Self() As PersistentDict
     Set Self = Me
 End Property
 
 Friend Sub setPersistentDictionary(ByVal name As String)
-    ' References:
-    '  mscorlib.dll
-    '  Common Language Runtime Execution Engine
-
-    If dict Is Nothing Then
-      Dim host As New mscoree.CorRuntimeHost
-      Dim domain As mscorlib.AppDomain
-      host.Start
-      host.GetDefaultDomain domain
-
-      If IsObject(domain.GetData(name)) Then
-        Set dict = domain.GetData(name)
-      Else
-        Set dict = New Scripting.Dictionary
-        domain.SetData name, dict
-      End If
-    End If
-
+    Set dict = Cache.loadObject(name, New Scripting.Dictionary)
 End Sub
+
+Public Property Get Data() As Scripting.Dictionary
+    Set Data = dict
+End Property
