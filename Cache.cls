@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder("API.Utils.Cache")
+'@Folder("FirstLevelAPI.Utils.Cache")
 
 Option Explicit
 '@PredeclaredId
@@ -33,3 +33,4 @@ Public Static Function loadObject(ByVal name As String, Optional ByVal default A
     End If
 
 End Function
+

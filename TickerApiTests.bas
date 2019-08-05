@@ -38,14 +38,14 @@ Private Sub ModuleCleanup()
     For Each id In tempIDs.Keys
         ApiKillTimer Application.hWnd, id
     Next id
-    TickerAPI.KillAllTimers
+    TickerAPI.killAllTimers
 End Sub
 
 '@TestInitialize
 Private Sub TestInitialize()
     Debug.Print String(50, "-")
     Set TickerAPI = New TickerAPI
-    TickerAPI.UnlockApi 'for simplicity
+    TickerAPI.UnlockApi                          'for simplicity
 End Sub
 
 '@TestCleanup

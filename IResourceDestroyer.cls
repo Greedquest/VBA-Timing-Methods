@@ -14,3 +14,4 @@ Option Explicit
 Public Function tryDestroy(ByVal resource As Variant) As Boolean
     tryDestroy = ResourceManager.isNothing(resource) 'only fails if there was something to destroy!
 End Function
+

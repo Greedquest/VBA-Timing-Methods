@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "Boolean object that can be passed byRef"
 '@Exposed
-'@Folder("API.Utils.Bool")
+'@Folder("FirstLevelAPI.Utils.Bool")
 '@ModuleDescription("Boolean object that can be passed byRef")
 '@PredeclaredID
 Option Explicit

@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "API for setting up timers to callback functions, wraps Windows Timers"
 '@Exposed
-'@Folder("API")
+'@Folder("FirstLevelAPI")
 '@PredeclaredID
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
 Option Explicit
@@ -32,7 +32,7 @@ Private Type tWindow
 End Type
 
 Private Type tCallback
-    timerIDs As Scripting.Dictionary                   'SetTimer ID: Callback Fn
+    timerIDs As Scripting.Dictionary             'SetTimer ID: Callback Fn
     'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
@@ -94,11 +94,10 @@ Attribute KillTimersByFunction.VB_Description = "API kills windows timers regist
     Next key
 End Sub
 
-'@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors")
-Public Sub KillAllTimers()
-Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors"
+'@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API")
+Friend Sub killAllTimers()
+Attribute killAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API"
     'NOTE this procedure is called when raising errors so must not raise any itself
-    '
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     
@@ -122,18 +121,10 @@ Attribute KillAllTimers.VB_Description = "Sub loops through all known timers and
         clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
     End If
-    
-    'Connect new message handler
-    If tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
-        log DebugLevel, "KillAllTimers", printf("Reset message loop for window '{0}'", this.messageWindow.name)
-    Else
-        log FatalLevel, "KillAllTimers", printf("tryHookMessageHandler can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
-        Exit Sub
-    End If
-        
+           
 End Sub
 
-Private Sub clearAllMessages(Optional timerIDs As Dictionary)
+Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
     'TODO when custom window handle is used, there will be no need to validate timerIDs
     Dim tmpMsg As tagMSG
     Dim i As Long
@@ -250,7 +241,7 @@ End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As String = "raiseError")
     'BUG raising an unhandled error crashes if there are any messages queued, so we also need to flush the queue before raising errors
-    KillAllTimers
+    killAllTimers
     Select Case errorCode
         Case TimerError.DestroyTimerError
             Err.Description = "Uh Oh, can't kill the timer :("
@@ -270,7 +261,13 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
 End Sub
 
 Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
-    'If this.isLocked Then raiseError TimerApiLockedError, source
+    If this.isLocked Then
+        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
+            UnlockApi
+        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
+            raiseError TimerApiLockedError, source
+        End If
+    End If
 End Sub
 
 Public Sub UnlockApi()
@@ -279,7 +276,17 @@ Public Sub UnlockApi()
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
-    'tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
+    tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
+End Function
+
+Private Function setupMessageWindow() As Boolean
+    'This should work whether or not a window & handle already exist
+    If tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
+        log DebugLevel, "HookMessages", printf("Reset message loop for window '{0}'", this.messageWindow.name)
+        setupMessageWindow = True
+    Else
+        log FatalLevel, "HookMessages", printf("tryHookMessageHandler can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
+    End If
 End Function
 
 Private Sub Class_Initialize()
@@ -290,22 +297,18 @@ Private Sub Class_Initialize()
     
     'Kill existing timers
     Set this.timerIDs = Cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
-    KillAllTimers
-    
-'    'Attach a message window
-'    If Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
-'        log FatalLevel, "tryHookMessageHandler", printf("Can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
-'
-'    End If
-    
-    'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
-    If this.isLocked Then tryScheduleUnlock
+    killAllTimers
+    If setupMessageWindow Then
+        'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
+        If this.isLocked Then tryScheduleUnlock
+    Else
+        this.isLocked = True
+    End If
 End Sub
 
 Private Sub Class_Terminate()
-    KillAllTimers
+    killAllTimers
 End Sub
-
 
 'For Testing
 Friend Property Get messageWindowHandle() As LongPtr

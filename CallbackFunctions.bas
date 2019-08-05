@@ -1,7 +1,7 @@
 Attribute VB_Name = "CallbackFunctions"
 Option Explicit
 '@Folder("Tests.Callbacks")
-'@IgnoreModule ParameterNotUsed
+'@IgnoreModule ParameterNotUsed, ProcedureCanBeWrittenAsFunction
 
 'Public Type TCallbackSettings
 '    sourceNames As New Dictionary
@@ -13,7 +13,7 @@ Option Explicit
 Public Sub SafeCallbackProc(ByRef createTimer As Bool, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Debug.Print "Callback called " & time
     If message = WM_NOTIFY Then
-        createTimer = False
+        createTimer.value = False
     Else
         TickerAPI.KillTimerByID timerID
     End If
@@ -21,7 +21,7 @@ End Sub
 
 Public Sub QuietTerminatingProc(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     If message = WM_NOTIFY Then
-        Bool.FromPtr(createTimer) = False
+        Bool.FromPtr(createTimer).value = False
     Else
         TickerAPI.KillTimerByID timerID
     End If
@@ -63,6 +63,6 @@ Public Sub RecursiveProc(ByRef createTimer As Bool, ByVal message As WindowsMess
     If i < 3 Then TickerAPI.StartTimer AddressOf RecursiveProc, True, 1000
     Debug.Print i
     i = i - 1
-    createTimer = i = 1
+    createTimer.value = i = 1
 End Sub
 

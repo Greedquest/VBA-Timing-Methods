@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder("API.Utils.PersistentDict")
+'@Folder("FirstLevelAPI.Utils.PersistentDict")
 '@PredeclaredID
 Option Explicit
 
@@ -31,3 +31,4 @@ End Sub
 Public Property Get Data() As Scripting.Dictionary
     Set Data = dict
 End Property
+

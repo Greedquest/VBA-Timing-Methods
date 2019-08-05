@@ -4,7 +4,7 @@ Option Private Module
 
 '@TestModule
 '@IgnoreModule
-'@Folder("API.Utils.Bool.Tests")
+'@Folder("FirstLevelAPI.Utils.Bool.Tests")
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider

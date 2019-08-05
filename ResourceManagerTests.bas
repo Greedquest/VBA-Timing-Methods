@@ -4,6 +4,7 @@ Option Private Module
 
 '@TestModule
 '@Folder("Old.ResourceManager.Tests")
+'@IgnoreModule
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -24,7 +25,7 @@ End Sub
 
 '@TestInitialize
 Private Sub TestInitialize()
-    Set ResourceManager = New ResourceManager 'reset default instance?
+    Set ResourceManager = New ResourceManager    'reset default instance?
 End Sub
 
 '@TestCleanup
@@ -97,7 +98,6 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
-
 Sub t()
     Dim manager As ResourceManager
     Dim dictResource As New DictionaryResource
@@ -108,3 +108,4 @@ Sub t()
     Debug.Assert dictResource.encapsulated.item(key) = 101
     key = manager.ObtainResource("Barry")
 End Sub
+

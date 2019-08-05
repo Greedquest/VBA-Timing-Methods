@@ -80,6 +80,7 @@ Friend Function isNothing(ByVal arg As Variant) As Boolean
     End If
 End Function
 
+'@Ignore ProcedureCanBeWrittenAsFunction
 Friend Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
         Set variable = value
@@ -125,3 +126,4 @@ Attribute ObtainResource.VB_Description = "First tries to locate matching resour
     End If
     LetSet ObtainResource, resource
 End Function
+

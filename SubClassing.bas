@@ -1,5 +1,6 @@
 Attribute VB_Name = "SubClassing"
 '@Folder("Old.SubClassing")
+'@IgnoreModule
 Option Explicit
 
 Private messageWindow As ApiWindow
@@ -26,17 +27,18 @@ Private Function SubclassHelloWorldProc(ByVal hWnd As LongPtr, ByVal uMsg As Lon
             SubclassHelloWorldProc = DefSubclassProc(hWnd, uMsg, wParam, lParam)
     End Select
 End Function
+
 '
 '
 Sub startSubclassing()
-'    If Not tryGetMessageWindow(messageHwnd) Then
-'        Debug.Print "Couldn't make a handle: "; messageHwnd
-'        Exit Sub
-'    End If
-'    If SetWindowSubclass(messageHwnd, AddressOf SubclassHelloWorldProc, 1) Then
-'        Debug.Print "Started fine"
-'    End If
-'    startTicking
+    '    If Not tryGetMessageWindow(messageHwnd) Then
+    '        Debug.Print "Couldn't make a handle: "; messageHwnd
+    '        Exit Sub
+    '    End If
+    '    If SetWindowSubclass(messageHwnd, AddressOf SubclassHelloWorldProc, 1) Then
+    '        Debug.Print "Started fine"
+    '    End If
+    '    startTicking
     Set messageWindow = ApiWindow.Create()
     If messageWindow Is Nothing Then
         Debug.Print "Couldn't make a handle: "
@@ -55,21 +57,22 @@ End Sub
 '
 Sub stopSubclassing()
     'KillTimer messageHwnd, 1
-'    Dim hwnd As LongPtr
-'    hwnd = FindWindow("STATIC", "Barry")
-'    Debug.Print hwnd, messageHwnd
-'    If RemoveWindowSubclass(messageHwnd, AddressOf SubclassHelloWorldProc, 1) Then
-'        Debug.Print "Ended fine"
-'    End If
-'    Debug.Print destroyWindow(messageHwnd)
+    '    Dim hwnd As LongPtr
+    '    hwnd = FindWindow("STATIC", "Barry")
+    '    Debug.Print hwnd, messageHwnd
+    '    If RemoveWindowSubclass(messageHwnd, AddressOf SubclassHelloWorldProc, 1) Then
+    '        Debug.Print "Ended fine"
+    '    End If
+    '    Debug.Print destroyWindow(messageHwnd)
     Set messageWindow = Nothing
 End Sub
 
 Sub sendMessage()
-'    Debug.Print messageHwnd, PM_MY_MESSAGE
-'    Debug.Print PostLongMessage(messageHwnd, PM_MY_MESSAGE, 0, 0)
+    '    Debug.Print messageHwnd, PM_MY_MESSAGE
+    '    Debug.Print PostLongMessage(messageHwnd, PM_MY_MESSAGE, 0, 0)
 End Sub
 
 Sub startTicking()
     SetTimer messageWindow.handle, 1, 1000, 0
 End Sub
+

@@ -8,6 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '@Folder("Old.ResourceManager.Tests")
+'@IgnoreModule
 Option Explicit
 
 '@ModuleDescription("Example dictionary resource; the resource provided is a key in the encapsulated dictionary. No locator is provided so obtain resource fails with the same resourceIdentifier.)
@@ -27,10 +28,10 @@ Private Function IResourceCreator_tryCreate(Optional ByVal resourceIdentifier As
     End If
 End Function
 
-
 Private Function IResourceDestroyer_tryDestroy(ByVal resource As Variant) As Boolean
     On Error Resume Next
     encapsulated.Remove resource
     If Err.Number = 0 Then IResourceDestroyer_tryDestroy = True
     On Error GoTo 0
 End Function
+

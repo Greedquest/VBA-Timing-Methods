@@ -1,5 +1,6 @@
 Attribute VB_Name = "RecursionErrorExperiment"
-'@Folder("Tests")
+'@Folder("Old.Tests")
+'@IgnoreModule
 Option Explicit
 Private Const defaultTimerDelay As Long = 1000
 Private Const MillisToSeconds As Double = 1 / 1000
@@ -115,7 +116,7 @@ Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMilli
     Do While timer < endTime
         If PeekMessage(outMsg, Application.hWnd, WM_TIMER, WM_TIMER, flags) Then
             'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
-            If outMsg.wParam = timerID Then ' Or outMsg.lParam = 0 Then
+            If outMsg.wParam = timerID Then      ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True
                 Exit Do
             End If

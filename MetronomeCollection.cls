@@ -38,7 +38,7 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
         'Rogue timerID shouldn't be messaging our private callback! Disable it
         If message = WM_NOTIFY Then
             'Synchronous call, dereference flag and set it to false so no timer is made
-            Bool.FromPtr(createTimer) = False
+            Bool.FromPtr(createTimer).value = False
         Else
             'Timer call, destroy the timer
             On Error Resume Next
@@ -61,7 +61,7 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
     
 End Sub
 
-Friend Function tryInitialiseTimer(ticker As IMetronomeControls) As Boolean
+Friend Function tryInitialiseTimer(ByVal ticker As IMetronomeControls) As Boolean
     
     'synchronous ticks
     If ticker.isFirstTickSynchronous Then
@@ -83,7 +83,7 @@ cleanFail:
     
 End Function
 
-Friend Function tryTerminateTimer(ticker As IMetronomeControls) As Boolean
+Friend Function tryTerminateTimer(ByVal ticker As IMetronomeControls) As Boolean
     On Error GoTo cleanFail
     TickerAPI.KillTimerByID ticker.timerID
     this.activeTickers.Remove ticker.timerID

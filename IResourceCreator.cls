@@ -14,3 +14,4 @@ Option Explicit
 Public Function tryCreate(Optional ByVal resourceIdentifier As Variant, Optional ByVal resourceArgs As Variant, Optional ByRef outResource As Variant) As Boolean
     tryCreate = False
 End Function
+

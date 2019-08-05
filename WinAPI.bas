@@ -110,3 +110,27 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                         Optional ByVal timerID As Long = 0, _
                         Optional ByVal unused3 As Long) As Long
+
+Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filterLow As WindowsMessage = 0, Optional ByVal filterHigh As WindowsMessage = 0)
+    Dim msg As tagMSG
+    Dim results As New Dictionary
+    Do While PeekMessage(msg, windowHandle, filterLow, filterHigh, PM_REMOVE)
+        If results.Exists(msg.message) Then
+            results(msg.message) = results(msg.message) + 1
+        Else
+            results(msg.message) = 1
+        End If
+    Loop
+    'put them back?
+    If results.Count = 0 Then
+        Debug.Print "No Messages"
+    Else
+        Dim key As Variant
+        For Each key In results.Keys
+            Debug.Print "#"; key; ":", results(key)
+        Next key
+    End If
+End Sub
+
+
+

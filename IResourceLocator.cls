@@ -20,3 +20,4 @@ Public Function tryLocate(ByRef outResource As Variant, Optional ByVal resourceI
         tryLocate = False
     End If
 End Function
+
