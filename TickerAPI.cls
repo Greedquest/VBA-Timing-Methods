@@ -274,8 +274,18 @@ Public Function tryScheduleUnlock() As Boolean
 End Function
 
 Private Sub Class_Initialize()
+    'NOTE we could possibly check if cache has been invalidated here - or just hope:)
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
+    
+    'try and set up message window; it'd better work or we can't do much else
+    'This comes first as killing timers relies on the handle to the window they point to
+    If Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, TypeName(Me) & "MessageWindow", this.windowHandle) Then
+        'Ummmmmmm
+        log FatalLevel, "tryHookMessageHandler", "Can't find or set up message window to handle timers"
+    End If
+    
+    'Kill existing timers
     Set this.timerIDs = Cache.loadObject(TypeName(Me), New Scripting.Dictionary)
     KillAllTimers
     

@@ -15,3 +15,12 @@ Public Sub UnlockCallbackProc(ByVal createTimer As Long, ByVal message As Window
     End If
 End Sub
 
+Public Function MessageWindowProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
+    
+    Select Case uMsg
+    
+        Case Else
+            MessageWindowProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
+            
+    End Select
+End Function

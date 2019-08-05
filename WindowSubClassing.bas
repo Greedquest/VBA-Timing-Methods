@@ -14,11 +14,19 @@ Private Function SubclassHelloWorldProc(ByVal hWnd As LongPtr, ByVal uMsg As Lon
     End Select
 End Function
 
-Public Function tryGetMessageWindow(ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
+Private Function tryGetMessageWindow(ByVal windowName As String, ByVal reset As Boolean, ByRef outHandle As LongPtr) As Boolean
 
     Const className As String = "Static"
     outHandle = FindWindow(className, windowName) 'better than storing in persistent dict as handles may change (apparently)
-    If outHandle = 0 Then              'not found
+    If outHandle <> 0 And reset Then              'was found and needs resetting - i.e. destroying
+        If WinAPI.DestroyWindow(outHandle) Then
+            outHandle = 0 'invalidate handle so a new window is generated
+        Else
+            Exit Function 'couldn't destroy, let's ignore it...
+        End If
+    End If
+    
+    If outHandle = 0 Then
         Const HWND_MESSAGE As Long = (-3&)
         outHandle = CreateWindowEx(0, className, windowName, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0)
     End If
@@ -27,8 +35,7 @@ Public Function tryGetMessageWindow(ByVal windowName As String, ByRef outHandle 
     
 End Function
 
-
-Public Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
+Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
     Static subClassIDs As Dictionary 'id:windowProc pairs
     If subClassIDs Is Nothing Then Set subClassIDs = Cache.loadObject("subClassIDs", New Dictionary)
     
@@ -41,7 +48,7 @@ Public Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandl
     
 End Function
 
-Public Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
+Private Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
     If Not tryGetMessageWindow(windowName, outHandle) Then
         Exit Function
     ElseIf Not trySubclassWindow(windowProc, outHandle) Then
@@ -50,4 +57,5 @@ Public Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowN
         tryHookMessageHandler = True
     End If
 End Function
+
 
