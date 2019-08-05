@@ -24,14 +24,20 @@ End Enum
 
 Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
+Private Const Default_Message_Window_Suffix As String = "MessageWindow"
                            
+Private Type tWindow
+    handle As LongPtr
+    name As String
+End Type
+
 Private Type tCallback
     timerIDs As Scripting.Dictionary                   'SetTimer ID: Callback Fn
     'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
     maxTimerCount As Long
-    windowHandle As LongPtr
+    messageWindow As tWindow
 End Type
 
 Private this As tCallback
@@ -277,17 +283,23 @@ Private Sub Class_Initialize()
     'NOTE we could possibly check if cache has been invalidated here - or just hope:)
     this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
+    this.messageWindow.name = TypeName(Me) & Default_Message_Window_Suffix
     
     'try and set up message window; it'd better work or we can't do much else
     'This comes first as killing timers relies on the handle to the window they point to
-    If Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, TypeName(Me) & "MessageWindow", this.windowHandle) Then
-        'Ummmmmmm
-        log FatalLevel, "tryHookMessageHandler", "Can't find or set up message window to handle timers"
+    If Not tryDestroyMessageWindowByName(this.messageWindow.name, this.messageWindow.handle) Then
+        log ErrorLevel, "tryDestroyMessageWindowByName", "Existing message window can't be destroyed"
+        'NOTE if this fails, we can use the cached IDs to destroy the timers one by one
+        'This would still require finding and setting the window handle
+        
+    ElseIf Not tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
+        log FatalLevel, "tryHookMessageHandler", printf("Can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
+        
     End If
     
     'Kill existing timers
-    Set this.timerIDs = Cache.loadObject(TypeName(Me), New Scripting.Dictionary)
-    KillAllTimers
+    Set this.timerIDs = Cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
+    'KillAllTimers
     
     'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
     If this.isLocked Then tryScheduleUnlock

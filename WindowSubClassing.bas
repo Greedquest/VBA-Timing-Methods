@@ -2,6 +2,8 @@ Attribute VB_Name = "WindowSubClassing"
 '@Folder("SubClassing")
 Option Explicit
 Option Private Module
+
+Private Const className As String = "Static"
                          
 Private Function SubclassHelloWorldProc(ByVal hWnd As LongPtr, ByVal uMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
     Debug.Print "Oi"; uMsg
@@ -14,18 +16,10 @@ Private Function SubclassHelloWorldProc(ByVal hWnd As LongPtr, ByVal uMsg As Lon
     End Select
 End Function
 
-Private Function tryGetMessageWindow(ByVal windowName As String, ByVal reset As Boolean, ByRef outHandle As LongPtr) As Boolean
+Public Function tryGetMessageWindow(ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
 
-    Const className As String = "Static"
     outHandle = FindWindow(className, windowName) 'better than storing in persistent dict as handles may change (apparently)
-    If outHandle <> 0 And reset Then              'was found and needs resetting - i.e. destroying
-        If WinAPI.DestroyWindow(outHandle) Then
-            outHandle = 0 'invalidate handle so a new window is generated
-        Else
-            Exit Function 'couldn't destroy, let's ignore it...
-        End If
-    End If
-    
+
     If outHandle = 0 Then
         Const HWND_MESSAGE As Long = (-3&)
         outHandle = CreateWindowEx(0, className, windowName, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0)
@@ -48,7 +42,7 @@ Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHand
     
 End Function
 
-Private Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
+Public Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
     If Not tryGetMessageWindow(windowName, outHandle) Then
         Exit Function
     ElseIf Not trySubclassWindow(windowProc, outHandle) Then
@@ -58,4 +52,16 @@ Private Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal window
     End If
 End Function
 
-
+'@Description("Destroy a message window (or any other Static window) by name. Returns True if successful or no matching window. Returns False and outHandle set to handle if unable to destroy")
+Public Function tryDestroyMessageWindowByName(ByVal windowName As String, Optional ByRef outHandle As LongPtr) As Boolean
+    Dim successful As Boolean
+    outHandle = WinAPI.FindWindow(className, windowName)
+    If outHandle <> 0 Then
+        successful = WinAPI.DestroyWindow(handle)
+        'set to 0 if destroyed to mark handle invalid
+        If successful Then outHandle = 0
+    Else
+        successful = True
+    End If
+    tryDestroyMessageWindowByName = successful
+End Function
