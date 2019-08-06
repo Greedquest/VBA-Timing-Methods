@@ -136,7 +136,7 @@ Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
 End Sub
 
 '@Description("Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise")
-Private Property Get timerExists(ByVal timerID As Long) As Boolean
+Friend Property Get timerExists(ByVal timerID As Long) As Boolean
 Attribute timerExists.VB_Description = "Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise"
     timerExists = this.timerIDs.Exists(timerID)
 End Property
@@ -261,13 +261,13 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
 End Sub
 
 Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
-    If this.isLocked Then
-        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
-            UnlockApi
-        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
-            raiseError TimerApiLockedError, source
-        End If
-    End If
+'    If this.isLocked Then
+'        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
+'            UnlockApi
+'        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
+'            raiseError TimerApiLockedError, source
+'        End If
+'    End If
 End Sub
 
 Public Sub UnlockApi()
@@ -276,7 +276,7 @@ Public Sub UnlockApi()
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
-    tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
+    'tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
 End Function
 
 Private Function setupMessageWindow() As Boolean

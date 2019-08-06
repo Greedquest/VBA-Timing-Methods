@@ -19,7 +19,12 @@ Public Function MessageWindowProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMe
     
     Debug.Print "Message #"; uMsg
     Select Case uMsg
-    
+        Case WindowsMessage.WM_TIMER 'wParam = timerID, lParam = timerProc
+            If TickerAPI.timerExists(wParam) Then
+                MessageWindowProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
+            Else
+                MessageWindowProc = True 'skip it :)
+            End If
         Case Else
             MessageWindowProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
             
