@@ -30,6 +30,11 @@ End Sub
 Public Sub QuietNoOpCallback(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
 End Sub
 
+Public Sub RawSelfKillingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+    Debug.Print "Tick"
+    KillTimer windowHandle, timerID
+End Sub
+
 '@Description("Ticks with automatic termination")
 Public Sub SafeTickingProc(ByVal windowHandle As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
 Attribute SafeTickingProc.VB_Description = "Ticks with automatic termination"

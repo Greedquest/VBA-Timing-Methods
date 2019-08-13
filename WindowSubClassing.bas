@@ -18,7 +18,7 @@ Public Function tryGetMessageWindow(ByVal windowName As String, ByRef outHandle 
     
 End Function
 
-Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
+Private Function trySubclassWindow(ByVal WindowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
     Static subClassIDs As Dictionary             'windowHandle:Dict[windowproc:id]
     If subClassIDs Is Nothing Then Set subClassIDs = Cache.loadObject("subClassIDs", New Dictionary)
         
@@ -27,23 +27,23 @@ Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHand
     If Not subClassIDs.Exists(windowHandle) Then subClassIDs.Add windowHandle, New Dictionary
     Dim procDict As Scripting.Dictionary
     Set procDict = subClassIDs(windowHandle)
-    If procDict.Exists(windowProc) Then
-        instanceID = procDict(windowProc)
+    If procDict.Exists(WindowProc) Then
+        instanceID = procDict(WindowProc)
     Else
         instanceID = procDict.Count
-        procDict.Add windowProc, instanceID
+        procDict.Add WindowProc, instanceID
     End If
     
-    If SetWindowSubclass(windowHandle, windowProc, instanceID) Then
+    If SetWindowSubclass(windowHandle, WindowProc, instanceID) Then
         trySubclassWindow = True
     End If
     
 End Function
 
-Public Function tryHookMessageHandler(ByVal windowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
+Public Function tryHookMessageHandler(ByVal WindowProc As LongPtr, ByVal windowName As String, ByRef outHandle As LongPtr) As Boolean
     If Not tryGetMessageWindow(windowName, outHandle) Then
         Exit Function
-    ElseIf Not trySubclassWindow(windowProc, outHandle) Then
+    ElseIf Not trySubclassWindow(WindowProc, outHandle) Then
         Exit Function
     Else
         tryHookMessageHandler = True

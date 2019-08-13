@@ -281,7 +281,7 @@ End Function
 
 Private Function setupMessageWindow() As Boolean
     'This should work whether or not a window & handle already exist
-    If tryHookMessageHandler(AddressOf TickerAPITimerProcs.MessageWindowProc, this.messageWindow.name, this.messageWindow.handle) Then
+    If tryHookMessageHandler(AddressOf MessageWindowProcs.MessageWindowSubclassProc, this.messageWindow.name, this.messageWindow.handle) Then
         log DebugLevel, "HookMessages", printf("Reset message loop for window '{0}'", this.messageWindow.name)
         setupMessageWindow = True
     Else

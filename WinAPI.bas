@@ -20,6 +20,27 @@ Public Type tagMSG
     #End If
 End Type
 
+Public Type WNDCLASSEX
+    cbSize         As Long
+    style          As Long        ' See CS_* constants
+    lpfnwndproc    As LongPtr
+'   lpfnwndproc    As Long
+    cbClsextra     As Long
+    cbWndExtra     As Long
+    hInstance      As LongPtr
+    hIcon          As LongPtr
+    hCursor        As LongPtr
+    hbrBackground  As LongPtr
+'   hInstance      as long
+'   hIcon          as long
+'   hCursor        as long
+'   hbrBackground  as long
+    lpszMenuName   As String
+    lpszClassName  As String
+    hIconSm        As LongPtr
+'   hIconSm        as long
+End Type
+
 Public Enum WindowStyle
     HWND_MESSAGE = (-3&)
 End Enum
@@ -55,7 +76,7 @@ Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal msg As WindowsMessage, _
                         ByVal wParam As LongPtr, _
-                        ByVal lParam As LongPtr) As Boolean
+                        ByVal lParam As LongPtr) As Long
 
 Public Declare Function DispatchMessage Lib "user32" Alias "DispatchMessageA" ( _
                         ByRef lpMsg As tagMSG) As LongPtr
@@ -75,7 +96,22 @@ Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" ( _
                         ByVal lpClassName As String, _
                         ByVal lpWindowName As String) As LongPtr
                          
-'Subclassing
+'Registering
+
+Public Declare Function RegisterClassEx Lib "user32" Alias "RegisterClassExA" ( _
+                        ByRef pcWndClassEx As WNDCLASSEX) As Long
+                        
+                        
+Public Declare Function UnregisterClass Lib "user32" Alias "UnregisterClassA" ( _
+                        ByVal lpClassName As String, ByVal hInstance As LongPtr) As Long
+                        
+Public Declare Function DefWindowProc Lib "user32" Alias "DefWindowProcA" ( _
+                        ByVal lhwnd As LongPtr, _
+                        ByVal wMsg As Long, _
+                        ByVal wParam As LongPtr, _
+                        ByVal lParam As LongPtr) As Long
+
+
 Public Declare Function DefSubclassProc Lib "comctl32.dll" Alias "#413" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal uMsg As WindowsMessage, _
