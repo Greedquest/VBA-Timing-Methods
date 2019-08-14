@@ -47,8 +47,8 @@ Public Function StartTimer(ByVal timerFunction As LongPtr, Optional ByVal runImm
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartTimer"
     If runImmediately Then
-        Dim makeTimer As Bool
-        Set makeTimer = Bool.Create(True)        'TODO can raise error
+        Dim makeTimer As TickerParams
+        Set makeTimer = TickerParams.Create(True)
         this.recursionStack.Push makeTimer
         If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
             raiseError SynchronousCallError, "StartTimer"
@@ -141,7 +141,7 @@ Attribute timerExists.VB_Description = "Checks the runningSet for the item with 
     timerExists = this.timerIDs.Exists(timerID)
 End Property
 
-Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As Bool) As Boolean
+Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As TickerParams) As Boolean
     On Error GoTo cleanFail
     CallWindowProc timerFunction, timerFlag, WM_NOTIFY 'not sure what the return value of this is so no useful try result
     tryCallProc = True

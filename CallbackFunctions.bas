@@ -10,10 +10,10 @@ Option Explicit
 '
 'Public callbackSettings As TCallbackSettings
 
-Public Sub SafeCallbackProc(ByRef createTimer As Bool, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+Public Sub SafeCallbackProc(ByRef createTimer As TickerParams, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Debug.Print "Callback called " & time
     If message = WM_NOTIFY Then
-        createTimer.value = False
+        createTimer.TickerIsRunning = False
     Else
         TickerAPI.KillTimerByID timerID
     End If
@@ -21,7 +21,7 @@ End Sub
 
 Public Sub QuietTerminatingProc(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     If message = WM_NOTIFY Then
-        Bool.FromPtr(createTimer).value = False
+        TickerParams.FromPtr(createTimer).TickerIsRunning = False
     Else
         TickerAPI.KillTimerByID timerID
     End If
@@ -61,13 +61,13 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As Long, ByVal messa
     
 End Sub
 
-Public Sub RecursiveProc(ByRef createTimer As Bool, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
+Public Sub RecursiveProc(ByRef createTimer As TickerParams, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Static i As Long
     i = i + 1
     Debug.Print i; "Callback called " & time; timerID
     If i < 3 Then TickerAPI.StartTimer AddressOf RecursiveProc, True, 1000
     Debug.Print i
     i = i - 1
-    createTimer.value = i = 1
+    createTimer.TickerIsRunning = i = 1
 End Sub
 

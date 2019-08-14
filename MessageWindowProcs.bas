@@ -26,5 +26,5 @@ End Function
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
     'TODO assumes timerID is the raw callback, instead get an IFunction and run it in On Error guard
     'TODO think about params
-    runTimerCallback = WinAPI.CallWindowProc(timerID, Bool.Create(False), WM_TIMER)
+    runTimerCallback = WinAPI.CallWindowProc(timerID, TickerParams.Create(False), WM_TIMER)
 End Function
