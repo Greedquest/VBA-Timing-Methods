@@ -1,5 +1,5 @@
 Attribute VB_Name = "WindowCreation"
-'@Folder("WinAPI")
+'@Folder("Old.WinAPI")
 Option Explicit
 
 Const className As String = "TimerAPIMessageWindow"

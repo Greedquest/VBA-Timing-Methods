@@ -183,7 +183,7 @@ Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID
     On Error GoTo cleanFail
     If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
         outTimerID = WinAPI.SetTimer(this.messageWindow.handle, getUniqueID, delayMillis, timerFunction)
-        this.timerIDs(outTimerID) = timerFunction
+        this.timerIDs.item(outTimerID) = timerFunction
         tryCreateTimer = True
     End If
     
