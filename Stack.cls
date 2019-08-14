@@ -35,12 +35,3 @@ Public Property Get Count() As Long
     Count = col.Count
 End Property
 
-'@Ignore ProcedureCanBeWrittenAsFunction
-Private Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
-    If IsObject(value) Then
-        Set variable = value
-    Else
-        variable = value
-    End If
-End Sub
-
