@@ -43,31 +43,54 @@ End Type
 Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
-Public Function StartTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As Long
+Public Function StartTimer(ByVal timerFunction As LongPtr, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
 Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartTimer"
+    Dim makeTimer As TickerParams
+    Set makeTimer = TickerParams.Create(True, data)
+    
     If runImmediately Then
-        Dim makeTimer As TickerParams
-        Set makeTimer = TickerParams.Create(True)
-        this.recursionStack.Push makeTimer
-        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
-            raiseError SynchronousCallError, "StartTimer"
-        End If
-        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
-        Set makeTimer = this.recursionStack.Pop
-        If Not makeTimer.TickerIsRunning Then Exit Function
+
+'        this.recursionStack.Push makeTimer
+'        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
+'            raiseError SynchronousCallError, "StartTimer"
+'        End If
+'        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
+'        Set makeTimer = this.recursionStack.Pop
+'        If Not makeTimer.TickerIsRunning Then Exit Function
     End If
     
-    Dim newTimerID As Long
-    If Not tryCreateTimer(timerFunction, newTimerID, delayMillis) Then
+    Dim newTimerID As LongPtr
+    If Not tryCreateTimer(timerFunction, delayMillis, makeTimer, newTimerID) Then
         raiseError CreateTimerError, "StartTimer"
     Else
         StartTimer = newTimerID
     End If
 End Function
 
+Public Function StartManagedTimer(ByVal timerFunction As IFunction, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
+    checkIfLocked "StartManagedTimer"
+    If runImmediately Then
+'        Dim makeTimer As TickerParams
+'        Set makeTimer = TickerParams.Create(True)
+'        this.recursionStack.Push makeTimer
+'        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
+'            raiseError SynchronousCallError, "StartTimer"
+'        End If
+'        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
+'        Set makeTimer = this.recursionStack.Pop
+'        If Not makeTimer.TickerIsRunning Then Exit Function
+    End If
+    Dim newTimerID As Long
+    If Not tryCreateTimer(timerFunction, delayMillis, Nothing, newTimerID) Then
+        raiseError CreateTimerError, "StartManagedTimer"
+    Else
+        StartManagedTimer = newTimerID
+    End If
+End Function
+
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
-Public Sub KillTimerByID(ByVal timerID As Long)
+Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     checkIfLocked "KillTimerByID"
     If timerExists(timerID) Then
@@ -135,10 +158,9 @@ Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
     log InfoLevel, "clearAllMessages", printf("Cleared {0} messages", i)
 End Sub
 
-'@Description("Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise")
-Friend Property Get timerExists(ByVal timerID As Long) As Boolean
+Friend Property Get timerExists(ByVal key As LongPtr) As Boolean
 Attribute timerExists.VB_Description = "Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise"
-    timerExists = this.timerIDs.Exists(timerID)
+    timerExists = this.timerIDs.Exists(key)
 End Property
 
 Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As TickerParams) As Boolean
@@ -179,12 +201,21 @@ Attribute tryScheduleProc.VB_Description = "Schedules something to run immediate
         
 End Function
 
-Private Function tryCreateTimer(ByVal timerFunction As LongPtr, ByRef outTimerID As Long, ByVal delayMillis As Long) As Boolean
+Private Function tryCreateTimer(ByVal timerFunction As Variant, ByVal delayMillis As Long, ByVal params As TickerParams, ByRef outTimerID As LongPtr) As Boolean
     On Error GoTo cleanFail
-    If Not timerExists(outTimerID) Then          'only make a new timer if there isn't one already
-        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, getUniqueID, delayMillis, timerFunction)
-        this.timerIDs.item(outTimerID) = timerFunction
-        tryCreateTimer = True
+    'key is either the TickerParams or the IFunction
+    Dim key As Object
+    Set key = IIf(IsObject(timerFunction), timerFunction, params)
+    'Create timer with ID of the key object; guaranteed to be unique
+    If key Is Not Nothing And Not timerExists(key) Then          'only make a new timer if there isn't one already
+        'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
+        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(IsNumeric(timerFunction), timerFunction, 0))
+        If outTimerID = ObjPtr(key) Then
+            Set this.timerIDs.item(key) = key 'store copy of key object so it doesn't go out of scope
+            tryCreateTimer = True
+        Else
+            tryCreateTimer = False
+        End If
     End If
     
 cleanExit:

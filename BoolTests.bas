@@ -88,7 +88,7 @@ Private Sub AssigningByReferenceCanOverwrite()
 
     'Act:
     Set base = Bool.Create(True)
-    Set copy = Bool.FromPtr(objPtr(base))
+    Set copy = Bool.FromPtr(ObjPtr(base))
     copy = False
 
     'Assert:
