@@ -55,7 +55,7 @@ Attribute StartTimer.VB_Description = "Create new timer instance with optional s
         End If
         'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
         Set makeTimer = this.recursionStack.Pop
-        If Not makeTimer Then Exit Function
+        If Not makeTimer.TickerIsRunning Then Exit Function
     End If
     
     Dim newTimerID As Long
