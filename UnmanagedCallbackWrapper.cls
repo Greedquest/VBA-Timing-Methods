@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "TickerParams"
+Attribute VB_Name = "UnmanagedCallbackWrapper"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -24,23 +24,23 @@ Implements ICallbackWrapper
     Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
 #End If
 
-Private Type tParams
+Private Type tUnmanagedWrapper
     callbackFunction As LongPtr
     data As Variant
 End Type
 
-Private this As tParams
+Private this As tUnmanagedWrapper
 
-Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As TickerParams
+Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As UnmanagedCallbackWrapper
 'NOTE only API needs to be able to create these so don't expose
-    With New TickerParams
+    With New UnmanagedCallbackWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
         .Callbcak = callbackFunction
         Set Create = .Self
     End With
 End Function
 
-Friend Function Self() As TickerParams
+Friend Function Self() As UnmanagedCallbackWrapper
     Set Self = Me
 End Function
 
@@ -58,7 +58,7 @@ End Property
 
 
 #If VBA7 Then
-    Public Function FromPtr(ByVal pData As LongPtr) As TickerParams
+    Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
 #Else
     Public Function FromPtr(ByVal pData As Long) As TickerParams
 #End If

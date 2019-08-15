@@ -56,7 +56,7 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
     
     
     Dim newTimerID As LongPtr
-    If Not tryCreateTimer(TickerParams.Create(timerFunction, data), delayMillis, newTimerID) Then
+    If Not tryCreateTimer(UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
         raiseError CreateTimerError, "StartUnmanagedTimer"
     Else
         StartUnmanagedTimer = newTimerID
@@ -72,7 +72,7 @@ End Function
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
     checkIfLocked "StartManagedTimer"
     Dim newTimerID As LongPtr
-    If Not tryCreateTimer(TimerProcWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
+    If Not tryCreateTimer(ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
         raiseError CreateTimerError, "StartManagedTimer"
     Else
         StartManagedTimer = newTimerID

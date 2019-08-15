@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "TimerProcWrapper"
+Attribute VB_Name = "ManagedCallbackWrapper"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -23,22 +23,22 @@ Implements ICallbackWrapper
     Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
 #End If
 
-Private Type tTimerProcWrapper
+Private Type tManagedWrapper
     callbackFunction As ITimerProc
     data As Variant
 End Type
 
-Private this As tTimerProcWrapper
+Private this As tManagedWrapper
 
-Friend Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data As Variant) As TimerProcWrapper
+Friend Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data As Variant) As ManagedCallbackWrapper
 'NOTE only API needs to be able to create these so don't expose
-    With New TimerProcWrapper
+    With New ManagedCallbackWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
         Set Create = .Self
     End With
 End Function
 
-Public Function Self() As TimerProcWrapper
+Public Function Self() As ManagedCallbackWrapper
     Set Self = Me
 End Function
 
@@ -55,7 +55,7 @@ Public Property Set Callback(ByVal obj As ITimerProc)
 End Property
 
 #If VBA7 Then
-    Public Function FromPtr(ByVal pData As LongPtr) As TimerProcWrapper
+    Public Function FromPtr(ByVal pData As LongPtr) As ManagedCallbackWrapper
 #Else
     Public Function FromPtr(ByVal pData As Long) As TimerProcWrapper
 #End If

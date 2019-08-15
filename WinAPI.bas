@@ -142,7 +142,7 @@ Public Declare Function KillTimer Lib "user32" ( _
                          
 Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
                         ByVal lpPrevWndFunc As LongPtr, _
-                        ByRef params As TickerParams, _
+                        ByRef params As UnmanagedCallbackWrapper, _
                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                         Optional ByVal timerID As Long = 0, _
                         Optional ByVal unused3 As Long) As LongPtr
@@ -167,6 +167,7 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
+
 
 
 
