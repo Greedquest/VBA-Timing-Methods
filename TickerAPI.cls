@@ -54,8 +54,9 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
 '        Set makeTimer = this.recursionStack.Pop
 '        If Not makeTimer.TickerIsRunning Then Exit Function
     
+    
     Dim newTimerID As LongPtr
-    If Not tryCreateTimer(TickerParams.Create(data), delayMillis, makeTimer, newTimerID) Then
+    If Not tryCreateTimer(TickerParams.Create(timerFunction, data), delayMillis, newTimerID) Then
         raiseError CreateTimerError, "StartUnmanagedTimer"
     Else
         StartUnmanagedTimer = newTimerID
@@ -71,7 +72,7 @@ End Function
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
     checkIfLocked "StartManagedTimer"
     Dim newTimerID As LongPtr
-    If Not tryCreateTimer(timerFunction, delayMillis, Nothing, newTimerID) Then
+    If Not tryCreateTimer(TimerProcWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
         raiseError CreateTimerError, "StartManagedTimer"
     Else
         StartManagedTimer = newTimerID
@@ -191,14 +192,14 @@ Attribute tryScheduleProc.VB_Description = "Schedules something to run immediate
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes an object to use as key, ")
-Private Function tryCreateTimer(ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
+Private Function tryCreateTimer(ByVal key As ICallbackWrapper, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
     On Error GoTo cleanFail
     'key is either the TickerParams or the TimerProcWrapper
     
     'Create timer with ID of the key object; guaranteed to be unique
     'If timerExists(ObjPtr(key)) Then          'only make a new timer if there isn't one already
         'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
-        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(TypeOf key Is TickerParams, key.callback, 0))
+        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(key.CallbackType = cbRawPointer, key.Callback, 0))
         If outTimerID = ObjPtr(key) Then
             Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
             tryCreateTimer = True

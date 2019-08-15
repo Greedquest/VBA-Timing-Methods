@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-'@Folder("FirstLevelAPI")
+'@Folder("FirstLevelAPI.Utils.Wrappers")
 '@PredeclaredID
 '@Exposed
 Option Explicit
+
+Implements ICallbackWrapper
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
 ''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
@@ -54,10 +56,6 @@ Friend Property Let Callbcak(ByVal value As LongPtr)
     this.callbackFunction = value
 End Property
 
-Friend Property Get Callbcak() As LongPtr
-    callback = this.callbackFunction
-End Property
-
 
 #If VBA7 Then
     Public Function FromPtr(ByVal pData As LongPtr) As TickerParams
@@ -72,5 +70,14 @@ End Function
 
 Private Sub Class_Initialize()
     Set this.data = Nothing
-    this.TickerIsRunning = True
+    this.callbackFunction = 0
 End Sub
+
+Private Property Get ICallbackWrapper_Callback() As Variant
+    ICallbackWrapper_Callback = this.callbackFunction
+End Property
+
+Private Property Get ICallbackWrapper_CallbackType() As CallbackType
+    ICallbackWrapper_CallbackType = cbRawPointer
+End Property
+

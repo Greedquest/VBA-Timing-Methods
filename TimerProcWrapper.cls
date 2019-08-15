@@ -7,9 +7,11 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder("FirstLevelAPI")
+'@Folder("FirstLevelAPI.Utils.Wrappers")
 '@PredeclaredID
 Option Explicit
+
+Implements ICallbackWrapper
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
 ''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
@@ -48,12 +50,8 @@ Public Property Get storedData() As Variant
     LetSet storedData, this.data
 End Property
 
-Public Property Set Callbcak(ByVal obj As ITimerProc)
+Public Property Set Callback(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj
-End Property
-
-Public Property Get Callbcak() As ITimerProc
-    Set callback = this.callbackFunction
 End Property
 
 #If VBA7 Then
@@ -66,6 +64,14 @@ End Property
     Set FromPtr = result 'don't copy directly as then reference count won't be managed (I think)
     ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
+
+Private Property Get ICallbackWrapper_Callback() As Variant
+    Set ICallbackWrapper_Callback = this.callbackFunction
+End Property
+
+Private Property Get ICallbackWrapper_CallbackType() As CallbackType
+    ICallbackWrapper_CallbackType = cbCommandObject
+End Property
 
 Private Sub Class_Initialize()
     Set this.data = Nothing
