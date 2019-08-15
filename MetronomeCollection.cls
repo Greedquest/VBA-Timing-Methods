@@ -37,8 +37,9 @@ Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMes
     If Not tryGetTickerFromID(timerID, ticker) Then
         'Rogue timerID shouldn't be messaging our private callback! Disable it
         If message = WM_NOTIFY Then
+            Err.Raise 5, Description:="Unreacheable"
             'Synchronous call, dereference flag and set it to false so no timer is made
-            TickerParams.FromPtr(createTimer).TickerIsRunning = False
+            'TickerParams.FromPtr(createTimer).TickerIsRunning = False
         Else
             'Timer call, destroy the timer
             On Error Resume Next
