@@ -145,7 +145,7 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
                         ByRef params As TickerParams, _
                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                         Optional ByVal timerID As Long = 0, _
-                        Optional ByVal unused3 As Long) As Long
+                        Optional ByVal unused3 As Long) As LongPtr
 
 Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filterLow As WindowsMessage = 0, Optional ByVal filterHigh As WindowsMessage = 0)
     Dim msg As tagMSG

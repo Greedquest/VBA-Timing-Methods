@@ -27,7 +27,7 @@ End Function
 
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
     On Error Resume Next
-        runTimerCallback = IFunction.FromPtr(timerID).Exec
+        runTimerCallback = ITimerProc.FromPtr(timerID).Exec
         If Err.Number <> 0 Then logError "runTimerCallback", Err.Number, Err.Description
     On Error GoTo 0
 End Function

@@ -10,8 +10,9 @@ Attribute VB_Exposed = False
 Option Explicit
 '@Folder("Tests.Callbacks")
 
-Implements IFunction
+Implements ITimerProc
 
-Private Sub IFunction_Exec()
+Private Function ITimerProc_Exec() As Boolean
     Debug.Print "Hey there matey"
-End Sub
+    ITimerProc_Exec = True
+End Function

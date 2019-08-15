@@ -68,24 +68,19 @@ Attribute StartTimer.VB_Description = "Create new timer instance with optional s
     End If
 End Function
 
-Public Function StartManagedTimer(ByVal timerFunction As IFunction, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
+Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
     checkIfLocked "StartManagedTimer"
-    If runImmediately Then
-'        Dim makeTimer As TickerParams
-'        Set makeTimer = TickerParams.Create(True)
-'        this.recursionStack.Push makeTimer
-'        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
-'            raiseError SynchronousCallError, "StartTimer"
-'        End If
-'        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
-'        Set makeTimer = this.recursionStack.Pop
-'        If Not makeTimer.TickerIsRunning Then Exit Function
-    End If
-    Dim newTimerID As Long
+    Dim newTimerID As LongPtr
     If Not tryCreateTimer(timerFunction, delayMillis, Nothing, newTimerID) Then
         raiseError CreateTimerError, "StartManagedTimer"
     Else
         StartManagedTimer = newTimerID
+    End If
+    If runImmediately Then
+        'schedule immediate proc - No callback proc specified
+        If Not tryScheduleProc(newTimerID) Then
+            KillTimerByID (newTimerID) 'NOTE may raise error
+        End If
     End If
 End Function
 
@@ -163,41 +158,35 @@ Attribute timerExists.VB_Description = "Checks the runningSet for the item with 
     timerExists = this.timerIDs.Exists(key)
 End Property
 
-Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As TickerParams) As Boolean
-    On Error GoTo cleanFail
-    CallWindowProc timerFunction, timerFlag, WM_NOTIFY 'not sure what the return value of this is so no useful try result
-    tryCallProc = True
-    
-cleanExit:
-    Exit Function
-    
-cleanFail:
-    logError "tryCallProc", Err.Number, Err.Description
-    tryCallProc = False
-    Resume cleanExit
-    
-End Function
+'Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As TickerParams) As Boolean
+'    On Error GoTo cleanFail
+'    CallWindowProc timerFunction, timerFlag, WM_NOTIFY 'not sure what the return value of this is so no useful try result
+'    tryCallProc = True
+'
+'cleanExit:
+'    Exit Function
+'
+'cleanFail:
+'    logError "tryCallProc", Err.Number, Err.Description
+'    tryCallProc = False
+'    Resume cleanExit
+'
+'End Function
 
-'@Description("Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created")
-Private Function tryScheduleProc(ByVal timerProc As LongPtr) As Boolean
+'@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
+Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
 Attribute tryScheduleProc.VB_Description = "Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created"
 
-    'messages must be associated with a valid timer, so let's make one
-    Dim validationTimerID As Long
-    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
-    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
-        tryScheduleProc = False
-        Exit Function
-    End If
+'    'messages must be associated with a valid timer, so let's make one
+'    Dim validationTimerID As Long
+'    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
+'    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
+'        tryScheduleProc = False
+'        Exit Function
+'    End If
     
     'Post fake message to queue
-    If PostMessage(this.messageWindow.handle, WM_TIMER, validationTimerID, timerProc) = False Then
-        tryKillTimer validationTimerID
-        tryScheduleProc = False
-        Exit Function
-    End If
-    
-    tryScheduleProc = True
+    tryScheduleProc = WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, timerID, timerProc) <> 0
         
 End Function
 
@@ -207,7 +196,7 @@ Private Function tryCreateTimer(ByVal timerFunction As Variant, ByVal delayMilli
     Dim key As Object
     Set key = IIf(IsObject(timerFunction), timerFunction, params)
     'Create timer with ID of the key object; guaranteed to be unique
-    If key Is Not Nothing And Not timerExists(key) Then          'only make a new timer if there isn't one already
+    If Not key Is Nothing And Not timerExists(key) Then          'only make a new timer if there isn't one already
         'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
         outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(IsNumeric(timerFunction), timerFunction, 0))
         If outTimerID = ObjPtr(key) Then

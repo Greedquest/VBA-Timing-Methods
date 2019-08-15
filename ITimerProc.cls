@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "IFunction"
+Attribute VB_Name = "ITimerProc"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -22,9 +22,9 @@ Option Explicit
 #End If
 
 #If VBA7 Then
-    Friend Function FromPtr(ByVal pData As LongPtr) As IFunction
+    Friend Function FromPtr(ByVal pData As LongPtr) As ITimerProc
 #Else
-    Friend Function FromPtr(ByVal pData As Long) As IFunction
+    Friend Function FromPtr(ByVal pData As Long) As ITimerProc
 #End If
     Dim result As Object
     CopyMemory result, pData, LenB(pData)
@@ -33,6 +33,6 @@ Option Explicit
 End Function
 
 'Interface
-Public Sub Exec()
+Public Function Exec() As Boolean
     Err.Raise 5 'not implemented
-End Sub
+End Function
