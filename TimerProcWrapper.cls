@@ -2,14 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "TickerParams"
+Attribute VB_Name = "TimerProcWrapper"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
+Attribute VB_Exposed = False
 '@Folder("FirstLevelAPI")
 '@PredeclaredID
-'@Exposed
 Option Explicit
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
@@ -22,23 +21,22 @@ Option Explicit
     Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
 #End If
 
-Private Type tParams
-    callbackFunction As LongPtr
+Private Type tTimerProcWrapper
+    callbackFunction As ITimerProc
     data As Variant
 End Type
 
-Private this As tParams
+Private this As tTimerProcWrapper
 
-Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As TickerParams
+Friend Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data As Variant) As TimerProcWrapper
 'NOTE only API needs to be able to create these so don't expose
-    With New TickerParams
+    With New TimerProcWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
-        .Callbcak = callbackFunction
         Set Create = .Self
     End With
 End Function
 
-Friend Function Self() As TickerParams
+Public Function Self() As TimerProcWrapper
     Set Self = Me
 End Function
 
@@ -50,19 +48,18 @@ Public Property Get storedData() As Variant
     LetSet storedData, this.data
 End Property
 
-Friend Property Let Callbcak(ByVal value As LongPtr)
-    this.callbackFunction = value
+Public Property Set Callbcak(ByVal obj As ITimerProc)
+    Set this.callbackFunction = obj
 End Property
 
-Friend Property Get Callbcak() As LongPtr
-    callback = this.callbackFunction
+Public Property Get Callbcak() As ITimerProc
+    Set callback = this.callbackFunction
 End Property
-
 
 #If VBA7 Then
-    Public Function FromPtr(ByVal pData As LongPtr) As TickerParams
+    Public Function FromPtr(ByVal pData As LongPtr) As TimerProcWrapper
 #Else
-    Public Function FromPtr(ByVal pData As Long) As TickerParams
+    Public Function FromPtr(ByVal pData As Long) As TimerProcWrapper
 #End If
     Dim result As Object
     CopyMemory result, pData, LenB(pData)
@@ -72,5 +69,5 @@ End Function
 
 Private Sub Class_Initialize()
     Set this.data = Nothing
-    this.TickerIsRunning = True
+    Set this.callbackFunction = New ITimerProc
 End Sub

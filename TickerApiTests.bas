@@ -103,7 +103,7 @@ Private Sub StartExistingTimerNoError()
             
     'Act:
     Dim apiID As Long
-    apiID = TickerAPI.StartTimer(AddressOf SafeCallbackProc, False)
+    apiID = TickerAPI.StartUnmanagedTimer(AddressOf SafeCallbackProc, False)
 
     'Assert:
     Assert.AreEqual 1&, apiID, printf("Expected {0}, actual {1}", 1, apiID)
@@ -121,9 +121,9 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     On Error GoTo TestFail
     
     'Arrange:
-    TickerAPI.StartTimer AddressOf QuietNoOpCallback, False
+    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False
     Dim killSuccess As Boolean
-    killSuccess = ApiKillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartTimer(AddressOf QuietNoOpCallback, False))
+    killSuccess = ApiKillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False))
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone
@@ -141,5 +141,6 @@ TestFail:
         Resume Assert
     End If
 End Sub
+
 
 

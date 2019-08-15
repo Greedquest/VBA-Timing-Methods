@@ -21,27 +21,28 @@ Option Explicit
 '                         ByVal lParam As Long) As Long
 Public Sub testInfiniteRecursion()
     'TODO Bug infinite recursion can't be stopped as timer messages hang about even when timers are killed - flush message queue or otherwise prevent timers being made during recursion
-    TickerAPI.StartTimer AddressOf RecursiveProc, True
+    TickerAPI.StartUnmanagedTimer AddressOf RecursiveProc, True
 End Sub
 
 Public Sub testSyncTerminating()
-    TickerAPI.StartTimer AddressOf SafeCallbackProc, True
+    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, True
 End Sub
 
 Public Sub testAsyncTerminating()                'TickerAPI.killalltimers
-    TickerAPI.StartTimer AddressOf SafeCallbackProc, False
+    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, False
 End Sub
 
 Public Sub testSyncTicking()
-    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True
+    TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True
 End Sub
 
 Public Sub testAsyncTicking()
-    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, False
+    TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, False
 End Sub
 
 Public Sub testInterwovenTicking()
-    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True, 1000
+    TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000
     doEventsDelay 500
-    TickerAPI.StartTimer AddressOf terminatingIndexedTickingProc, True, 1000
+    TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000
 End Sub
+

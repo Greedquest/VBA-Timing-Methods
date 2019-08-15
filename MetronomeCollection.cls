@@ -69,7 +69,7 @@ Friend Function tryInitialiseTimer(ByVal ticker As IMetronomeControls) As Boolea
     End If
     
     On Error GoTo cleanFail
-    ticker.timerID = TickerAPI.StartTimer(AddressOf WaitableTimerCallbackProc, ticker.isFirstTickSynchronous, ticker.tickIntervalMillis)
+    ticker.timerID = TickerAPI.StartUnmanagedTimer(AddressOf WaitableTimerCallbackProc, ticker.isFirstTickSynchronous, ticker.tickIntervalMillis)
     this.activeTickers.Add key:=ticker.timerID, item:=ticker
     tryInitialiseTimer = True
         

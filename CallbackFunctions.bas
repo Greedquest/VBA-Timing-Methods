@@ -65,7 +65,7 @@ Public Sub RecursiveProc(ByRef createTimer As TickerParams, ByVal message As Win
     Static i As Long
     i = i + 1
     Debug.Print i; "Callback called " & time; timerID
-    If i < 3 Then TickerAPI.StartTimer AddressOf RecursiveProc, True, 1000
+    If i < 3 Then TickerAPI.StartUnmanagedTimer AddressOf RecursiveProc, True, 1000
     Debug.Print i
     i = i - 1
     createTimer.TickerIsRunning = i = 1
