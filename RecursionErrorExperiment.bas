@@ -150,8 +150,8 @@ Public Sub tightLoopDelay(Optional ByVal delayMillis As Long = defaultTimerDelay
     Loop
 End Sub
 
-Public Sub applicationOnTimeDelay(ByVal callback As String, Optional ByVal delayMillis As Long = defaultTimerDelay)
-    Application.OnTime futureTime(delayMillis), callback
+Public Sub applicationOnTimeDelay(ByVal Callback As String, Optional ByVal delayMillis As Long = defaultTimerDelay)
+    Application.OnTime futureTime(delayMillis), Callback
 End Sub
 
 Private Function futureTime(ByVal delayMillis As Long) As Variant
