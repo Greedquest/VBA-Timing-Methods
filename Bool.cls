@@ -33,8 +33,6 @@ Private this As tBool
 '@Description("Truthy encapsulated value")
 '@DefaultMember
 Public Property Get value() As Boolean
-Attribute value.VB_Description = "Truthy encapsulated value"
-Attribute value.VB_UserMemId = 0
     value = this.value
 End Property
 
@@ -45,7 +43,6 @@ End Property
 '@Description("Create instance of Bool class from objPtr")
 #If VBA7 Then
 Public Function FromPtr(ByVal pData As LongPtr) As Bool
-Attribute FromPtr.VB_Description = "Create instance of Bool class from objPtr"
 #Else
 Public Function FromPtr(ByVal pData As Long) As Bool
 #End If
@@ -57,7 +54,6 @@ End Function
 
 '@Description("Class Constructor takes Boolean or Boolean-like values")
 Public Function Create(ByVal initialValue As Variant) As Bool
-Attribute Create.VB_Description = "Class Constructor takes Boolean or Boolean-like values"
     Dim result As New Bool
     result.value = CBool(initialValue)
     Set Create = result

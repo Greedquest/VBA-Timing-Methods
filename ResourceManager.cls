@@ -93,7 +93,6 @@ End Sub
 
 '@Description("Attempt to destroy specified resource, or if missing then find and destroy any resources. Returns True if resource destroyed, False if none found, Raises Error if unable to destroy.")
 Public Function ReleaseResource(Optional ByVal resource As Variant) As Boolean
-Attribute ReleaseResource.VB_Description = "Attempt to destroy specified resource, or if missing then find and destroy any resources. Returns True if resource destroyed, False if none found, Raises Error if unable to destroy."
     If IsMissing(resource) Then
         Dim foundResource As Variant
         If this.Locator.tryLocate(foundResource) Then
@@ -116,7 +115,6 @@ End Function
 
 '@Description("First tries to locate matching resources (ignoring resourceArgs), if that fails then attempts to create one. Returns the resource if found, RaisesError if unable to find or create one.")
 Public Function ObtainResource(ByVal resourceIdentifier As Variant, Optional ByVal resourceArgs As Variant) As Variant
-Attribute ObtainResource.VB_Description = "First tries to locate matching resources (ignoring resourceArgs), if that fails then attempts to create one. Returns the resource if found, RaisesError if unable to find or create one."
     Dim resource As Variant
     If Not this.Locator.tryLocate(resource, resourceIdentifier) Then
         If Not this.Creator.tryCreate(resourceIdentifier, resourceArgs, resource) Then

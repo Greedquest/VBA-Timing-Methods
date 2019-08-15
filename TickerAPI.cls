@@ -44,15 +44,16 @@ Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
+Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartUnmanagedTimer"
     
-'        this.recursionStack.Push makeTimer
-'        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
-'            raiseError SynchronousCallError, "StartTimer"
-'        End If
-'        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
-'        Set makeTimer = this.recursionStack.Pop
-'        If Not makeTimer.TickerIsRunning Then Exit Function
+    '        this.recursionStack.Push makeTimer
+    '        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
+    '            raiseError SynchronousCallError, "StartTimer"
+    '        End If
+    '        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
+    '        Set makeTimer = this.recursionStack.Pop
+    '        If Not makeTimer.TickerIsRunning Then Exit Function
     
     
     Dim newTimerID As LongPtr
@@ -64,7 +65,7 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
     If runImmediately Then
         'schedule immediate proc - No callback proc specified
         If Not tryScheduleProc(newTimerID, timerFunction) Then
-            KillTimerByID newTimerID 'NOTE may raise error
+            KillTimerByID newTimerID             'NOTE may raise error
         End If
     End If
 End Function
@@ -80,7 +81,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     If runImmediately Then
         'schedule immediate proc - No callback proc specified
         If Not tryScheduleProc(newTimerID) Then
-            KillTimerByID newTimerID 'NOTE may raise error
+            KillTimerByID newTimerID             'NOTE may raise error
         End If
     End If
 End Function
@@ -155,7 +156,6 @@ Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
 End Sub
 
 Friend Property Get timerExists(ByVal key As LongPtr) As Boolean
-Attribute timerExists.VB_Description = "Checks the runningSet for the item with key timerFunction, returns the item if found, or false otherwise"
     timerExists = this.timerIDs.Exists(key)
 End Property
 
@@ -176,15 +176,15 @@ End Property
 
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
 Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
-Attribute tryScheduleProc.VB_Description = "Schedules something to run immediately by posting a message straight to the queue. Any timerProc should kill the timer created"
+Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message queue - timerProc should be 0 for managed timers"
 
-'    'messages must be associated with a valid timer, so let's make one
-'    Dim validationTimerID As Long
-'    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
-'    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
-'        tryScheduleProc = False
-'        Exit Function
-'    End If
+    '    'messages must be associated with a valid timer, so let's make one
+    '    Dim validationTimerID As Long
+    '    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
+    '    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
+    '        tryScheduleProc = False
+    '        Exit Function
+    '    End If
     
     'Post fake message to queue
     tryScheduleProc = WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, timerID, timerProc) <> 0
@@ -193,19 +193,20 @@ End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes an object to use as key, ")
 Private Function tryCreateTimer(ByVal key As ICallbackWrapper, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
+Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
     On Error GoTo cleanFail
     'key is either the TickerParams or the TimerProcWrapper
     
     'Create timer with ID of the key object; guaranteed to be unique
     'If timerExists(ObjPtr(key)) Then          'only make a new timer if there isn't one already
-        'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
-        outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(key.CallbackType = cbRawPointer, key.Callback, 0))
-        If outTimerID = ObjPtr(key) Then
-            Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
-            tryCreateTimer = True
-        Else
-            tryCreateTimer = False
-        End If
+    'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
+    outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(key.CallbackType = cbRawPointer, key.Callback, 0))
+    If outTimerID = ObjPtr(key) Then
+        Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
+        tryCreateTimer = True
+    Else
+        tryCreateTimer = False
+    End If
     'End If
     
 cleanExit:
@@ -282,13 +283,13 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
 End Sub
 
 Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
-'    If this.isLocked Then
-'        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
-'            UnlockApi
-'        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
-'            raiseError TimerApiLockedError, source
-'        End If
-'    End If
+    '    If this.isLocked Then
+    '        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
+    '            UnlockApi
+    '        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
+    '            raiseError TimerApiLockedError, source
+    '        End If
+    '    End If
 End Sub
 
 Public Sub UnlockApi()

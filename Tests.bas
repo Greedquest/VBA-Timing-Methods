@@ -46,3 +46,4 @@ Public Sub testInterwovenTicking()
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000
 End Sub
 
+

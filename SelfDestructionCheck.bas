@@ -34,6 +34,7 @@ Sub selfDestructProc()
 End Sub
 
 Sub t()
-Dim a As Boolean, b As Long
-Debug.Print LenB(a), LenB(b)
+    Dim a As Boolean, b As Long
+    Debug.Print LenB(a), LenB(b)
 End Sub
+

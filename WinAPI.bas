@@ -22,23 +22,23 @@ End Type
 
 Public Type WNDCLASSEX
     cbSize         As Long
-    style          As Long        ' See CS_* constants
+    style          As Long                       ' See CS_* constants
     lpfnwndproc    As LongPtr
-'   lpfnwndproc    As Long
+    '   lpfnwndproc    As Long
     cbClsextra     As Long
     cbWndExtra     As Long
     hInstance      As LongPtr
     hIcon          As LongPtr
     hCursor        As LongPtr
     hbrBackground  As LongPtr
-'   hInstance      as long
-'   hIcon          as long
-'   hCursor        as long
-'   hbrBackground  as long
+    '   hInstance      as long
+    '   hIcon          as long
+    '   hCursor        as long
+    '   hbrBackground  as long
     lpszMenuName   As String
     lpszClassName  As String
     hIconSm        As LongPtr
-'   hIconSm        as long
+    '   hIconSm        as long
 End Type
 
 Public Enum WindowStyle
@@ -167,7 +167,5 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
-
-
 
 

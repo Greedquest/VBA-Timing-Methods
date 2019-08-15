@@ -12,6 +12,7 @@ Private Function HelloWorldWindowProc(ByVal hWnd As LongPtr, ByVal uMsg As Windo
     End If
     HelloWorldWindowProc = WinAPI.DefWindowProc(hWnd, uMsg, wParam, lParam)
 End Function
+
 Sub registerClass()
     'static const char* class_name = "DUMMY_CLASS";
     

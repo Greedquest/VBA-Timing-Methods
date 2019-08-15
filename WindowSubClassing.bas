@@ -64,3 +64,4 @@ Attribute tryDestroyMessageWindowByName.VB_Description = "Destroy a message wind
     End If
     tryDestroyMessageWindowByName = successful
 End Function
+

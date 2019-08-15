@@ -32,7 +32,7 @@ End Type
 Private this As tUnmanagedWrapper
 
 Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As UnmanagedCallbackWrapper
-'NOTE only API needs to be able to create these so don't expose
+    'NOTE only API needs to be able to create these so don't expose
     With New UnmanagedCallbackWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
         .Callbcak = callbackFunction
@@ -56,16 +56,15 @@ Friend Property Let Callbcak(ByVal value As LongPtr)
     this.callbackFunction = value
 End Property
 
-
 #If VBA7 Then
-    Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
+Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
 #Else
-    Public Function FromPtr(ByVal pData As Long) As TickerParams
+Public Function FromPtr(ByVal pData As Long) As TickerParams
 #End If
-    Dim result As Object
-    CopyMemory result, pData, LenB(pData)
-    Set FromPtr = result 'don't copy directly as then reference count won't be managed (I think)
-    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+Dim result As Object
+CopyMemory result, pData, LenB(pData)
+Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 Private Sub Class_Initialize()

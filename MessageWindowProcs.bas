@@ -8,12 +8,12 @@ Public Function MessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As W
     Debug.Print "Message #"; uMsg
     Select Case uMsg
     
-        'NOTE this will never receive timer messages where TIMERPROC is specified,
-        Case WindowsMessage.WM_TIMER 'wParam = timerID , lParam = "timerProc" (will be Null if it reaches here)
+            'NOTE this will never receive timer messages where TIMERPROC is specified,
+        Case WindowsMessage.WM_TIMER             'wParam = timerID , lParam = "timerProc" (will be Null if it reaches here)
             If TickerAPI.timerExists(wParam) Then
-                MessageWindowSubclassProc = runTimerCallback(wParam)  'WinAPI.DefSubclassProc(hwnd, uMsg, wParam, lParam)
+                MessageWindowSubclassProc = runTimerCallback(wParam) 'WinAPI.DefSubclassProc(hwnd, uMsg, wParam, lParam)
             Else
-                On Error Resume Next 'checking for the timer should trigger destruction
+                On Error Resume Next             'checking for the timer should trigger destruction
                 TickerAPI.KillTimerByID wParam
                 On Error GoTo 0
                 MessageWindowSubclassProc = True 'skip it :)
@@ -27,8 +27,8 @@ End Function
 
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
     On Error Resume Next
-        runTimerCallback = ITimerProc.FromPtr(timerID).Exec
-        If Err.Number <> 0 Then logError "runTimerCallback", Err.Number, Err.Description
+    runTimerCallback = ITimerProc.FromPtr(timerID).Exec
+    If Err.Number <> 0 Then logError "runTimerCallback", Err.Number, Err.Description
     On Error GoTo 0
 End Function
 
@@ -38,3 +38,4 @@ Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDesc
     End If
     LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", source, errNum, errDescription)
 End Sub
+

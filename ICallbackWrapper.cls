@@ -24,3 +24,4 @@ End Property
 
 Public Property Get CallbackType() As CallbackType
 End Property
+

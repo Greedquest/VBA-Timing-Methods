@@ -11,3 +11,4 @@ Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
         variable = value
     End If
 End Sub
+

@@ -16,3 +16,4 @@ Private Function ITimerProc_Exec() As Boolean
     Debug.Print "Hey there matey"
     ITimerProc_Exec = True
 End Function
+
