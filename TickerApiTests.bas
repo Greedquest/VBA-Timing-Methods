@@ -99,7 +99,7 @@ Private Sub StartExistingTimerNoError()
     On Error GoTo TestFail
     
     'Arrange:
-    tempIDs.Add 1, ApiSetTimer(Application.hWnd, 1, 10000, AddressOf SafeCallbackProc)
+    tempIDs.Add 1, ApiSetTimer(TickerAPI.messageWindowHandle, 1, 10000, AddressOf SafeCallbackProc)
             
     'Act:
     Dim apiID As Long

@@ -32,7 +32,7 @@ Private Type tWindow
 End Type
 
 Private Type tCallback
-    timerIDs As Scripting.Dictionary             'SetTimer ID: Callback Fn
+    timerIDs As Scripting.Dictionary             'timerID: keyObj
     'functionSet As New Dictionary
     recursionStack As New Stack
     isLocked As Boolean
@@ -43,7 +43,7 @@ End Type
 Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
-Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
+Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     checkIfLocked "StartUnmanagedTimer"
     
@@ -70,7 +70,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     End If
 End Function
 
-Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal data As Variant, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500) As LongPtr
+Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     checkIfLocked "StartManagedTimer"
     Dim newTimerID As LongPtr
     If Not tryCreateTimer(ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
@@ -122,24 +122,27 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
     
     'Try to just remove message window, if that fails then kill manually
-    Dim timerID As Variant
     If this.timerIDs.Count = 0 Then
         'do nothing
     ElseIf tryDestroyMessageWindowByName(this.messageWindow.name, this.messageWindow.handle) Then
-        'NOTE this stuff is just in case tryKillTimer does other cleaning up
-        For Each timerID In this.timerIDs
-            tryKillTimer timerID
-        Next timerID
-        clearAllMessages this.timerIDs
+        'NOTE destroying message window should orphan all the existing timers and reset the message queue, so no need for further clear up
+'        For Each timerID In this.timerIDs
+'            tryKillTimer timerID
+'        Next timerID
+'        clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
     Else
-        For Each timerID In this.timerIDs
+        Dim timerID As Variant
+        Dim destroyedTimers As New Collection
+        For Each timerID In this.timerIDs.Keys
             On Error Resume Next                 'no point returning success since there's nothing we can do about it
-            WinAPI.KillTimer 0, this.timerIDs(timerID)
+            KillTimerByID timerID
+            destroyedTimers.Add timerID
+            On Error GoTo 0
             log DebugLevel, "KillAllTimers", printf("Killing timer #{0}", timerID)
         Next timerID
-        clearAllMessages this.timerIDs
-        this.timerIDs.RemoveAll
+        clearAllMessages destroyedTimers
+        'this.timerIDs.RemoveAll
     End If
            
 End Sub
