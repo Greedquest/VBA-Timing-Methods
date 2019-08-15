@@ -56,7 +56,7 @@ Attribute tryDestroyMessageWindowByName.VB_Description = "Destroy a message wind
     Dim successful As Boolean
     outHandle = WinAPI.FindWindow(className, windowName)
     If outHandle <> 0 Then
-        successful = WinAPI.DestroyWindow(outHandle)
+        successful = WinAPI.DestroyWindow(outHandle) <> 0
         'set to 0 if destroyed to mark handle invalid
         If successful Then outHandle = 0
     Else

@@ -151,7 +151,7 @@ Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
     'TODO when custom window handle is used, there will be no need to validate timerIDs
     Dim tmpMsg As tagMSG
     Dim i As Long
-    Do While WinAPI.PeekMessage(tmpMsg, this.messageWindow.handle, WM_TIMER, WM_TIMER, PM_REMOVE) And i < this.maxTimerCount
+    Do While WinAPI.PeekMessage(tmpMsg, this.messageWindow.handle, WM_TIMER, WM_TIMER, PM_REMOVE) <> 0 And i < this.maxTimerCount
         'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
         i = i + 1
     Loop
@@ -226,10 +226,10 @@ Private Function tryKillTimer(ByVal timerID As Long) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
     If timerExists(timerID) Then
-        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) 'kill the timer associated with that fn  & ID
+        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0 'kill the timer associated with that fn  & ID
         this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
     Else
-        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID)
+        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0
     End If
 
 cleanExit:

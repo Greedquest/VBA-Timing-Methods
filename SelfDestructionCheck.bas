@@ -25,7 +25,7 @@ Sub selfDestructProc()
         Exit Sub
     End If
     Dim result As Long
-    result = WinAPI.PostMessage(handle, WM_TIMER, 0, AddressOf DestroyerProc)
+    result = WinAPI.PostMessage(handle, WM_TIMER, 0, AddressOf DestroyerProc) <> 0
     Debug.Print "Post message: "; result
     'validation timer
     WinAPI.SetTimer handle, 0, &HFFFFFFFF, AddressOf DestroyerProc

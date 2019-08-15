@@ -114,7 +114,7 @@ Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMilli
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
-        If PeekMessage(outMsg, Application.hWnd, WM_TIMER, WM_TIMER, flags) Then
+        If PeekMessage(outMsg, Application.hWnd, WM_TIMER, WM_TIMER, flags) <> 0 Then
             'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
             If outMsg.wParam = timerID Then      ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True

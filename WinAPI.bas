@@ -70,7 +70,7 @@ Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal wMsgFilterMin As WindowsMessage, _
                         ByVal wMsgFilterMax As WindowsMessage, _
-                        ByVal wRemoveMsg As PeekMessageFlag) As Boolean
+                        ByVal wRemoveMsg As PeekMessageFlag) As Long
 
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal hWnd As LongPtr, _
@@ -90,7 +90,7 @@ Public Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" ( _
                         ByVal hInstance As LongPtr, ByVal lpParam As LongPtr) As LongPtr
 
 Public Declare Function DestroyWindow Lib "user32" ( _
-                        ByVal hWnd As LongPtr) As Boolean
+                        ByVal hWnd As LongPtr) As Long
 
 Public Declare Function FindWindow Lib "user32" Alias "FindWindowA" ( _
                         ByVal lpClassName As String, _
@@ -116,18 +116,18 @@ Public Declare Function DefSubclassProc Lib "comctl32.dll" Alias "#413" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal uMsg As WindowsMessage, _
                         ByVal wParam As LongPtr, _
-                        ByVal lParam As LongPtr) As Boolean
+                        ByVal lParam As LongPtr) As Long
 
 Public Declare Function SetWindowSubclass Lib "comctl32.dll" Alias "#410" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal pfnSubclass As LongPtr, _
                         ByVal uIdSubclass As LongPtr, _
-                        Optional ByVal dwRefData As LongPtr) As Boolean
+                        Optional ByVal dwRefData As LongPtr) As Long
 
 Public Declare Function RemoveWindowSubclass Lib "comctl32.dll" Alias "#412" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal pfnSubclass As LongPtr, _
-                        ByVal uIdSubclass As LongPtr) As Boolean
+                        ByVal uIdSubclass As LongPtr) As Long
 
 'Timers
 Public Declare Function SetTimer Lib "user32" ( _
@@ -150,7 +150,7 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
 Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filterLow As WindowsMessage = 0, Optional ByVal filterHigh As WindowsMessage = 0)
     Dim msg As tagMSG
     Dim results As New Dictionary
-    Do While PeekMessage(msg, windowHandle, filterLow, filterHigh, PM_REMOVE)
+    Do While PeekMessage(msg, windowHandle, filterLow, filterHigh, PM_REMOVE) <> 0
         If results.Exists(msg.message) Then
             results(msg.message) = results(msg.message) + 1
         Else

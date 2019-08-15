@@ -37,7 +37,7 @@ Function makeWindow() As LongPtr
     If hWnd = 0 Then
         Debug.Print "Errorroororororor "; GetSystemErrorMessageText(Err.LastDllError)
     Else
-        Debug.Print IIf(PostMessage(hWnd, PM_MY_MESSAGE, 0, 0) <> 0, "Message sent", "Couldn't send:( " & GetSystemErrorMessageText(Err.LastDllError))
+        Debug.Print IIf(WinAPI.PostMessage(hWnd, PM_MY_MESSAGE, 0, 0) <> 0, "Message sent", "Couldn't send:( " & GetSystemErrorMessageText(Err.LastDllError))
     End If
     makeWindow = hWnd
 End Function
