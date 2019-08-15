@@ -180,14 +180,6 @@ End Property
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
 Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
 Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message queue - timerProc should be 0 for managed timers"
-
-    '    'messages must be associated with a valid timer, so let's make one
-    '    Dim validationTimerID As Long
-    '    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
-    '    If Not tryCreateTimer(timerProc, validationTimerID, INFINITE_INTERVAL) Then
-    '        tryScheduleProc = False
-    '        Exit Function
-    '    End If
     
     'Post fake message to queue
     tryScheduleProc = WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, timerID, timerProc) <> 0
@@ -286,13 +278,15 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
 End Sub
 
 Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
-    '    If this.isLocked Then
-    '        If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
-    '            UnlockApi
-    '        Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
-    '            raiseError TimerApiLockedError, source
-    '        End If
-    '    End If
+        If this.isLocked Then
+            If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
+                'NOTE an unlock timer will only be made if there are other timers hanging around, so we don't need to check for it here
+                log InfoLevel, "checkIfLocked", "No timers hanging around, so auto-unlock run"
+                UnlockApi
+            Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
+                raiseError TimerApiLockedError, source
+            End If
+        End If
 End Sub
 
 Public Sub UnlockApi()
@@ -301,12 +295,25 @@ Public Sub UnlockApi()
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
-    'tryScheduleUnlock = tryScheduleProc(AddressOf TickerAPITimerProcs.UnlockCallbackProc)
+
+    'messages must be associated with a valid timer, so let's make one
+    'we have to do it manualy as StartUnmanagedTimer checks lock status
+    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
+    Dim validationTimerID As LongPtr
+    If tryCreateTimer(UnmanagedCallbackWrapper.Create(AddressOf TickerAPITimerProcs.UnlockCallbackProc), INFINITE_INTERVAL, validationTimerID) Then
+        If tryScheduleProc(validationTimerID, AddressOf TickerAPITimerProcs.UnlockCallbackProc) Then
+            tryScheduleUnlock = True
+        Else
+            If Not tryKillTimer(validationTimerID) Then killAllTimers 'don't want to leave one hanging around
+        End If
+    End If
+    
 End Function
 
 Private Function setupMessageWindow() As Boolean
     'This should work whether or not a window & handle already exist
     If tryHookMessageHandler(AddressOf MessageWindowProcs.MessageWindowSubclassProc, this.messageWindow.name, this.messageWindow.handle) Then
+        'TODO this message should reflectg whether a new one was made
         log DebugLevel, "HookMessages", printf("Reset message loop for window '{0}'", this.messageWindow.name)
         setupMessageWindow = True
     Else
@@ -325,8 +332,19 @@ Private Sub Class_Initialize()
     killAllTimers
     If setupMessageWindow Then
         'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
-        If this.isLocked Then tryScheduleUnlock
+        
+        If this.isLocked Then
+            If this.timerIDs.Count = 0 Then
+                'we know class wasn't started by an orphaned timer, so no need for a lock - unlock immediately
+                log InfoLevel, "Class_Initialize", "No timers hanging around, so auto-unlock run immediately"
+                UnlockApi
+            Else
+                'class may have been started by user or orphaned timer, so best to schedule an unlock to run after whatever code called us
+                If Not tryScheduleUnlock Then log ErrorLevel, "tryScheduleUnlock", "Unable to post auto-unlock message, if this problem persists consider a managed timer"
+            End If
+        End If
     Else
+        'Fatal error, don't let anyone use the class.
         this.isLocked = True
     End If
 End Sub
