@@ -53,6 +53,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     End If
     On Error Resume Next
     Dim a As UnmanagedCallbackWrapper
+    Debug.Print "Dereferencing - ";
     Set a = UnmanagedCallbackWrapper.FromPtr(timerID)
     If Err.Number <> 0 Then
         Debug.Print printf("Couldn't deref {0} - Err#{1}: {2}", timerID, Err.Number, Err.Description)
@@ -61,7 +62,12 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
    
     'this toggle makes sure TickerAPI is aware of any timers following a state change - it can then shut them down and lock out any bad behaviour (re-starts)
     
-    If Not timerChecked Then TickerAPI.Poke: timerChecked = True
+    If Not timerChecked Then
+        Debug.Print UCase$("pre-poke")
+        TickerAPI.Poke
+        Debug.Print UCase$("post-poke")
+        timerChecked = True
+    End If
         
     Static timerSet As New Dictionary
     If Not timerSet.Exists(timerID) Then
