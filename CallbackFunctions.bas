@@ -47,10 +47,19 @@ End Sub
 Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
 
    
+    On Error Resume Next
+    Dim a As UnmanagedCallbackWrapper
+    Set a = UnmanagedCallbackWrapper.FromPtr(timerID)
+    If Err.Number <> 0 Then
+        Debug.Print "oy"
+        Debug.Print printf("Couldn't deref {0} - Err#{1}: {2}", timerID, Err.Number, Err.Description)
+    End If
+    On Error GoTo 0
+   
     'this toggle makes sure TickerAPI is aware of any timers following a state change - it can then shut them down and lock out any bad behaviour (re-starts)
     Static timerChecked As Boolean
     If Not timerChecked Then TickerAPI.Poke: timerChecked = True
-    
+        
     Static timerSet As New Dictionary
     If Not timerSet.Exists(timerID) Then
         On Error Resume Next 'race contdition
@@ -61,16 +70,15 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
         
     'Debug.Print printf("Ticking - {0} (id:{1})", timerSet(timerID), timerID), time$
     
-    On Error Resume Next
-    Dim a As UnmanagedCallbackWrapper
-    Set a = UnmanagedCallbackWrapper.FromPtr(timerID)
     Debug.Print printf("Ticking - {0} (id:{1})", timerSet(timerID), timerID), time$;
-    Debug.Print " - "; a.storedData
-    a.storeData printf("Data name:{0} time:{1}", a.debugName, time$)
-    On Error GoTo 0
+    If Not a Is Nothing Then
+        Debug.Print " - "; a.storedData;
+        a.storeData printf("Data Name: {0} Time:{1}", a.debugName, time$)
+    End If
+    Debug.Print 'for linefeed
         
     'Terminate by ID
-    If timerSet(timerID) > 10 Then
+    If timerSet(timerID) >= 10 Then
         On Error Resume Next
         TickerAPI.KillTimerByID timerID          'stop timer
         On Error GoTo 0
