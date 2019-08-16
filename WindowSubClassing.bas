@@ -31,7 +31,7 @@ Private Function trySubclassWindow(ByVal WindowProc As LongPtr, ByVal windowHand
         instanceID = procDict(WindowProc)
     Else
         instanceID = procDict.Count
-        procDict.Add WindowProc, instanceID
+        procDict.item(instanceID) = WindowProc
     End If
     
     If SetWindowSubclass(windowHandle, WindowProc, instanceID) Then

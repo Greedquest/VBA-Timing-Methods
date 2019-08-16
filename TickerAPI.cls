@@ -195,6 +195,8 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
     'Create timer with ID of the key object; guaranteed to be unique
     'If timerExists(ObjPtr(key)) Then          'only make a new timer if there isn't one already
     'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
+    
+    'BUG SetTimer can return different ID if this.messageWindow.handle = 0
     outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(key.CallbackType = cbRawPointer, key.Callback, 0))
     If outTimerID = ObjPtr(key) Then
         Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
@@ -292,8 +294,8 @@ End Sub
 '@Description("Remove restrictions which prevent certain methods from being called by orphan procs; should be placed in all user code but never in code run by TIMERPROCs")
 Public Sub UnlockApi()
     'TODO permanent lock following fatal error
+    log DebugLevel, "UnlockApi", "API unlocking called" & IIf(this.isLocked, vbNullString, " (already unlocked)")
     this.isLocked = False
-    log DebugLevel, "UnlockApi", "API unlocking called"
 End Sub
 
 '@Description("Helper function for un-managed timers, should be called at least once following a state loss by any timer-procs that may be running")

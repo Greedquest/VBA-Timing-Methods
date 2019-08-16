@@ -59,7 +59,7 @@ End Property
 #If VBA7 Then
 Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
 #Else
-Public Function FromPtr(ByVal pData As Long) As TickerParams
+Public Function FromPtr(ByVal pData As Long) As UnmanagedCallbackWrapper
 #End If
 Dim result As Object
 CopyMemory result, pData, LenB(pData)
