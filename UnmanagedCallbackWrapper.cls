@@ -62,6 +62,7 @@ Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
 Public Function FromPtr(ByVal pData As Long) As UnmanagedCallbackWrapper
 #End If
 Dim result As Object
+Debug.Print "Is it hanging around?", Cache.loadObject(TypeName(TickerAPI) & ".timerIDs", New Dictionary).Count
 CopyMemory result, pData, LenB(pData)
 Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
 ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
