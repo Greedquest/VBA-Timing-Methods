@@ -80,3 +80,13 @@ Private Property Get ICallbackWrapper_CallbackType() As CallbackType
     ICallbackWrapper_CallbackType = cbRawPointer
 End Property
 
+Friend Static Property Get debugName() As String
+    Dim name As String
+    If name = vbNullString Then
+        Dim i As Long
+        For i = 1 To 7
+            name = name & Chr$(WorksheetFunction.RandBetween(65, 90))
+        Next
+    End If
+    debugName = name
+End Property

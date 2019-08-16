@@ -289,9 +289,16 @@ Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
         End If
 End Sub
 
+'@Description("Remove restrictions which prevent certain methods from being called by orphan procs; should be placed in all user code but never in code run by TIMERPROCs")
 Public Sub UnlockApi()
+    'TODO permanent lock following fatal error
     this.isLocked = False
     log DebugLevel, "UnlockApi", "API unlocking called"
+End Sub
+
+'@Description("Helper function for un-managed timers, should be called at least once following a state loss by any timer-procs that may be running")
+Public Sub Poke()
+    'no-op just triggers Class_Initialize
 End Sub
 
 Public Function tryScheduleUnlock() As Boolean
