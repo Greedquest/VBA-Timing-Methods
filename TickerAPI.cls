@@ -188,17 +188,21 @@ Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message 
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes an object to use as key, ")
-Private Function tryCreateTimer(ByVal key As ICallbackWrapper, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
+Private Function tryCreateTimer(ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
 Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
+      
     On Error GoTo cleanFail
-    'key is either the TickerParams or the TimerProcWrapper
+    
+    'pass key as object since it's easy to downcast to ICallbackWrapper interface, but hard to up cast from ICallbackWrapper to every possible implementation
+    Dim wrapper As ICallbackWrapper
+    Set wrapper = key
+    'key is either the TickerParams or the TimerProcWrapper so could upcast each
     
     'Create timer with ID of the key object; guaranteed to be unique
     'If timerExists(ObjPtr(key)) Then          'only make a new timer if there isn't one already
     'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
     
-    'BUG SetTimer can return different ID if this.messageWindow.handle = 0
-    outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(key.CallbackType = cbRawPointer, key.Callback, 0))
+    outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
     If outTimerID = ObjPtr(key) Then
         Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
         tryCreateTimer = True
