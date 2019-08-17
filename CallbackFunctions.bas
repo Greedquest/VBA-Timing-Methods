@@ -69,7 +69,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
         Debug.Print data.Keys(0);
         Debug.Print TypeName(data.Items(0)) & " ";
         Debug.Print data.Items(0).debugName;
-        Debug.Print data.Items(0).timerID
+        Debug.Print data.Items(0).timerID;
         On Error GoTo 0
     End If
     If Not timerSet.Exists(callbackParams.timerID) Then
