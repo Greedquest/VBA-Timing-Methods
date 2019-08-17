@@ -93,6 +93,8 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
             raiseError DestroyTimerError, "KillTimerByID"
+        Else
+            log InfoLevel, "KillTimerByID", printf("Timer with id {0} destroyed", timerID)
         End If
     Else
         raiseError TimerNotFoundError, "KillTimerByID"
@@ -103,15 +105,22 @@ End Sub
 Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
     checkIfLocked "KillTimersByFunction"
-    Dim key As Variant
+    Dim key As Variant 'key should be timerID
+    Dim timerCount As Long
     For Each key In this.timerIDs.Keys
-        If this.timerIDs(key) = timerFunction Then
-            If Not tryKillTimer(key) Then
-                raiseError DestroyTimerError, "KillTimersByFunction"
-                Exit For
+        If TypeOf this.timerIDs.item(key) Is UnmanagedCallbackWrapper Then
+            Dim wrapper As ICallbackWrapper
+            Set wrapper = this.timerIDs.item(key)
+            If wrapper.Callback = timerFunction Then
+                If Not tryKillTimer(key) Then
+                    raiseError DestroyTimerError, "KillTimersByFunction"
+                    Exit For
+                End If
+                timerCount = timerCount + 1
             End If
         End If
     Next key
+    log InfoLevel, "KillTimersByFunction", printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
 End Sub
 
 '@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API")

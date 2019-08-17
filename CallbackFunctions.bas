@@ -44,7 +44,7 @@ Attribute SafeTickingProc.VB_Description = "Ticks with automatic termination"
     End If
 End Sub
 
-Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByRef params As UnmanagedCallbackWrapper, ByVal tickCount As Long)
+Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal params As UnmanagedCallbackWrapper, ByVal tickCount As Long)
 
     Static timerChecked As Boolean 'should start False
     
@@ -106,15 +106,13 @@ Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As Windows
     'createTimer.TickerIsRunning = i = 1
 End Sub
 
-Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal params As Object, ByVal tickCount As Long)
+Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
     Debug.Print "Callback called " & time
     On Error Resume Next
-    Dim upcast As UnmanagedCallbackWrapper
-    Set upcast = params
-    Debug.Print upcast.debugName
-    Debug.Print Toolbox.Strings.Format("params: {0} - {1}\nupcast: {2} - {3}\nupcast.timerID: {4}", ObjPtr(params), TypeName(params), ObjPtr(upcast), TypeName(upcast), upcast.timerID)
-    If Err.Number <> 0 Then Debug.Print Err.Number, Err.Description Else Debug.Print "No errors casting"
-    TickerAPI.KillTimerByID ObjPtr(params)
-    If Err.Number <> 0 Then Debug.Print Err.Number, Err.Description Else Debug.Print "No errors killing"
+    Dim wrapper As ICallbackWrapper
+    Set wrapper = callbackParams
+    TickerAPI.KillTimersByFunction wrapper.Callback
+    Debug.Print IIf(Cache.loadObject("TickerAPI.timerIDs", New Dictionary).Count = 0, "It's cleared", "Still hanging around:(")
+    Debug.Print callbackParams.debugName, callbackParams.storedData 'check if still there
     On Error GoTo 0
 End Sub
