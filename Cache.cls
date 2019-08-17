@@ -25,11 +25,14 @@ Public Static Function loadObject(ByVal name As String, Optional ByVal default A
         host.GetDefaultDomain domain
     End If
 
+    name = UCase(name) 'case insensitive
     If IsObject(domain.GetData(name)) Then
         Set loadObject = domain.GetData(name)
+        Debug.Print "Original Loaded ("; name; ")"
     Else
         Set loadObject = default
         domain.SetData name, default
+        Debug.Print "Fresh Loaded ("; name; ")"
     End If
 
 End Function

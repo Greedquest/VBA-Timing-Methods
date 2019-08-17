@@ -44,53 +44,49 @@ Attribute SafeTickingProc.VB_Description = "Ticks with automatic termination"
     End If
 End Sub
 
-Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal params As UnmanagedCallbackWrapper, ByVal tickCount As Long)
+Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
 
-    Static timerChecked As Boolean 'should start False
-    
-'    If Not timerChecked Then
-'        Debug.Assert True
-'    End If
-'    On Error Resume Next
-'    Dim a As UnmanagedCallbackWrapper
-'    Debug.Print "Dereferencing - ";
-'    Set a = UnmanagedCallbackWrapper.FromPtr(params.timerID)
-'    If Err.Number <> 0 Then
-'        Debug.Print printf("Couldn't deref {0} - Err#{1}: {2}", params.timerID, Err.Number, Err.Description)
-'    End If
-'    On Error GoTo 0
-   
     'this toggle makes sure TickerAPI is aware of any timers following a state change - it can then shut them down and lock out any bad behaviour (re-starts)
+    Static timerChecked As Boolean 'should start False
+    Dim data As Dictionary
+    Debug.Print "DEBUG... ";
+    Set data = Cache.loadObject("TickerApi.TimerIDs", New Dictionary)
     If Not timerChecked Then
-        Debug.Print UCase$("pre-poke")
+        'Debug.Print callbackParams.timerID
+        Debug.Print data.Count;
+        Debug.Print "PRE-POKE"
         TickerAPI.Poke
-        Debug.Print UCase$("post-poke")
+        Debug.Print data.Count;
+        Debug.Print "POST-POKE"
         timerChecked = True
     End If
-        
-    Static timerSet As New Dictionary
-    If Not timerSet.Exists(params.timerID) Then
-        On Error Resume Next 'race contdition
-        timerSet.item(params.timerID) = 0
-        On Error GoTo 0
-    End If
-    timerSet(params.timerID) = timerSet(params.timerID) + 1
-        
-    'Debug.Print printf("Ticking - {0} (id:{1})", timerSet(timerID), timerID), time$
+    'Initialise dict {id:counter} with count of zero
+    Static timerSet As New Dictionary 'should persist between callbacks but not over state change
     
-    Debug.Print printf("Ticking - {0} (id:{1})", timerSet(params.timerID), params.timerID), time$;
-    If Not params Is Nothing Then
-        Debug.Print " - "; params.storedData;
-        params.storeData printf("Data Name: {0} Time:{1}", params.debugName, time$)
-    End If
-    Debug.Print 'for linefeed
-        
-    'Terminate by ID
-    If timerSet(params.timerID) >= 10 Then
+    Debug.Print data.Count;
+    If data.Count = 1 Then
         On Error Resume Next
-        TickerAPI.KillTimerByID params.timerID          'stop timer
+        Debug.Print data.Keys(0);
+        Debug.Print TypeName(data.Items(0)) & " ";
+        Debug.Print data.Items(0).debugName;
+        Debug.Print data.Items(0).timerID
         On Error GoTo 0
-        timerSet.Remove params.timerID
+    End If
+    If Not timerSet.Exists(callbackParams.timerID) Then
+        timerSet(callbackParams.timerID) = 0
+    End If
+
+    timerSet(callbackParams.timerID) = timerSet(callbackParams.timerID) + 1
+    
+    On Error GoTo 0
+    Debug.Print Toolbox.Strings.Format("Ticking - {0} ({3}-id:{1})\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, callbackParams.debugName)
+    
+    'Terminate timers which reach the max count
+    If timerSet(callbackParams.timerID) >= 10 Then
+        On Error Resume Next
+        TickerAPI.KillTimerByID callbackParams.timerID          'stop timer
+        On Error GoTo 0
+        timerSet.Remove callbackParams.timerID
     End If
     
 End Sub
