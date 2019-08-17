@@ -354,6 +354,7 @@ Private Sub Class_Initialize()
         End If
     Else
         'Fatal error, don't let anyone use the class.
+        log FatalLevel, "Class_Initialize", "Couldn't get message window"
         this.isLocked = True
     End If
 End Sub
@@ -363,7 +364,7 @@ Private Sub Class_Terminate()
 End Sub
 
 'For Testing
-Friend Property Get messageWindowHandle() As LongPtr
+Friend Function messageWindowHandle() As LongPtr
     messageWindowHandle = this.messageWindow.handle
-End Property
+End Function
 

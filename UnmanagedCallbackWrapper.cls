@@ -62,7 +62,14 @@ Public Function FromPtr(ByVal pData As LongPtr) As UnmanagedCallbackWrapper
 Public Function FromPtr(ByVal pData As Long) As UnmanagedCallbackWrapper
 #End If
 Dim result As Object
-Debug.Print IIf(Cache.loadObject("TickerAPI" & ".timerIDs", New Dictionary).Count > 0, "Some timer about", "It's not in the cache")
+Dim timerStuff As Dictionary
+Set timerStuff = Cache.loadObject("TickerAPI" & ".timerIDs", New Dictionary)
+Debug.Print IIf(timerStuff.Count > 0, "Some timer about", "It's not in the cache");
+If timerStuff.Count = 1 Then
+    Debug.Print " - "; timerStuff.Keys(0), printf("({0})", timerStuff.item(timerStuff(timerStuff.Keys(0))).debugName)
+Else
+    Debug.Print
+End If
 CopyMemory result, pData, LenB(pData)
 Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
 ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
@@ -90,4 +97,8 @@ Friend Static Property Get debugName() As String
         Next
     End If
     debugName = name
+End Property
+
+Public Property Get timerID() As LongPtr
+    timerID = ObjPtr(Me)
 End Property
