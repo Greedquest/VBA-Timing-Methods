@@ -33,4 +33,7 @@ Public Sub testInterwovenTicking()
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000, data:="Suzie"
 End Sub
 
-
+Public Sub testImmediateTerminatingByRef()
+    TickerAPI.UnlockApi
+    TickerAPI.StartUnmanagedTimer AddressOf passByRefProc, True, data:="Some data!"
+End Sub

@@ -106,3 +106,9 @@ Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As Windows
     'createTimer.TickerIsRunning = i = 1
 End Sub
 
+Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByRef params As UnmanagedCallbackWrapper, ByVal tickCount As Long)
+    Debug.Print "Callback called " & time
+    On Error Resume Next
+    TickerAPI.KillTimerByID timerID
+    On Error GoTo 0
+End Sub
