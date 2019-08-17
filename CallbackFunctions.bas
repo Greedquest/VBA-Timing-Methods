@@ -61,7 +61,6 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
 '    On Error GoTo 0
    
     'this toggle makes sure TickerAPI is aware of any timers following a state change - it can then shut them down and lock out any bad behaviour (re-starts)
-    
     If Not timerChecked Then
         Debug.Print UCase$("pre-poke")
         TickerAPI.Poke
@@ -80,9 +79,9 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     'Debug.Print printf("Ticking - {0} (id:{1})", timerSet(timerID), timerID), time$
     
     Debug.Print printf("Ticking - {0} (id:{1})", timerSet(params.timerID), params.timerID), time$;
-    If Not a Is Nothing Then
-        Debug.Print " - "; a.storedData;
-        a.storeData printf("Data Name: {0} Time:{1}", a.debugName, time$)
+    If Not params Is Nothing Then
+        Debug.Print " - "; params.storedData;
+        params.storeData printf("Data Name: {0} Time:{1}", params.debugName, time$)
     End If
     Debug.Print 'for linefeed
         

@@ -364,7 +364,7 @@ Private Sub Class_Terminate()
 End Sub
 
 'For Testing
-Friend Function messageWindowHandle() As LongPtr
+Friend Property Get messageWindowHandle() As LongPtr
     messageWindowHandle = this.messageWindow.handle
-End Function
+End Property
 
