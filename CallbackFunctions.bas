@@ -106,9 +106,15 @@ Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As Windows
     'createTimer.TickerIsRunning = i = 1
 End Sub
 
-Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByRef params As UnmanagedCallbackWrapper, ByVal tickCount As Long)
+Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal params As Object, ByVal tickCount As Long)
     Debug.Print "Callback called " & time
     On Error Resume Next
-    TickerAPI.KillTimerByID timerID
+    Dim upcast As UnmanagedCallbackWrapper
+    Set upcast = params
+    Debug.Print upcast.debugName
+    Debug.Print Toolbox.Strings.Format("params: {0} - {1}\nupcast: {2} - {3}\nupcast.timerID: {4}", ObjPtr(params), TypeName(params), ObjPtr(upcast), TypeName(upcast), upcast.timerID)
+    If Err.Number <> 0 Then Debug.Print Err.Number, Err.Description Else Debug.Print "No errors casting"
+    TickerAPI.KillTimerByID ObjPtr(params)
+    If Err.Number <> 0 Then Debug.Print Err.Number, Err.Description Else Debug.Print "No errors killing"
     On Error GoTo 0
 End Sub

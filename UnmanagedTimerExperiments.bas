@@ -35,5 +35,5 @@ End Sub
 
 Public Sub testImmediateTerminatingByRef()
     TickerAPI.UnlockApi
-    TickerAPI.StartUnmanagedTimer AddressOf passByRefProc, True, data:="Some data!"
+    TickerAPI.StartUnmanagedTimer AddressOf passByRefProc, True, 1000000, data:="Some data!"
 End Sub

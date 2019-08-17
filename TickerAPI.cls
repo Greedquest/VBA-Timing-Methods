@@ -131,6 +131,7 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
 '        Next timerID
 '        clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
+        setupMessageWindow 'TODO should this be here, probably not
     Else
         Dim timerID As Variant
         Dim destroyedTimers As New Collection
@@ -361,6 +362,7 @@ End Sub
 
 Private Sub Class_Terminate()
     killAllTimers
+    tryDestroyMessageWindowByName (this.messageWindow.name)
 End Sub
 
 'For Testing
