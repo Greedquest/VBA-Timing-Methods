@@ -258,21 +258,21 @@ Private Function getUniqueID() As Long
     log DebugLevel, "getUniqueID", printf("ID {0} generated", i)
 End Function
 
-Private Sub log(ByVal loggerLevel As LogLevel, ByVal source As String, ByVal message As String)
+Private Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
     If Not LogManager.IsEnabled(loggerLevel) Then 'check a logger is registered
         LogManager.Register DebugLogger.Create("TickerAPI" & loggerLevel, loggerLevel)
     End If
-    LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", source, message)
+    LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
 End Sub
 
-Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDescription As String)
+Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
     If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
         LogManager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
     End If
-    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", source, errNum, errDescription)
+    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
 End Sub
 
-Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As String = "raiseError")
+Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
     'BUG raising an unhandled error crashes if there are any messages queued, so we also need to flush the queue before raising errors
     killAllTimers
     Select Case errorCode
@@ -289,18 +289,18 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal source As S
         Case Else
             'rethrow error
     End Select
-    logError source, errorCode, Err.Description
+    logError Source, errorCode, Err.Description
     Err.Raise errorCode
 End Sub
 
-Private Sub checkIfLocked(Optional ByVal source As String = "checkIfLocked")
+Private Sub checkIfLocked(Optional ByVal Source As String = "checkIfLocked")
         If this.isLocked Then
             If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
                 'NOTE an unlock timer will only be made if there are other timers hanging around, so we don't need to check for it here
                 log InfoLevel, "checkIfLocked", "No timers hanging around, so auto-unlock run"
                 UnlockApi
             Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
-                raiseError TimerApiLockedError, source
+                raiseError TimerApiLockedError, Source
             End If
         End If
 End Sub

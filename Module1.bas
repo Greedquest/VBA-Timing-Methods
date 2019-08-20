@@ -31,9 +31,29 @@ Private Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As W
     End If
 End Sub
 
+Private Function testMessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
+    
+    Debug.Print "Message #"; uMsg
+    Select Case uMsg
+    
+            'NOTE this will never receive timer messages where TIMERPROC is specified,
+        Case WindowsMessage.WM_TIMER             'wParam = timerID , lParam = "timerProc" (will be Null if it reaches here)
+            Static i As Long
+            i = i + 1
+            If i >= 10 Then WinAPI.KillTimer hWnd, wParam
+            Debug.Print i; "Loop tick"; dwRefData.Caption
+            testMessageWindowSubclassProc = True
+        Case Else
+            testMessageWindowSubclassProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
+            
+    End Select
+End Function
+
 Sub makeTimer()
     Dim messageWindow As New ModelessMessageWindow
-    messageWindow.Show
-    messageWindow.Hide
-    Debug.Print WinAPI.SetTimer(messageWindow.hWnd, ObjPtr(messageWindow), 500, AddressOf RawSafeTickingProc)
+    messageWindow.Init
+    If messageWindow.tryAddSubclass(AddressOf testMessageWindowSubclassProc, ObjPtr(messageWindow)) Then
+        Debug.Print WinAPI.SetTimer(messageWindow.windowHandle, ObjPtr(messageWindow), 500, 0)
+        'Debug.Print WinAPI.SetTimer(messageWindow., ObjPtr(messageWindow), 500, AddressOf RawSafeTickingProc)
+    End If
 End Sub

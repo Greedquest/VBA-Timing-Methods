@@ -32,10 +32,10 @@ Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
     On Error GoTo 0
 End Function
 
-Private Sub logError(ByVal source As String, ByVal errNum As Long, ByVal errDescription As String)
+Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
     If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
         LogManager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
     End If
-    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", source, errNum, errDescription)
+    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
 End Sub
 
