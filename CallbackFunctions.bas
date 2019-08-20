@@ -50,7 +50,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     Static timerChecked As Boolean 'should start False
     Dim data As Dictionary
     Debug.Print "DEBUG... ";
-    Set data = Cache.loadObject("TickerApi.TimerIDs", New Dictionary)
+    Set data = cache.loadObject("TickerApi.TimerIDs", New Dictionary)
     If Not timerChecked Then
         'Debug.Print callbackParams.timerID
         Debug.Print data.Count;
@@ -108,7 +108,7 @@ Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As Windows
     Dim wrapper As ICallbackWrapper
     Set wrapper = callbackParams
     TickerAPI.KillTimersByFunction wrapper.Callback
-    Debug.Print IIf(Cache.loadObject("TickerAPI.timerIDs", New Dictionary).Count = 0, "It's cleared", "Still hanging around:(")
+    Debug.Print IIf(cache.loadObject("TickerAPI.timerIDs", New Dictionary).Count = 0, "It's cleared", "Still hanging around:(")
     Debug.Print callbackParams.debugName, callbackParams.storedData 'check if still there
     On Error GoTo 0
 End Sub

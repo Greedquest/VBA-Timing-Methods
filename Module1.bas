@@ -19,3 +19,21 @@ Set c = b
 Debug.Print Toolbox.Strings.Format("\ta: {0} - {1}\n\tb: {2} - {3}\n\tc: {4} - {5}", ObjPtr(a), TypeName(a), ObjPtr(b), TypeName(b), ObjPtr(c), TypeName(c))
 
 End Sub
+
+Private Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+    Static i As Long
+    i = i + 1
+    Debug.Print i; "Tick"
+    
+    If i >= 10 Then
+        Debug.Print "Terminating"
+        WinAPI.KillTimer windowHandle, timerID
+    End If
+End Sub
+
+Sub makeTimer()
+    Dim messageWindow As New ModelessMessageWindow
+    messageWindow.Show
+    messageWindow.Hide
+    Debug.Print WinAPI.SetTimer(messageWindow.hWnd, ObjPtr(messageWindow), 500, AddressOf RawSafeTickingProc)
+End Sub

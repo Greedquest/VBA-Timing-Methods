@@ -14,20 +14,20 @@ Option Explicit
 
 Private col As New Collection
 
-Public Sub Push(ByVal item As Variant)
-    col.Add item
+Public Sub Push(ByVal Item As Variant)
+    col.Add Item
 End Sub
 
 Public Function Pop() As Variant
     If col.Count > 0 Then
-        LetSet Pop, col.item(col.Count)
+        LetSet Pop, col.Item(col.Count)
         col.Remove col.Count
     End If
 End Function
 
 Public Function Peek() As Variant
     If col.Count > 0 Then
-        LetSet Peek, col.item(col.Count)
+        LetSet Peek, col.Item(col.Count)
     End If
 End Function
 

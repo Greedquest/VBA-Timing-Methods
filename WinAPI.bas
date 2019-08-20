@@ -138,7 +138,7 @@ Public Declare Function SetTimer Lib "user32" ( _
 
 Public Declare Function KillTimer Lib "user32" ( _
                         ByVal hWnd As LongPtr, _
-                        ByVal nIDEvent As Long) As Long
+                        ByVal nIDEvent As LongPtr) As Long
                          
 Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
                         ByVal lpPrevWndFunc As LongPtr, _

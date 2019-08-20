@@ -28,7 +28,7 @@ Public Static Function loadObject(ByVal name As String, Optional ByVal default A
     name = UCase(name) 'case insensitive
     If IsObject(domain.GetData(name)) Then
         Set loadObject = domain.GetData(name)
-        Debug.Print "Original Loaded ("; name; ")"
+        Debug.Print "Original Loaded ("; name; ")" 'print whether the object was found in memory or created - for debugging
     Else
         Set loadObject = default
         domain.SetData name, default

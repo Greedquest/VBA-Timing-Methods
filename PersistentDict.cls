@@ -25,7 +25,7 @@ Friend Property Get Self() As PersistentDict
 End Property
 
 Friend Sub setPersistentDictionary(ByVal name As String)
-    Set dict = Cache.loadObject(name, New Scripting.Dictionary)
+    Set dict = cache.loadObject(name, New Scripting.Dictionary)
 End Sub
 
 Public Property Get data() As Scripting.Dictionary

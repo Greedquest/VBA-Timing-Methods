@@ -105,7 +105,7 @@ Sub t()
     Dim key As String
     key = manager.ObtainResource("Barry", 101)
     Debug.Assert dictResource.encapsulated.Exists(key)
-    Debug.Assert dictResource.encapsulated.item(key) = 101
+    Debug.Assert dictResource.encapsulated.Item(key) = 101
     key = manager.ObtainResource("Barry")
 End Sub
 

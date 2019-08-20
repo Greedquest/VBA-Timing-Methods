@@ -63,10 +63,10 @@ Public Function FromPtr(ByVal pData As Long) As UnmanagedCallbackWrapper
 #End If
 Dim result As Object
 Dim timerStuff As Dictionary
-Set timerStuff = Cache.loadObject("TickerAPI" & ".timerIDs", New Dictionary)
+Set timerStuff = cache.loadObject("TickerAPI" & ".timerIDs", New Dictionary)
 Debug.Print IIf(timerStuff.Count > 0, "Some timer about", "It's not in the cache");
 If timerStuff.Count = 1 Then
-    Debug.Print " - "; timerStuff.Keys(0), printf("({0})", timerStuff.item(timerStuff(timerStuff.Keys(0))).debugName)
+    Debug.Print " - "; timerStuff.Keys(0), printf("({0})", timerStuff.Item(timerStuff(timerStuff.Keys(0))).debugName)
 Else
     Debug.Print
 End If

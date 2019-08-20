@@ -20,7 +20,7 @@ End Function
 
 Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHandle As LongPtr) As Boolean
     Static subClassIDs As Dictionary             'windowHandle:Dict[windowproc:id]
-    If subClassIDs Is Nothing Then Set subClassIDs = Cache.loadObject("subClassIDs", New Dictionary)
+    If subClassIDs Is Nothing Then Set subClassIDs = cache.loadObject("subClassIDs", New Dictionary)
         
     Dim instanceID As Long
     'Only let one instance of each windowProc per windowHandle
@@ -31,7 +31,7 @@ Private Function trySubclassWindow(ByVal windowProc As LongPtr, ByVal windowHand
         instanceID = procDict(windowProc)
     Else
         instanceID = procDict.Count
-        procDict.item(windowProc) = instanceID
+        procDict.Item(windowProc) = instanceID
     End If
     
     If SetWindowSubclass(windowHandle, windowProc, instanceID) Then

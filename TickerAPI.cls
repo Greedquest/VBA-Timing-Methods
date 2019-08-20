@@ -108,9 +108,9 @@ Attribute KillTimersByFunction.VB_Description = "API kills windows timers regist
     Dim key As Variant 'key should be timerID
     Dim timerCount As Long
     For Each key In this.timerIDs.Keys
-        If TypeOf this.timerIDs.item(key) Is UnmanagedCallbackWrapper Then
+        If TypeOf this.timerIDs.Item(key) Is UnmanagedCallbackWrapper Then
             Dim wrapper As ICallbackWrapper
-            Set wrapper = this.timerIDs.item(key)
+            Set wrapper = this.timerIDs.Item(key)
             If wrapper.Callback = timerFunction Then
                 If Not tryKillTimer(key) Then
                     raiseError DestroyTimerError, "KillTimersByFunction"
@@ -213,7 +213,7 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
     
     outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
     If outTimerID = ObjPtr(key) Then
-        Set this.timerIDs.item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
+        Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
         tryCreateTimer = True
     Else
         tryCreateTimer = False
@@ -351,7 +351,7 @@ Private Sub Class_Initialize()
     this.messageWindow.name = TypeName(Me) & Default_Message_Window_Suffix
     
     'Kill existing timers
-    Set this.timerIDs = Cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
+    Set this.timerIDs = cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
     killAllTimers
     If setupMessageWindow Then
         'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
