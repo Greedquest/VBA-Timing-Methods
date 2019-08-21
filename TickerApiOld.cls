@@ -2,42 +2,42 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "TickerAPI"
+Attribute VB_Name = "TickerApiOld"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Attribute VB_Description = "API for setting up timers to callback functions, wraps Windows Timers"
 '@Exposed
-'@Folder("FirstLevelAPI")
+'@Folder("Old.FirstLevelAPI")
 '@PredeclaredID
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
 Option Explicit
-
-Public Enum TimerError
-    CreateTimerError = vbObjectError + 1
-    DestroyTimerError
-    TimerNotFoundError
-    SynchronousCallError
-    TimerApiLockedError
-End Enum
-
-'Private Const Default_Lock As Boolean = True
-Private Const Default_Max_Timer_Count As Long = 100
-'Private Const Default_Message_Window_Suffix As String = "MessageWindow"
 '
-'Private Type tWindow
-'    handle As LongPtr
-'    name As String
-'End Type
+'Public Enum TimerError
+'    CreateTimerError = vbObjectError + 1
+'    DestroyTimerError
+'    TimerNotFoundError
+'    SynchronousCallError
+'    TimerApiLockedError
+'End Enum
+
+Private Const Default_Lock As Boolean = True
+Private Const Default_Max_Timer_Count As Long = 100
+Private Const Default_Message_Window_Suffix As String = "MessageWindow"
+                           
+Private Type tWindow
+    handle As LongPtr
+    name As String
+End Type
 
 Private Type tCallback
     timerIDs As Scripting.Dictionary             'timerID: keyObj
     'functionSet As New Dictionary
-'    recursionStack As New Stack
-'    isLocked As Boolean
+    recursionStack As New Stack
+    isLocked As Boolean
     maxTimerCount As Long
-    messageWindow As ModelessMessageWindow
+    messageWindow As tWindow
 End Type
 
 Private this As tCallback
@@ -45,6 +45,7 @@ Private this As tCallback
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
+    checkIfLocked "StartUnmanagedTimer"
     
     '        this.recursionStack.Push makeTimer
     '        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
@@ -70,6 +71,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
 End Function
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
+    checkIfLocked "StartManagedTimer"
     Dim newTimerID As LongPtr
     If Not tryCreateTimer(ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
         raiseError CreateTimerError, "StartManagedTimer"
@@ -87,6 +89,7 @@ End Function
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
+    checkIfLocked "KillTimerByID"
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
             raiseError DestroyTimerError, "KillTimerByID"
@@ -101,6 +104,7 @@ End Sub
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
+    checkIfLocked "KillTimersByFunction"
     Dim key As Variant 'key should be timerID
     Dim timerCount As Long
     For Each key In this.timerIDs.Keys
@@ -125,12 +129,30 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
     'NOTE this procedure is called when raising errors so must not raise any itself
         
     log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
+    
+    'Try to just remove message window, if that fails then kill manually
     If this.timerIDs.Count = 0 Then
         'do nothing
-    Else
+    ElseIf tryDestroyMessageWindowByName(this.messageWindow.name, this.messageWindow.handle) Then
+        'NOTE destroying message window should orphan all the existing timers and reset the message queue, so no need for further clear up
+'        For Each timerID In this.timerIDs
+'            tryKillTimer timerID
+'        Next timerID
+'        clearAllMessages this.timerIDs
         this.timerIDs.RemoveAll
-        Set this.messageWindow = Nothing
-        setupMessageWindow
+        setupMessageWindow 'TODO should this be here, probably not
+    Else
+        Dim timerID As Variant
+        Dim destroyedTimers As New Collection
+        For Each timerID In this.timerIDs.Keys
+            On Error Resume Next                 'no point returning success since there's nothing we can do about it
+            KillTimerByID timerID
+            destroyedTimers.Add timerID
+            On Error GoTo 0
+            log DebugLevel, "KillAllTimers", printf("Killing timer #{0}", timerID)
+        Next timerID
+        clearAllMessages destroyedTimers
+        'this.timerIDs.RemoveAll
     End If
            
 End Sub
@@ -262,8 +284,8 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
             Err.Description = "Couldn't create Timer"
         Case TimerError.SynchronousCallError
             Err.Description = "Error when running synchronously"
-'        Case TimerError.TimerApiLockedError
-'            Err.Description = "Call the Unlock method before attempting to use the API"
+        Case TimerError.TimerApiLockedError
+            Err.Description = "Call the Unlock method before attempting to use the API"
         Case Else
             'rethrow error
     End Select
@@ -271,24 +293,89 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
     Err.Raise errorCode
 End Sub
 
-Private Sub setupMessageWindow()
-    If Not ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.MessageWindowSubclassProc) Then
-        log FatalLevel, "setupMessageWindow", "Unable to hook message window"
-    End If
+Private Sub checkIfLocked(Optional ByVal Source As String = "checkIfLocked")
+        If this.isLocked Then
+            If this.timerIDs.Count = 0 Then          'message didn't come from some timer hanging around, so we can unlock safely
+                'NOTE an unlock timer will only be made if there are other timers hanging around, so we don't need to check for it here
+                log InfoLevel, "checkIfLocked", "No timers hanging around, so auto-unlock run"
+                UnlockApi
+            Else                                     'there is a timer hanging around when this was called, so it *could* be responsible, so better safe than sorry
+                raiseError TimerApiLockedError, Source
+            End If
+        End If
 End Sub
 
-Private Sub terminateMessageWindow()
-    Set this.messageWindow = Nothing
+'@Description("Remove restrictions which prevent certain methods from being called by orphan procs; should be placed in all user code but never in code run by TIMERPROCs")
+Public Sub UnlockApi()
+    'TODO permanent lock following fatal error
+    log DebugLevel, "UnlockApi", "API unlocking called" & IIf(this.isLocked, vbNullString, " (already unlocked)")
+    this.isLocked = False
 End Sub
+
+'@Description("Helper function for un-managed timers, should be called at least once following a state loss by any timer-procs that may be running")
+Public Sub Poke()
+    'no-op just triggers Class_Initialize
+End Sub
+
+Public Function tryScheduleUnlock() As Boolean
+
+    'messages must be associated with a valid timer, so let's make one
+    'we have to do it manualy as StartUnmanagedTimer checks lock status
+    Const INFINITE_INTERVAL As Long = &H7FFFFFFF
+    Dim validationTimerID As LongPtr
+    If tryCreateTimer(UnmanagedCallbackWrapper.Create(AddressOf TickerAPITimerProcs.UnlockCallbackProc), INFINITE_INTERVAL, validationTimerID) Then
+        If tryScheduleProc(validationTimerID, AddressOf TickerAPITimerProcs.UnlockCallbackProc) Then
+            tryScheduleUnlock = True
+        Else
+            If Not tryKillTimer(validationTimerID) Then killAllTimers 'don't want to leave one hanging around
+        End If
+    End If
+    
+End Function
+
+Private Function setupMessageWindow() As Boolean
+    'This should work whether or not a window & handle already exist
+    If tryHookMessageHandler(AddressOf MessageWindowProcs.MessageWindowSubclassProc, this.messageWindow.name, this.messageWindow.handle) Then
+        'TODO this message should reflectg whether a new one was made
+        log DebugLevel, "HookMessages", printf("Reset message loop for window '{0}'", this.messageWindow.name)
+        setupMessageWindow = True
+    Else
+        log FatalLevel, "HookMessages", printf("tryHookMessageHandler can't find or set up '{0}' message window to handle timers", this.messageWindow.name)
+    End If
+End Function
 
 Private Sub Class_Initialize()
     'Set up defaults
+    this.isLocked = Default_Lock
     this.maxTimerCount = Default_Max_Timer_Count
-    setupMessageWindow
+    this.messageWindow.name = TypeName(Me) & Default_Message_Window_Suffix
+    
+    'Kill existing timers
+    Set this.timerIDs = cache.loadObject(TypeName(Me) & ".timerIDs", New Scripting.Dictionary)
+    killAllTimers
+    If setupMessageWindow Then
+        'this should trigger unlock after the current synchronous call - whichever one triggered the predeclared class to initialise
+        
+        If this.isLocked Then
+            If this.timerIDs.Count = 0 Then
+                'we know class wasn't started by an orphaned timer, so no need for a lock - unlock immediately
+                log InfoLevel, "Class_Initialize", "No timers hanging around, so auto-unlock run immediately"
+                UnlockApi
+            Else
+                'class may have been started by user or orphaned timer, so best to schedule an unlock to run after whatever code called us
+                If Not tryScheduleUnlock Then log ErrorLevel, "tryScheduleUnlock", "Unable to post auto-unlock message, if this problem persists consider a managed timer"
+            End If
+        End If
+    Else
+        'Fatal error, don't let anyone use the class.
+        log FatalLevel, "Class_Initialize", "Couldn't get message window"
+        this.isLocked = True
+    End If
 End Sub
 
 Private Sub Class_Terminate()
-    terminateMessageWindow
+    killAllTimers
+    tryDestroyMessageWindowByName (this.messageWindow.name)
 End Sub
 
 'For Testing

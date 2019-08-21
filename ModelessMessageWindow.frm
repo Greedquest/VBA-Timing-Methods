@@ -29,14 +29,30 @@ Private this As messageWindowData
 #End If
 
 #If VBA7 Then
-    Public Property Get windowHandle() As LongPtr
-        IUnknown_GetWindow Me, windowHandle
+    Public Property Get handle() As LongPtr
+        IUnknown_GetWindow Me, handle
     End Property
 #Else
-    Public Property Get windowHandle() As Long
-        IUnknown_GetWindow Me, windowHandle
+    Public Property Get handle() As Long
+        IUnknown_GetWindow Me, handle
     End Property
 #End If
+
+Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
+    With New ModelessMessageWindow
+        If windowProc = 0 Then
+            tryCreate = True
+        Else
+            tryCreate = .tryAddSubclass(windowProc, data)
+        End If
+        .Init
+        Set outWindow = .Self
+    End With
+End Function
+
+Public Property Get Self() As ModelessMessageWindow
+    Set Self = Me
+End Property
 
 Public Sub Init()
     'Need to run this for window to be able to receive messages
@@ -56,7 +72,7 @@ Public Function tryAddSubclass(ByVal windowProc As LongPtr, Optional ByVal data 
         this.subClassIDs(windowProc) = instanceID
     End If
     
-    If WinAPI.SetWindowSubclass(windowHandle, windowProc, instanceID, data) Then
+    If WinAPI.SetWindowSubclass(handle, windowProc, instanceID, data) Then
         tryAddSubclass = True
     End If
 End Function

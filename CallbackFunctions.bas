@@ -55,7 +55,6 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
         'Debug.Print callbackParams.timerID
         Debug.Print data.Count;
         Debug.Print "PRE-POKE"
-        TickerAPI.Poke
         Debug.Print data.Count;
         Debug.Print "POST-POKE"
         timerChecked = True
