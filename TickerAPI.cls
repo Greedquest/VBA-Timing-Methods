@@ -118,8 +118,8 @@ Attribute KillTimersByFunction.VB_Description = "API kills windows timers regist
     log InfoLevel, loggerSourceName, printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
 End Sub
 
-'@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API")
-Friend Sub killAllTimers()
+'@Description("Terminates message window and removes stored timer references")
+Private Sub killAllTimers()
 Attribute killAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API"
     Const loggerSourceName As String = "killAllTimers"
     'NOTE this procedure is called when raising errors so must not raise any itself
@@ -128,7 +128,7 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
 
     this.timerIDs.RemoveAll
     terminateMessageWindow
-    setupMessageWindow
+    'setupMessageWindow
 
     If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
 End Sub
@@ -230,6 +230,7 @@ End Sub
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
     'BUG raising an unhandled error crashes if there are any messages queued, so we also need to flush the queue before raising errors
     killAllTimers
+    
     Select Case errorCode
         Case TimerError.DestroyTimerError
             Err.Description = "Uh Oh, can't kill the timer :("
@@ -255,6 +256,7 @@ Private Sub setupMessageWindow()
 End Sub
 
 Private Sub terminateMessageWindow()
+    log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
     Set this.messageWindow = Nothing
 End Sub
 
@@ -274,9 +276,5 @@ Friend Property Get messageWindowHandle() As LongPtr
 End Property
 
 Friend Sub makeBadness()
-    Debug.Print "Un sub-classing - ";
-    Debug.Print this.messageWindow.tryRemoveAllSubclasses
-    Debug.Print "Raising Error"
-    Err.Raise 5
-    Debug.Print "Error Raised"
+    raiseError SynchronousCallError
 End Sub
