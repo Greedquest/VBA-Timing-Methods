@@ -32,7 +32,8 @@ Private Const Default_Max_Timer_Count As Long = 100
 'End Type
 
 Private Type tCallback
-    timerIDs As Scripting.Dictionary             'timerID: keyObj
+    'BUG if you get rid of New here then subclassing the window screws synchronous error raising
+    timerIDs As New Scripting.Dictionary             'timerID: keyObj
     'functionSet As New Dictionary
 '    recursionStack As New Stack
 '    isLocked As Boolean
@@ -257,11 +258,6 @@ Private Sub terminateMessageWindow()
     Set this.messageWindow = Nothing
 End Sub
 
-'For Testing
-Friend Property Get messageWindowHandle() As LongPtr
-    messageWindowHandle = this.messageWindow.handle
-End Property
-
 Private Sub Class_Initialize()
     'Set up defaults
     this.maxTimerCount = Default_Max_Timer_Count
@@ -272,3 +268,13 @@ Private Sub Class_Terminate()
     terminateMessageWindow
 End Sub
 
+'For Testing
+Friend Property Get messageWindowHandle() As LongPtr
+    messageWindowHandle = this.messageWindow.handle
+End Property
+
+Friend Sub makeBadness()
+    Debug.Print "Raising Error"
+    Err.Raise 5
+    Debug.Print "Error Raised"
+End Sub

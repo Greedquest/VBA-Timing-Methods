@@ -1,5 +1,5 @@
 Attribute VB_Name = "WindowSubClassing"
-'@Folder("WinAPI")
+'@Folder("Old.WinAPI")
 Option Explicit
 Option Private Module
 

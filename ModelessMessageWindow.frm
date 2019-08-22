@@ -14,7 +14,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'@Folder("Timing")
+'@Folder("FirstLevelAPI")
 Option Explicit
 
 Private Type messageWindowData
