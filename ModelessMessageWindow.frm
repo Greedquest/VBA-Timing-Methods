@@ -18,7 +18,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Type messageWindowData
-    subClassIDs As New Dictionary
+    subClassIDs As New Dictionary '{proc:id}
 End Type
 Private this As messageWindowData
 
@@ -60,19 +60,33 @@ Public Sub Init()
     Me.Hide
 End Sub
 
-Public Function tryAddSubclass(ByVal windowProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
+Public Function tryAddSubclass(ByVal subclassProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
         
     Dim instanceID As Long
-    'Only let one instance of each windowProc per windowHandle
+    'Only let one instance of each subclassProc per windowHandle
 
-    If this.subClassIDs.Exists(windowProc) Then
-        instanceID = this.subClassIDs(windowProc)
+    If this.subClassIDs.Exists(subclassProc) Then
+        instanceID = this.subClassIDs(subclassProc)
     Else
         instanceID = this.subClassIDs.Count
-        this.subClassIDs(windowProc) = instanceID
+        this.subClassIDs(subclassProc) = instanceID
     End If
     
-    If WinAPI.SetWindowSubclass(handle, windowProc, instanceID, data) Then
+    If WinAPI.SetWindowSubclass(handle, subclassProc, instanceID, data) Then
         tryAddSubclass = True
     End If
 End Function
+
+'@Description("Remove any registered subclasses - returns True if all removed successfully")
+Public Function tryRemoveAllSubclasses() As Boolean
+    
+    Dim timerProc As Variant
+    Dim result As Boolean
+    result = True 'if no subclasses exist the we removed them nicely
+    For Each timerProc In this.subClassIDs.Keys
+        result = result And WinAPI.RemoveWindowSubclass(handle, timerProc, this.subClassIDs(timerProc)) <> 0
+    Next timerProc
+    this.subClassIDs.RemoveAll
+    tryRemoveAllSubclasses = result
+End Function
+

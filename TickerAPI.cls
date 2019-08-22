@@ -274,6 +274,8 @@ Friend Property Get messageWindowHandle() As LongPtr
 End Property
 
 Friend Sub makeBadness()
+    Debug.Print "Un sub-classing - ";
+    Debug.Print this.messageWindow.tryRemoveAllSubclasses
     Debug.Print "Raising Error"
     Err.Raise 5
     Debug.Print "Error Raised"

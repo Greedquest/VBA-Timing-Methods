@@ -20,13 +20,7 @@ Debug.Print Toolbox.Strings.Format("\ta: {0} - {1}\n\tb: {2} - {3}\n\tc: {4} - {
 
 End Sub
 
-Private Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
-    Static i As Long
-    i = i + 1
-    Debug.Print i; "Tick"
-    
-    If i >= 10 Then
-        Debug.Print "Terminating"
-        WinAPI.KillTimer windowHandle, timerID
-    End If
+
+Sub makeIll()
+    TickerAPI.makeBadness
 End Sub

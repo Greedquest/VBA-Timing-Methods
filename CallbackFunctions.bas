@@ -91,13 +91,13 @@ Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As Windows
     'createTimer.TickerIsRunning = i = 1
 End Sub
 
-Public Sub passByRefProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
-    Debug.Print "Callback called " & time
-    On Error Resume Next
-    Dim wrapper As ICallbackWrapper
-    Set wrapper = callbackParams
-    TickerAPI.KillTimersByFunction wrapper.Callback
-    Debug.Print IIf(cache.loadObject("TickerAPI.timerIDs", New Dictionary).Count = 0, "It's cleared", "Still hanging around:(")
-    Debug.Print callbackParams.debugName, callbackParams.storedData 'check if still there
-    On Error GoTo 0
+Public Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+    Static i As Long
+    i = i + 1
+    Debug.Print i; "Tick"
+    
+    If i >= 10 Then
+        Debug.Print "Terminating"
+        WinAPI.KillTimer windowHandle, timerID
+    End If
 End Sub

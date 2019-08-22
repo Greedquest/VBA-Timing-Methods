@@ -116,13 +116,13 @@ Public Function tryGenerateWindow() As Boolean
     tryGenerateWindow = this.handle <> 0
 End Function
 
-Public Function tryAddSubclass(ByVal SUBCLASSPROC As LongPtr, ByRef outSubclassID As LongPtr) As Boolean
+Public Function tryAddSubclass(ByVal subclassProc As LongPtr, ByRef outSubclassID As LongPtr) As Boolean
     outSubclassID = getUniqueID
-    tryAddSubclass = ApiSetWindowSubclass(this.handle, SUBCLASSPROC, outSubclassID) <> 0
+    tryAddSubclass = ApiSetWindowSubclass(this.handle, subclassProc, outSubclassID) <> 0
 End Function
 
-Public Function tryRemoveSubclass(ByVal SUBCLASSPROC As LongPtr, ByVal subClassID As LongPtr) As Boolean
-    tryRemoveSubclass = ApiRemoveWindowSubclass(this.handle, SUBCLASSPROC, subClassID)
+Public Function tryRemoveSubclass(ByVal subclassProc As LongPtr, ByVal subClassID As LongPtr) As Boolean
+    tryRemoveSubclass = ApiRemoveWindowSubclass(this.handle, subclassProc, subClassID)
 End Function
 
 Private Function getUniqueID() As Long
