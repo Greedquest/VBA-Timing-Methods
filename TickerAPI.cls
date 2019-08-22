@@ -162,7 +162,7 @@ Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message 
         
 End Function
 
-'@Description("Creates a timer with specified delay and returns its ID. Takes an object to use as key, ")
+'@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
 Private Function tryCreateTimer(ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
 Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
       

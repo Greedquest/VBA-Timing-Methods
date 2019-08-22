@@ -10,10 +10,17 @@ Option Explicit
 '
 'Public callbackSettings As TCallbackSettings
 
-Public Sub SafeCallbackProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
-    Debug.Print "Callback called " & time
+Public Sub SafeCallbackProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
+    
+    Dim expectedData As String
     On Error Resume Next
-    TickerAPI.KillTimerByID timerID
+    expectedData = CStr(callbackParams.storedData)
+    On Error GoTo 0
+    
+    Debug.Print "Callback called " & time & " Data: '" & expectedData & "'"
+    
+    On Error Resume Next
+    TickerAPI.KillTimerByID callbackParams.timerID
     On Error GoTo 0
 End Sub
 
@@ -46,39 +53,22 @@ End Sub
 
 Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
 
-    'this toggle makes sure TickerAPI is aware of any timers following a state change - it can then shut them down and lock out any bad behaviour (re-starts)
-    Static timerChecked As Boolean 'should start False
-    Dim data As Dictionary
-    Debug.Print "DEBUG... ";
-    Set data = cache.loadObject("TickerApi.TimerIDs", New Dictionary)
-    If Not timerChecked Then
-        'Debug.Print callbackParams.timerID
-        Debug.Print data.Count;
-        Debug.Print "PRE-POKE"
-        Debug.Print data.Count;
-        Debug.Print "POST-POKE"
-        timerChecked = True
-    End If
     'Initialise dict {id:counter} with count of zero
     Static timerSet As New Dictionary 'should persist between callbacks but not over state change
-    
-    Debug.Print data.Count;
-    If data.Count = 1 Then
-        On Error Resume Next
-        Debug.Print data.Keys(0);
-        Debug.Print TypeName(data.Items(0)) & " ";
-        Debug.Print data.Items(0).debugName;
-        Debug.Print data.Items(0).timerID;
-        On Error GoTo 0
-    End If
+   
+    'Increment counter stuff
     If Not timerSet.Exists(callbackParams.timerID) Then
         timerSet(callbackParams.timerID) = 0
     End If
-
     timerSet(callbackParams.timerID) = timerSet(callbackParams.timerID) + 1
     
+    'Get & Log info
+    Dim expectedData As String
+    On Error Resume Next
+    expectedData = CStr(callbackParams.storedData) 'catch error in case of bad data
     On Error GoTo 0
-    Debug.Print Toolbox.Strings.Format("Ticking - {0} ({3}-id:{1})\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, callbackParams.debugName)
+    
+    Debug.Print Toolbox.Strings.Format("Ticking - {0} ({3}-id:{1})\tData:'{4}'\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, callbackParams.debugName, expectedData)
     
     'Terminate timers which reach the max count
     If timerSet(callbackParams.timerID) >= 10 Then

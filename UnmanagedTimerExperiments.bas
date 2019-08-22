@@ -7,11 +7,11 @@ Option Explicit
 'End Sub
 
 Public Sub testImmediateTerminating()
-    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, True
+    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, True, data:="User data!!"
 End Sub
 
 Public Sub testAsyncTerminating()
-    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, False
+    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, False, data:="User data!!"
 End Sub
 
 Public Sub testImmediateTicking()
@@ -26,8 +26,4 @@ Public Sub testInterwovenTicking()
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000, data:="Barry"
     doEventsDelay 500
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000, data:="Suzie"
-End Sub
-
-Public Sub testImmediateTerminatingByRef()
-    TickerAPI.StartUnmanagedTimer AddressOf passByRefProc, True, 1000000, data:="Some data!"
 End Sub
