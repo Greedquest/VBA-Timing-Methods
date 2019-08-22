@@ -8,12 +8,29 @@ Public Type tagPOINT
     Y As Long
 End Type
 
+Public Type DWORD 'same size as Long, but intellisense on members is nice
+    LoWord As Integer
+    HiWord As Integer
+End Type
+
 Public Type tagMSG
     hWnd As LongPtr
     message As WindowsMessage
     wParam As LongPtr
     lParam As LongPtr
     time As Long
+    cursor As tagPOINT
+    #If Mac Then
+    lPrivate As Long
+    #End If
+End Type
+
+Public Type timerMessage
+    windowHandle As LongPtr
+    messageEnum As WindowsMessage
+    timerID As LongPtr
+    timerProc As LongPtr
+    tickCountTime As Long
     cursor As tagPOINT
     #If Mac Then
     lPrivate As Long
@@ -63,7 +80,7 @@ End Enum
 
 'Messages
 Public Declare Function GetQueueStatus Lib "user32" ( _
-                        ByVal flags As QueueStatusFlag) As Long
+                        ByVal flags As QueueStatusFlag) As DWORD
 
 Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByRef lpMsg As tagMSG, _
@@ -71,6 +88,13 @@ Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByVal wMsgFilterMin As WindowsMessage, _
                         ByVal wMsgFilterMax As WindowsMessage, _
                         ByVal wRemoveMsg As PeekMessageFlag) As Long
+                        
+Public Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
+                        ByRef outMessage As timerMessage, _
+                        ByVal hWnd As LongPtr, _
+                        Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
+                        Optional ByVal wMsgFilterMax As WindowsMessage = WM_TIMER, _
+                        Optional ByVal wRemoveMsg As PeekMessageFlag = PM_REMOVE) As Long
 
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal hWnd As LongPtr, _
@@ -79,7 +103,10 @@ Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal lParam As LongPtr) As Long
 
 Public Declare Function DispatchMessage Lib "user32" Alias "DispatchMessageA" ( _
-                        ByRef lpMsg As tagMSG) As LongPtr
+                        ByVal lpMsg As LongPtr) As LongPtr
+                        
+Public Declare Function DispatchTimerMessage Lib "user32" Alias "DispatchMessageA" ( _
+                        ByRef message As timerMessage) As LongPtr
 
 'Windows
 Public Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" ( _

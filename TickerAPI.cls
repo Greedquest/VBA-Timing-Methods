@@ -45,24 +45,16 @@ Private this As tCallback
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
-    
-    '        this.recursionStack.Push makeTimer
-    '        If Not tryCallProc(timerFunction, makeTimer) Then 'NOTE this will always be true as errors are untrappable and pointer is assumed valid
-    '            raiseError SynchronousCallError, "StartTimer"
-    '        End If
-    '        'Check whether timerFunction has edited the flag on the top of the stack - could do a 1 liner
-    '        Set makeTimer = this.recursionStack.Pop
-    '        If Not makeTimer.TickerIsRunning Then Exit Function
-    
+    Const loggerSourceName As String = "StartUnmanagedTimer"
     
     Dim newTimerID As LongPtr
     If Not tryCreateTimer(UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
-        raiseError CreateTimerError, "StartUnmanagedTimer"
+        raiseError CreateTimerError, loggerSourceName
     Else
         StartUnmanagedTimer = newTimerID
     End If
     If runImmediately Then
-        'schedule immediate proc - No callback proc specified
+        'schedule immediate proc
         If Not tryScheduleProc(newTimerID, timerFunction) Then
             KillTimerByID newTimerID             'NOTE may raise error
         End If
@@ -70,14 +62,16 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
 End Function
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
+    Const loggerSourceName As String = "StartManagedTimer"
+    
     Dim newTimerID As LongPtr
     If Not tryCreateTimer(ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
-        raiseError CreateTimerError, "StartManagedTimer"
+        raiseError CreateTimerError, loggerSourceName
     Else
         StartManagedTimer = newTimerID
     End If
     If runImmediately Then
-        'schedule immediate proc - No callback proc specified
+        'schedule immediate proc - No callback proc specified for managed timers
         If Not tryScheduleProc(newTimerID) Then
             KillTimerByID newTimerID             'NOTE may raise error
         End If
@@ -87,44 +81,49 @@ End Function
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
+    Const loggerSourceName As String = "KillTimerByID"
+    
     If timerExists(timerID) Then
         If Not tryKillTimer(timerID) Then
-            raiseError DestroyTimerError, "KillTimerByID"
+            raiseError DestroyTimerError, loggerSourceName
         Else
-            log InfoLevel, "KillTimerByID", printf("Timer with id {0} destroyed", timerID)
+            log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerID)
         End If
     Else
-        raiseError TimerNotFoundError, "KillTimerByID"
+        raiseError TimerNotFoundError, loggerSourceName
     End If
 End Sub
 
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
-    Dim key As Variant 'key should be timerID
+    Const loggerSourceName As String = "KillTimersByFunction"
+    
+    Dim timerID As Variant 'key should be timerID
     Dim timerCount As Long
-    For Each key In this.timerIDs.Keys
-        If TypeOf this.timerIDs.Item(key) Is UnmanagedCallbackWrapper Then
+    For Each timerID In this.timerIDs.Keys
+        If TypeOf this.timerIDs.Item(timerID) Is UnmanagedCallbackWrapper Then
             Dim wrapper As ICallbackWrapper
-            Set wrapper = this.timerIDs.Item(key)
+            Set wrapper = this.timerIDs.Item(timerID)
             If wrapper.Callback = timerFunction Then
-                If Not tryKillTimer(key) Then
-                    raiseError DestroyTimerError, "KillTimersByFunction"
+                If Not tryKillTimer(timerID) Then
+                    raiseError DestroyTimerError, loggerSourceName
                     Exit For
                 End If
                 timerCount = timerCount + 1
             End If
         End If
-    Next key
-    log InfoLevel, "KillTimersByFunction", printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
+    Next timerID
+    log InfoLevel, loggerSourceName, printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
 End Sub
 
 '@Description("Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API")
 Friend Sub killAllTimers()
 Attribute killAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API"
+    Const loggerSourceName As String = "killAllTimers"
     'NOTE this procedure is called when raising errors so must not raise any itself
-        
-    log DebugLevel, "KillAllTimers", printf("{0} registered timer(s)", this.timerIDs.Count)
+    
+    log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", this.timerIDs.Count)
     If this.timerIDs.Count = 0 Then
         'do nothing
     Else
@@ -135,35 +134,24 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
            
 End Sub
 
-Private Sub clearAllMessages(Optional ByVal timerIDs As Dictionary)
-    'TODO when custom window handle is used, there will be no need to validate timerIDs
-    Dim tmpMsg As tagMSG
+Private Sub clearMessages(ByVal timerID As LongPtr)
+    Dim message As WinAPI.timerMessage
     Dim i As Long
-    Do While WinAPI.PeekMessage(tmpMsg, this.messageWindow.handle, WM_TIMER, WM_TIMER, PM_REMOVE) <> 0 And i < this.maxTimerCount
-        'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
-        i = i + 1
-    Loop
-    log InfoLevel, "clearAllMessages", printf("Cleared {0} messages", i)
+    'TODO Will there be messages here? If scheduleProc followed by killTimer then yes - but those are managed messages which we can filter by id so no probs
+    If GetQueueStatus(QS_TIMER).HiWord <> 0 Then
+        log WarnLevel, "clearMessages", "Messages in this queue might be important:)"
+'        Do While WinAPI.PeekTimerMessage(message, this.messageWindow.handle, WM_TIMER, WM_TIMER, PM_REMOVE) <> 0 And i < this.maxTimerCount
+'            'TODO if timerids specified then we can re-send accidentally removed messages - ones which don't match ids
+'            i = i + 1
+'            If message.timerID <> timerID Then WinAPI.DispatchTimerMessage message
+'        Loop
+    End If
+    log InfoLevel, "clearMessages", printf("Cleared {0} messages", i)
 End Sub
 
 Friend Property Get timerExists(ByVal key As LongPtr) As Boolean
     timerExists = this.timerIDs.Exists(key)
 End Property
-
-'Private Function tryCallProc(ByVal timerFunction As LongPtr, ByVal timerFlag As TickerParams) As Boolean
-'    On Error GoTo cleanFail
-'    CallWindowProc timerFunction, timerFlag, WM_NOTIFY 'not sure what the return value of this is so no useful try result
-'    tryCallProc = True
-'
-'cleanExit:
-'    Exit Function
-'
-'cleanFail:
-'    logError "tryCallProc", Err.Number, Err.Description
-'    tryCallProc = False
-'    Resume cleanExit
-'
-'End Function
 
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
 Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
@@ -186,11 +174,10 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
     'key is either the TickerParams or the TimerProcWrapper so could upcast each
     
     'Create timer with ID of the key object; guaranteed to be unique
-    'If timerExists(ObjPtr(key)) Then          'only make a new timer if there isn't one already
     'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
     
     outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
-    If outTimerID = ObjPtr(key) Then
+    If outTimerID = ObjPtr(key) Then 'confirm it has been made correctly
         Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
         tryCreateTimer = True
     Else
@@ -208,15 +195,11 @@ cleanFail:
     
 End Function
 
-Private Function tryKillTimer(ByVal timerID As Long) As Boolean
+Private Function tryKillTimer(ByVal timerID As LongPtr) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
-    If timerExists(timerID) Then
-        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0 'kill the timer associated with that fn  & ID
-        this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
-    Else
-        tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0
-    End If
+    tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0 'Kill timer returns non-zero for success
+    If timerExists(timerID) Then this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
 
 cleanExit:
     Exit Function
@@ -226,14 +209,6 @@ cleanFail:
     tryKillTimer = False
     Resume cleanExit
     
-End Function
-
-Private Function getUniqueID() As Long
-    'TODO if we keep track of ids then they should always be consecutive with max 1 gap
-    Static i As Long
-    i = i + 1
-    getUniqueID = i
-    log DebugLevel, "getUniqueID", printf("ID {0} generated", i)
 End Function
 
 Private Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
@@ -281,6 +256,11 @@ Private Sub terminateMessageWindow()
     Set this.messageWindow = Nothing
 End Sub
 
+'For Testing
+Friend Property Get messageWindowHandle() As LongPtr
+    messageWindowHandle = this.messageWindow.handle
+End Property
+
 Private Sub Class_Initialize()
     'Set up defaults
     this.maxTimerCount = Default_Max_Timer_Count
@@ -290,9 +270,4 @@ End Sub
 Private Sub Class_Terminate()
     terminateMessageWindow
 End Sub
-
-'For Testing
-Friend Property Get messageWindowHandle() As LongPtr
-    messageWindowHandle = this.messageWindow.handle
-End Property
 
