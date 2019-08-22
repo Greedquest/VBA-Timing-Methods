@@ -3,28 +3,35 @@ Attribute VB_Name = "MessageWindowProcs"
 Option Explicit
 Option Private Module
 
-Public Function MessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
+Public Function ManagedTimerMessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
     
-    Debug.Print "Message #"; uMsg
     Select Case uMsg
     
             'NOTE this will never receive timer messages where TIMERPROC is specified,
         Case WindowsMessage.WM_TIMER             'wParam = timerID , lParam = "timerProc" (will be Null if it reaches here)
-            If TickerAPI.timerExists(wParam) Then
-                MessageWindowSubclassProc = runTimerCallback(wParam) 'WinAPI.DefSubclassProc(hwnd, uMsg, wParam, lParam)
+            If lParam <> 0 Then
+                Debug.Print printf("Rogue Timer!! ID:{0} TIMERPROC:{1}", wParam, lParam)
+                ManagedTimerMessageWindowSubclassProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
+                
+            ElseIf TickerAPI.timerExists(wParam) Then 'there may be left-over messages in the queue which should be ignored by filtering for active timers
+                ManagedTimerMessageWindowSubclassProc = runTimerCallback(wParam)
+                
             Else
-                On Error Resume Next             'checking for the timer should trigger destruction
+                Debug.Print printf("Killing orphaned timer ID:{0} TIMERPROC:{1}", wParam, lParam)
+                On Error Resume Next
                 TickerAPI.KillTimerByID wParam
                 On Error GoTo 0
-                MessageWindowSubclassProc = True 'skip it :)
+                ManagedTimerMessageWindowSubclassProc = True 'skip it :)
+                
             End If
             
         Case Else
-            MessageWindowSubclassProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
+            ManagedTimerMessageWindowSubclassProc = WinAPI.DefSubclassProc(hWnd, uMsg, wParam, lParam)
             
     End Select
 End Function
 
+'TODO this should't be here
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
     On Error Resume Next
     runTimerCallback = ITimerProc.FromPtr(timerID).Exec

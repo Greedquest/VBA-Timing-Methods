@@ -38,7 +38,7 @@ Private this As messageWindowData
     End Property
 #End If
 
-Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
+Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr = 0, Optional ByVal data As LongPtr) As Boolean
     With New ModelessMessageWindow
         If windowProc = 0 Then
             tryCreate = True

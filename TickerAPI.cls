@@ -122,16 +122,14 @@ Friend Sub killAllTimers()
 Attribute killAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API"
     Const loggerSourceName As String = "killAllTimers"
     'NOTE this procedure is called when raising errors so must not raise any itself
-    
+    On Error Resume Next
     log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", this.timerIDs.Count)
-    If this.timerIDs.Count = 0 Then
-        'do nothing
-    Else
-        this.timerIDs.RemoveAll
-        Set this.messageWindow = Nothing
-        setupMessageWindow
-    End If
-           
+
+    this.timerIDs.RemoveAll
+    terminateMessageWindow
+    setupMessageWindow
+
+    If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
 End Sub
 
 Private Sub clearMessages(ByVal timerID As LongPtr)
@@ -150,7 +148,9 @@ Private Sub clearMessages(ByVal timerID As LongPtr)
 End Sub
 
 Friend Property Get timerExists(ByVal key As LongPtr) As Boolean
+    On Error Resume Next 'if there's a problem then the timerID is as good as unregistered anyway
     timerExists = this.timerIDs.Exists(key)
+    On Error GoTo 0
 End Property
 
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
@@ -191,6 +191,7 @@ cleanExit:
 cleanFail:
     logError "tryCreateTimer", Err.Number, Err.Description
     tryCreateTimer = False
+    tryKillTimer outTimerID 'NOTE clear up after error here as the outTimerID shouldn't be relied upon in caller to help clear up
     Resume cleanExit
     
 End Function
@@ -247,7 +248,7 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
 End Sub
 
 Private Sub setupMessageWindow()
-    If Not ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.MessageWindowSubclassProc) Then
+    If Not ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
         log FatalLevel, "setupMessageWindow", "Unable to hook message window"
     End If
 End Sub
