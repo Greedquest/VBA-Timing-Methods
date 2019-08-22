@@ -36,9 +36,9 @@ Private Sub ModuleCleanup()
     Set Fakes = Nothing
     Dim id As Variant
     For Each id In tempIDs.Keys
-        ApiKillTimer Application.hWnd, id
+        WinAPI.KillTimer TickerAPI.messageWindowHandle, id
     Next id
-    TickerAPI.killAllTimers
+    Set TickerAPI = New TickerAPI 'the authentic way of killing stuff is just to reset the API
 End Sub
 
 '@TestInitialize

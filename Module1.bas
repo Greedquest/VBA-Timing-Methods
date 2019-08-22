@@ -20,7 +20,3 @@ Debug.Print Toolbox.Strings.Format("\ta: {0} - {1}\n\tb: {2} - {3}\n\tc: {4} - {
 
 End Sub
 
-
-Sub makeIll()
-    TickerAPI.makeBadness
-End Sub
