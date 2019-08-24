@@ -12,8 +12,7 @@ Option Explicit
 
 Implements ITimerProc
 
-Private Function ITimerProc_Exec() As Boolean
+Private Function ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant) As Boolean
     Debug.Print "Hey there matey"
     ITimerProc_Exec = True
 End Function
-

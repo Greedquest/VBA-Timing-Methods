@@ -34,6 +34,7 @@ Friend Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data
     'NOTE only API needs to be able to create these so don't expose
     With New ManagedCallbackWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
+        Set .Callback = callbackFunction
         Set Create = .Self
     End With
 End Function
@@ -54,15 +55,11 @@ Public Property Set Callback(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj
 End Property
 
-#If VBA7 Then
 Public Function FromPtr(ByVal pData As LongPtr) As ManagedCallbackWrapper
-#Else
-Public Function FromPtr(ByVal pData As Long) As TimerProcWrapper
-#End If
-Dim result As Object
-CopyMemory result, pData, LenB(pData)
-Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+    Dim result As Object
+    CopyMemory result, pData, LenB(pData)
+    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 Private Property Get ICallbackWrapper_Callback() As Variant

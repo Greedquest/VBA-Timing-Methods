@@ -10,6 +10,7 @@ Attribute VB_Exposed = True
 '@Folder("FirstLevelAPI.Utils.Wrappers")
 '@PredeclaredID
 '@Exposed
+'@Interface
 Option Explicit
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
@@ -22,20 +23,15 @@ Option Explicit
     Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
 #End If
 
-#If VBA7 Then
-
 Friend Function FromPtr(ByVal pData As LongPtr) As ITimerProc
-#Else
-Friend Function FromPtr(ByVal pData As Long) As ITimerProc
-#End If
-Dim result As Object
-CopyMemory result, pData, LenB(pData)
-Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+    Dim result As Object
+    CopyMemory result, pData, LenB(pData)
+    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 'Interface
-Public Function Exec() As Boolean
+Public Function Exec(ByVal timerID As LongPtr, ByVal userData As Variant) As Boolean
     Err.Raise 5                                  'not implemented
 End Function
 

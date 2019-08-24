@@ -250,7 +250,9 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
 End Sub
 
 Private Sub setupMessageWindow()
-    If Not ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
+    If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
+        MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
+    Else
         log FatalLevel, "setupMessageWindow", "Unable to hook message window"
     End If
 End Sub
@@ -259,6 +261,17 @@ Private Sub terminateMessageWindow()
     log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
     Set this.messageWindow = Nothing
 End Sub
+
+Friend Function tryGetManagedWrapper(ByVal timerID As LongPtr, ByRef outWrapper As ManagedCallbackWrapper) As Boolean
+    If this.timerIDs.Exists(timerID) Then
+        On Error Resume Next
+        Set outWrapper = this.timerIDs.Item(timerID)
+        tryGetManagedWrapper = Err.Number = 0
+        On Error GoTo 0
+    Else
+        tryGetManagedWrapper = False
+    End If
+End Function
 
 Private Sub Class_Initialize()
     'Set up defaults

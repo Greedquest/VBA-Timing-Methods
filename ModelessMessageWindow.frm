@@ -40,12 +40,15 @@ Private this As messageWindowData
 
 Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr = 0, Optional ByVal data As LongPtr) As Boolean
     With New ModelessMessageWindow
+        .Init
         If windowProc = 0 Then
             tryCreate = True
         Else
             tryCreate = .tryAddSubclass(windowProc, data)
         End If
-        .Init
+'        .Hide
+'        Debug.Print "------------------"
+'        '.Hide
         Set outWindow = .Self
     End With
 End Function
@@ -56,8 +59,8 @@ End Property
 
 Public Sub Init()
     'Need to run this for window to be able to receive messages
-    Me.Show
-    Me.Hide
+    'Me.Show
+    'Me.Hide
 End Sub
 
 Public Function tryAddSubclass(ByVal subclassProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
