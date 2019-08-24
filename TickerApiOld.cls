@@ -12,6 +12,7 @@ Attribute VB_Description = "API for setting up timers to callback functions, wra
 '@Folder("Old.FirstLevelAPI")
 '@PredeclaredID
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
+'@IgnoreModule
 Option Explicit
 '
 'Public Enum TimerError

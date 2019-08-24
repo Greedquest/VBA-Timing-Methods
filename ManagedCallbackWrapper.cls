@@ -74,4 +74,3 @@ Private Sub Class_Initialize()
     Set this.data = Nothing
     Set this.callbackFunction = New ITimerProc
 End Sub
-

@@ -12,7 +12,7 @@ End Sub
 
 Public Function ManagedTimerMessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
 
-    Debug.Print "MSG #"; uMsg, activated
+    'Debug.Print "MSG #"; uMsg, activated
     Select Case uMsg
     
             'NOTE this will never receive timer messages where TIMERPROC is specified,
@@ -50,12 +50,14 @@ End Function
 'TODO this should't be here
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
 
+    'timerID is a pointer to a wrapper; but since this is Friend code we can get it straight from the dictionary and avoid dereferencing
     On Error GoTo cleanFail 'catch unexpected error as we can't raise them here
     Dim callbackWrapper As ManagedCallbackWrapper
     If Not TickerAPI.tryGetManagedWrapper(timerID, callbackWrapper) Then
         Err.Raise 5, Description:=printf("Callback info for timerID:{0} not found", timerID) 'Raise error so we goto cleanFail
     End If
-        
+    
+    'Bear in mind we only have the wrapper, not the actual timerProc; so get it from the wrapper interface
     Dim wrapperInterface As ICallbackWrapper
     Set wrapperInterface = callbackWrapper
         

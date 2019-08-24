@@ -3,11 +3,11 @@ Attribute VB_Name = "ManagedTimerExperiments"
 Option Explicit
 
 Public Sub testImmediateTerminating()
-    Err.Raise 5
+    TickerAPI.StartManagedTimer New SafeTerminatingTimerProc, True, data:="User data!!"
 End Sub
 
 Public Sub testAsyncTerminating()
-    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, False, data:="User data!!"
+    TickerAPI.StartManagedTimer New SafeTerminatingTimerProc, False, data:="User data!!"
 End Sub
 
 Public Sub testImmediateTicking()

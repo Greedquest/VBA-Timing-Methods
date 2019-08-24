@@ -32,7 +32,7 @@ Private Const Default_Max_Timer_Count As Long = 100
 'End Type
 
 Private Type tCallback
-    'BUG if you get rid of New here then subclassing the window screws synchronous error raising
+    
     timerIDs As New Scripting.Dictionary              '{timerID: keyObj}
     'functionSet As New Dictionary
 '    recursionStack As New Stack

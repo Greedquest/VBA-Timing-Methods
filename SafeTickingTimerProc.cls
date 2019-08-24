@@ -23,7 +23,7 @@ Private Function ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Varian
     expectedData = CStr(userData) 'catch error in case of bad data
     On Error GoTo 0
     
-    Debug.Print Toolbox.Strings.Format("Ticking - {0} ({id:{1})\tData:'{3}'\t{2}", i, timerID, time$, expectedData)
+    Debug.Print printf("Ticking - {0} (id:{1})    Data:'{3}'    {2}", i, timerID, time$, expectedData)
 
     If i >= 10 Then
         TickerAPI.KillTimerByID timerID
