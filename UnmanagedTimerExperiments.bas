@@ -27,3 +27,4 @@ Public Sub testInterwovenTicking()
     doEventsDelay 500
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000, data:="Suzie"
 End Sub
+
