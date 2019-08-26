@@ -14,13 +14,13 @@ Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Loop
 End Sub
 
-Public Function tryPeekMessgageDelay(outMsg As tagMSG, Optional ByVal delayMillis As Long = defaultTimerDelay, Optional ByVal flags As Long = PM_REMOVE, Optional ByVal timerID As Long = defaultID) As Boolean
+Public Function tryPeekMessgageDelay(outMsg As WinAPI.timerMessage, Optional ByVal delayMillis As Long = defaultTimerDelay, Optional ByVal flags As Long = PM_REMOVE, Optional ByVal timerID As Long = defaultID) As Boolean
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
     Do While timer < endTime
-        If PeekMessage(outMsg, Application.hWnd, WM_TIMER, WM_TIMER, flags) <> 0 Then
+        If PeekTimerMessage(outMsg, TickerAPI.messageWindowHandle, WM_TIMER, WM_TIMER, flags) <> 0 Then
             'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
-            If outMsg.wParam = timerID Then      ' Or outMsg.lParam = 0 Then
+            If outMsg.timerID = timerID Then      ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True
                 Exit Do
             End If

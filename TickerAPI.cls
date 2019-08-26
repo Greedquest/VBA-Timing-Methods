@@ -258,6 +258,7 @@ Private Sub setupMessageWindow()
 End Sub
 
 Private Sub terminateMessageWindow()
+    On Error Resume Next 'BUG why is the message window missing?
     log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
     Set this.messageWindow = Nothing
 End Sub

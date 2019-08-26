@@ -16,7 +16,7 @@ Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
                          ByVal hWnd As Long, _
                          ByVal nIDEvent As Long) As Long
                          
-Private tempIDs As Dictionary
+Private tempIDs As Collection 'holds ids of all timers so they can be killed manually
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -26,7 +26,7 @@ Private Sub ModuleInitialize()
     'this method runs once per module.
     Set Assert = New Rubberduck.PermissiveAssertClass
     Set Fakes = New Rubberduck.FakesProvider
-    Set tempIDs = New Dictionary
+    Set tempIDs = New Collection
 End Sub
 
 '@ModuleCleanup
@@ -35,7 +35,7 @@ Private Sub ModuleCleanup()
     Set Assert = Nothing
     Set Fakes = Nothing
     Dim id As Variant
-    For Each id In tempIDs.Keys
+    For Each id In tempIDs
         WinAPI.KillTimer TickerAPI.messageWindowHandle, id
     Next id
     Set TickerAPI = New TickerAPI 'the authentic way of killing stuff is just to reset the API
@@ -93,25 +93,9 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
-'@TestMethod("Uncategorized")
+''@TestMethod("Uncategorized")
 Private Sub StartExistingTimerNoError()
-    On Error GoTo TestFail
-    
-    'Arrange:
-    tempIDs.Add 1, ApiSetTimer(TickerAPI.messageWindowHandle, 1, 10000, AddressOf SafeCallbackProc)
-            
-    'Act:
-    Dim apiID As Long
-    apiID = TickerAPI.StartUnmanagedTimer(AddressOf SafeCallbackProc, False)
-
-    'Assert:
-    Assert.AreEqual 1&, apiID, printf("Expected {0}, actual {1}", 1, apiID)
-
-
-TestExit:
-    Exit Sub
-TestFail:
-    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    'TODO is there a way to test whether WinAPI.SetTimer on ObjPtr(callbackwrapper) *before* TickerAPI.Start*Timer is bad?
 End Sub
 
 '@TestMethod("Uncategorized")
@@ -122,7 +106,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     'Arrange:
     TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False
     Dim killSuccess As Boolean
-    killSuccess = ApiKillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False))
+    killSuccess = WinAPI.KillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False)) <> 0
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone
