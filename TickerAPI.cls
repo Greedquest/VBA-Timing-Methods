@@ -228,7 +228,7 @@ Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDesc
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
-    'BUG raising an unhandled error crashes if there are any messages queued, so we also need to flush the queue before raising errors
+    
     killAllTimers
     
     Select Case errorCode
@@ -247,6 +247,8 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
     End Select
     logError Source, errorCode, Err.Description
     Err.Raise errorCode
+    
+    setupMessageWindow 'if error is caught then caller can choose to bail or to swallow the error, in which case reset the window
 End Sub
 
 Private Sub setupMessageWindow()
@@ -285,7 +287,8 @@ Private Sub Class_Initialize()
 End Sub
 
 Private Sub Class_Terminate()
-    terminateMessageWindow
+    'To free up this resource we need to unsubclass the window. It will already be free if an error was just raised
+    If Not this.messageWindow Is Nothing Then terminateMessageWindow
 End Sub
 
 'For Testing
