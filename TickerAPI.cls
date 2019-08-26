@@ -258,9 +258,13 @@ Private Sub setupMessageWindow()
 End Sub
 
 Private Sub terminateMessageWindow()
-    On Error Resume Next 'BUG why is the message window missing?
-    log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
-    Set this.messageWindow = Nothing
+    'BUG why is the message window missing?
+    If this.messageWindow Is Nothing Then
+        log WarnLevel, "terminateMessageWindow", "Message window is not set"
+    Else
+        log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
+        Set this.messageWindow = Nothing
+    End If
 End Sub
 
 Friend Function tryGetManagedWrapper(ByVal timerID As LongPtr, ByRef outWrapper As ManagedCallbackWrapper) As Boolean
