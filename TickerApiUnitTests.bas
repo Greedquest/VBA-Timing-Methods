@@ -94,7 +94,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     On Error GoTo TestFail
     
     'Arrange:
-    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False
+    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False, 100000000 'TODO infinite delay in unit tests
     Dim killSuccess As Boolean
     killSuccess = WinAPI.KillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False)) <> 0
     

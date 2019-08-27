@@ -153,17 +153,26 @@ End Property
 Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
 Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message queue - timerProc should be 0 for managed timers"
     
+    Dim windowHandle As LongPtr
+    If Not tryGetHandle(windowHandle) Then Exit Function
+    
     'Post fake message to queue
-    tryScheduleProc = WinAPI.PostMessage(messageWindowHandle, WM_TIMER, timerID, timerProc) <> 0
+    tryScheduleProc = WinAPI.PostMessage(windowHandle, WM_TIMER, timerID, timerProc) <> 0
         
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
 Private Function tryCreateTimer(ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
 Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
-      
-    On Error GoTo cleanFail
     
+    Dim windowHandle As LongPtr
+    If Not tryGetHandle(windowHandle) Then Exit Function
+    'REVIEW tryBlah should never raise an error, or should it raise unexpected ones?
+    'If Never then this needn't be inside the error trap
+    'If only unexpected, then by definition an unexpected error within tryGetHandle should be bubbled and this can also be outside the error trap
+    
+    On Error GoTo cleanFail
+   
     'pass key as object since it's easy to downcast to ICallbackWrapper interface, but hard to up cast from ICallbackWrapper to every possible implementation
     Dim wrapper As ICallbackWrapper
     Set wrapper = key
@@ -171,8 +180,8 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
     
     'Create timer with ID of the key object; guaranteed to be unique
     'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
-    
-    outTimerID = WinAPI.SetTimer(this.messageWindow.handle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
+
+    outTimerID = WinAPI.SetTimer(windowHandle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
     If outTimerID = ObjPtr(key) Then 'confirm it has been made correctly
         Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
         tryCreateTimer = True
@@ -194,8 +203,11 @@ End Function
 
 Private Function tryKillTimer(ByVal timerID As LongPtr) As Boolean
     'TODO: could clear messages for this timer
+    Dim windowHandle As LongPtr
+    If Not tryGetHandle(windowHandle) Then Exit Function
+
     On Error GoTo cleanFail
-    tryKillTimer = WinAPI.KillTimer(messageWindowHandle, timerID) <> 0 'Kill timer returns non-zero for success
+    tryKillTimer = WinAPI.KillTimer(windowHandle, timerID) <> 0 'Kill timer returns non-zero for success
     If timerExists(timerID) Then this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
 
 cleanExit:
@@ -255,6 +267,8 @@ Private Function tryGetMessageWindow(ByRef outWindow As ModelessMessageWindow) A
             tryGetMessageWindow = False
             'log FatalLevel, "setupMessageWindow", "Unable to hook message window"
         End If
+    Else
+        tryGetMessageWindow = True
     End If
     Set outWindow = this.messageWindow
 End Function
@@ -266,6 +280,7 @@ Private Function tryGetHandle(ByRef outHandle As LongPtr) As Boolean
         outHandle = messageWindow.handle
     End If
 End Function
+
 Private Sub setupMessageWindow()
     If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
         MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
