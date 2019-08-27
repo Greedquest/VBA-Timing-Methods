@@ -25,11 +25,7 @@ End Enum
 'Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
 'Private Const Default_Message_Window_Suffix As String = "MessageWindow"
-'
-'Private Type tWindow
-'    handle As LongPtr
-'    name As String
-'End Type
+
 
 Private Type tCallback
     
@@ -128,7 +124,6 @@ Attribute killAllTimers.VB_Description = "Sub loops through all known timers and
 
     this.timerIDs.RemoveAll
     terminateMessageWindow
-    'setupMessageWindow
 
     If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
 End Sub
@@ -159,7 +154,7 @@ Private Function tryScheduleProc(ByVal timerID As LongPtr, Optional ByVal timerP
 Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message queue - timerProc should be 0 for managed timers"
     
     'Post fake message to queue
-    tryScheduleProc = WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, timerID, timerProc) <> 0
+    tryScheduleProc = WinAPI.PostMessage(messageWindowHandle, WM_TIMER, timerID, timerProc) <> 0
         
 End Function
 
@@ -200,7 +195,7 @@ End Function
 Private Function tryKillTimer(ByVal timerID As LongPtr) As Boolean
     'TODO: could clear messages for this timer
     On Error GoTo cleanFail
-    tryKillTimer = WinAPI.KillTimer(this.messageWindow.handle, timerID) <> 0 'Kill timer returns non-zero for success
+    tryKillTimer = WinAPI.KillTimer(messageWindowHandle, timerID) <> 0 'Kill timer returns non-zero for success
     If timerExists(timerID) Then this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
 
 cleanExit:
@@ -214,8 +209,8 @@ cleanFail:
 End Function
 
 Private Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
-    If Not LogManager.IsEnabled(loggerLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("TickerAPI" & loggerLevel, loggerLevel)
+    If Not LogManager.IsEnabled(TraceLevel) Then 'check a logger is registered
+        LogManager.Register DebugLogger.Create("TickerAPI" & TraceLevel, TraceLevel)
     End If
     LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
 End Sub
@@ -251,6 +246,26 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
     setupMessageWindow 'if error is caught then caller can choose to bail or to swallow the error, in which case reset the window
 End Sub
 
+Private Function tryGetMessageWindow(ByRef outWindow As ModelessMessageWindow) As Boolean
+    If this.messageWindow Is Nothing Then
+        If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
+            MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
+            tryGetMessageWindow = True
+        Else
+            tryGetMessageWindow = False
+            'log FatalLevel, "setupMessageWindow", "Unable to hook message window"
+        End If
+    End If
+    Set outWindow = this.messageWindow
+End Function
+
+Private Function tryGetHandle(ByRef outHandle As LongPtr) As Boolean
+    Dim messageWindow As ModelessMessageWindow
+    If tryGetMessageWindow(messageWindow) Then
+        tryGetHandle = True
+        outHandle = messageWindow.handle
+    End If
+End Function
 Private Sub setupMessageWindow()
     If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
         MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
@@ -260,7 +275,7 @@ Private Sub setupMessageWindow()
 End Sub
 
 Private Sub terminateMessageWindow()
-    'BUG why is the message window missing?
+    'NOTE following an error, messageWindow is terminated but not reset
     If this.messageWindow Is Nothing Then
         log WarnLevel, "terminateMessageWindow", "Message window is not set"
     Else
@@ -283,7 +298,7 @@ End Function
 Private Sub Class_Initialize()
     'Set up defaults
     this.maxTimerCount = Default_Max_Timer_Count
-    setupMessageWindow
+    'setupMessageWindow
 End Sub
 
 Private Sub Class_Terminate()
@@ -294,6 +309,12 @@ End Sub
 'For Testing
 Friend Property Get messageWindowHandle() As LongPtr
     messageWindowHandle = this.messageWindow.handle
+'    Dim messageWindow As ModelessMessageWindow
+'    If tryGetMessageWindow(messageWindow) Then
+'        messageWindowHandle = messageWindow.handle
+'    Else
+'        messageWindowHandle = 0
+'    End If
 End Property
 
 Friend Sub makeBadness()

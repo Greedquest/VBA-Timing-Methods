@@ -1,20 +1,10 @@
-Attribute VB_Name = "TickerApiTests"
+Attribute VB_Name = "TickerApiUnitTests"
 Option Explicit
 Option Private Module
 
 '@TestModule
 '@IgnoreModule UseMeaningfulName, ProcedureNotUsed, LineLabelNotUsed
 '@Folder("Tests")
-
-Private Declare Function ApiSetTimer Lib "user32" Alias "SetTimer" ( _
-                         ByVal hWnd As Long, _
-                         ByVal nIDEvent As Long, _
-                         ByVal uElapse As Long, _
-                         ByVal lpTimerFunc As Long) As Long
-
-Private Declare Function ApiKillTimer Lib "user32" Alias "KillTimer" ( _
-                         ByVal hWnd As Long, _
-                         ByVal nIDEvent As Long) As Long
                          
 Private tempIDs As Collection 'holds ids of all timers so they can be killed manually
 

@@ -5,7 +5,6 @@ Private Const defaultTimerDelay As Long = 1000
 Private Const MillisToSeconds As Double = 1 / 1000
 Private Const defaultID As Long = 100
 
-
 Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
