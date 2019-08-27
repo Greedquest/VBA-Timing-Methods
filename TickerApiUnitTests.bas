@@ -26,7 +26,7 @@ Private Sub ModuleCleanup()
     Set Fakes = Nothing
     Dim id As Variant
     For Each id In tempIDs
-        WinAPI.KillTimer TickerAPI.messageWindowHandle, id
+        WinAPI.killTimer TickerAPI.messageWindowHandle, id
     Next id
     Set TickerAPI = New TickerAPI 'the authentic way of killing stuff is just to reset the API
 End Sub
@@ -96,7 +96,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     'Arrange:
     TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False, 100000000 'TODO infinite delay in unit tests
     Dim killSuccess As Boolean
-    killSuccess = WinAPI.KillTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False)) <> 0
+    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False)) <> 0
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone

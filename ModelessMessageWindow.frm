@@ -46,9 +46,6 @@ Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByV
         Else
             tryCreate = .tryAddSubclass(windowProc, data)
         End If
-'        .Hide
-'        Debug.Print "------------------"
-'        '.Hide
         Set outWindow = .Self
     End With
 End Function
