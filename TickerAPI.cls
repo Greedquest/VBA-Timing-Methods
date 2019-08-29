@@ -27,10 +27,10 @@ End Enum
 Private Enum InternalTimerError
     [_Start] = TimerError.[_End] 'just in case of clashes, let's offset the errors
     CreateMessageWindowError
-    KillTimerError
+    APIKillTimerError
     CastKeyToWrapperError
     APIStartTimerError
-    PostMessageError
+    APIPostMessageError
 End Enum
 
 'Private Const Default_Lock As Boolean = True
@@ -110,7 +110,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     On Error GoTo scheduleProcFail
     If runImmediately Then
         'schedule immediate proc - No callback proc specified for managed timers
-        If Not tryScheduleProc(windowHandle, newTimerID, timerFunction) Then
+        If Not tryScheduleProc(windowHandle, newTimerID) Then
             'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
             'could try flushing the queue instead
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
@@ -251,7 +251,7 @@ catchError:
         
     Else
         logError "killTimer", Err.Number, Err.Description
-        raiseInternalError PostMessageError, loggerSourceName
+        raiseInternalError APIPostMessageError, loggerSourceName
         Resume 'for debugging - break above and jump to the error-raising statement
         
     End If
@@ -320,37 +320,49 @@ cleanExit:
     
 cleanFail:
     logError "WinAPI.killTimer", Err.Number, Err.Description
-    raiseInternalError KillTimerError, "killTimer"
+    raiseInternalError APIKillTimerError, "killTimer"
     Resume cleanExit
     
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
-    
-    log DebugLevel, "raiseError", "raiseError called; destroying timers and unsubclassing window"
-    
-    killAllTimers
+
+    log TraceLevel, "raiseError", "Destroying timers and unsubclassing window so error can be raised"
+    killAllTimers 'cleanly un subclasses message window as this prevents errors being raised
     
     Select Case errorCode
         Case TimerError.DestroyTimerError
             Err.Description = "Uh Oh, can't kill the timer :("
+            
         Case TimerError.TimerNotFoundError
             Err.Description = "Timer not found"
+            
         Case TimerError.CreateTimerError
             Err.Description = "Couldn't create Timer"
-'        Case TimerError.SynchronousCallError
-'            Err.Description = "Error when running synchronously"
+            
+        Case TimerError.SynchronousCallError
+            Err.Description = "Error when running synchronously"
+            
         Case TimerError.GetMessageWindowError
             Err.Description = "Couldn't obtain a handle to the message window"
-'        Case TimerError.TimerApiLockedError
-'            Err.Description = "Call the Unlock method before attempting to use the API"
+            
         Case Else
             'rethrow error
+            On Error Resume Next
+                Err.Raise errorCode 'fake raise to grab text for logging
+                Dim errDescription As String
+                errDescription = Err.Description
+            On Error GoTo 0
+            Err.Description = errDescription
+            
     End Select
-    logError Source, errorCode, Err.Description
-    Err.Raise errorCode
     
-    setupMessageWindow 'if error is caught then caller can choose to bail or to swallow the error, in which case reset the window
+    logError Source, errorCode, Err.Description
+    
+    Err.Raise errorCode
+
+
+    
 End Sub
 
 Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional ByVal Source As String = "raiseInternalError")
@@ -359,11 +371,27 @@ Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional B
         Case InternalTimerError.CreateMessageWindowError
             Err.Description = "Unable to obtain message window"
         
-        Case InternalTimerError.KillTimerError
+        Case InternalTimerError.APIKillTimerError
             Err.Description = "Error when calling API to destroy timer"
+        
+        Case InternalTimerError.APIStartTimerError
+            Err.Description = "Error when calling API to create timer"
+        
+        Case InternalTimerError.CastKeyToWrapperError
+            Err.Description = "Failed to cast key object to expected interface"
+            
+        Case InternalTimerError.APIPostMessageError
+            Err.Description = "Failed to manually post a message to the queue"
             
         Case Else
             'rethrow error
+            On Error Resume Next
+                Err.Raise errorCode 'fake raise to grab text for logging
+                Dim errDescription As String
+                errDescription = Err.Description
+            On Error GoTo 0
+            Err.Description = errDescription
+            
     End Select
     'logError Source, errorCode, Err.Description
     Err.Raise errorCode
@@ -435,5 +463,5 @@ Friend Property Get messageWindowHandle() As LongPtr
 End Property
 
 Friend Sub makeBadness()
-    raiseError SynchronousCallError
+    raiseError 5
 End Sub
