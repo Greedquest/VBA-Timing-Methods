@@ -21,6 +21,11 @@ Public Enum TimerError
     SynchronousCallError
     TimerApiLockedError
     GetMessageWindowError
+    [_End]
+End Enum
+
+Private Enum InternalTimerError
+    [_Start] = TimerError.[_End] 'just in case of clashes, let's offset the errors
 End Enum
 
 'Private Const Default_Lock As Boolean = True
@@ -45,45 +50,79 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
     
+    On Error GoTo getHandleFail
     Dim windowHandle As LongPtr
-    If Not tryGetHandle(windowHandle) Then
-        raiseError GetMessageWindowError, loggerSourceName
+    windowHandle = tryGetHandle
+        
+    On Error GoTo createTimerFail
+    Dim newTimerID As LongPtr
+    tryCreateTimer windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID
+    StartUnmanagedTimer = newTimerID
+    
+    On Error GoTo scheduleProcFail
+    If runImmediately Then
+        'schedule immediate proc; requires callback for unmanaged timer
+        scheduleProc windowHandle, newTimerID, timerFunction
     End If
     
-    Dim newTimerID As LongPtr
-    If Not tryCreateTimer(windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
-        raiseError CreateTimerError, loggerSourceName
-    Else
-        StartUnmanagedTimer = newTimerID
-    End If
-    If runImmediately Then
-        'schedule immediate proc
-        If Not scheduleProc(newTimerID, timerFunction) Then
-            KillTimerByID newTimerID             'NOTE may raise error
-        End If
-    End If
+    log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", newTimerID)
+    Exit Function
+    
+getHandleFail:
+    logError "getHandle", Err.Number, Err.Description
+    raiseError GetMessageWindowError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+    
+createTimerFail:
+    logError "createTimer", Err.Number, Err.Description
+    raiseError CreateTimerError, loggerSourceName
+    Resume
+    
+scheduleProcFail:
+    logError "scheduleProc", Err.Number, Err.Description
+    KillTimerByID newTimerID 'NOTE may raise an error
+    raiseError SynchronousCallError, loggerSourceName
+    Resume
+    
 End Function
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     
+    On Error GoTo getHandleFail
     Dim windowHandle As LongPtr
-    If Not tryGetHandle(windowHandle) Then
-        raiseError GetMessageWindowError, loggerSourceName
-    End If
-    
+    windowHandle = tryGetHandle
+        
+    On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
-    If Not tryCreateTimer(windowHandle, ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID) Then
-        raiseError CreateTimerError, loggerSourceName
-    Else
-        StartManagedTimer = newTimerID
-    End If
+    tryCreateTimer windowHandle, ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID
+    StartManagedTimer = newTimerID
+    
+    On Error GoTo scheduleProcFail
     If runImmediately Then
         'schedule immediate proc - No callback proc specified for managed timers
-        If Not scheduleProc(windowHandle, newTimerID) Then
-            KillTimerByID newTimerID             'NOTE may raise error
-        End If
+        scheduleProc windowHandle, newTimerID
     End If
+    
+    log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", newTimerID)
+    Exit Function
+    
+getHandleFail:
+    logError "getHandle", Err.Number, Err.Description
+    raiseError GetMessageWindowError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+    
+createTimerFail:
+    logError "createTimer", Err.Number, Err.Description
+    raiseError CreateTimerError, loggerSourceName
+    Resume
+    
+scheduleProcFail:
+    logError "scheduleProc", Err.Number, Err.Description
+    KillTimerByID newTimerID 'NOTE may raise an error
+    raiseError SynchronousCallError, loggerSourceName
+    Resume
+    
 End Function
 
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
@@ -93,21 +132,31 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     
     If timerExists(timerID) Then
     
+        On Error GoTo getHandleFail
         Dim windowHandle As LongPtr
-        If Not tryGetHandle(windowHandle) Then
-            raiseError GetMessageWindowError, loggerSourceName
+        windowHandle = tryGetHandle
+        
+        On Error GoTo killTimerFail
+        killTimer windowHandle, timerID
             
-        ElseIf Not killTimer(windowHandle, timerID) Then
-            raiseError DestroyTimerError, loggerSourceName
-            
-        Else
-            log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerID)
-            
-        End If
+        log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerID)
+
     Else
     
         raiseError TimerNotFoundError, loggerSourceName
     End If
+    
+getHandleFail:
+    logError "getHandle", Err.Number, Err.Description
+    raiseError GetMessageWindowError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+
+killTimerFail:
+    logError "killTimer", Err.Number, Err.Description
+    raiseError DestroyTimerError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+    
+    
 End Sub
 
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
@@ -264,6 +313,23 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
     setupMessageWindow 'if error is caught then caller can choose to bail or to swallow the error, in which case reset the window
 End Sub
 
+Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional ByVal Source As String = "raiseInternalError")
+      
+    Select Case errorCode
+        Case Else
+            'rethrow error
+    End Select
+    logError Source, errorCode, Err.Description
+    Err.Raise errorCode
+
+End Sub
+
+Private Sub raiseDllError(ByVal dllErrNumber As Long, Optional ByVal Source As String = "raiseDllError")
+    Err.Description = GetSystemErrorMessageText(dllErrNumber)
+    logError Source, dllErrNumber, Err.Description
+    Err.Raise dllErrNumber
+End Sub
+
 Private Function tryGetMessageWindow(ByRef outWindow As ModelessMessageWindow) As Boolean
     If this.messageWindow Is Nothing Then
         If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
@@ -279,11 +345,12 @@ Private Function tryGetMessageWindow(ByRef outWindow As ModelessMessageWindow) A
     Set outWindow = this.messageWindow
 End Function
 
-Private Function tryGetHandle(ByRef outHandle As LongPtr) As Boolean
+Private Function tryGetHandle() As LongPtr
     Dim messageWindow As ModelessMessageWindow
     If tryGetMessageWindow(messageWindow) Then
-        tryGetHandle = True
-        outHandle = messageWindow.handle
+        tryGetHandle = messageWindow.handle
+    Else
+        raiseInternalError 5 'TODO bubble message window error instead
     End If
 End Function
 
