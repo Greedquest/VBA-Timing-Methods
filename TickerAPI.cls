@@ -26,6 +26,7 @@ End Enum
 
 Private Enum InternalTimerError
     [_Start] = TimerError.[_End] 'just in case of clashes, let's offset the errors
+    CreateMessageWindowError
 End Enum
 
 'Private Const Default_Lock As Boolean = True
@@ -273,20 +274,6 @@ cleanFail:
     
 End Function
 
-Private Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
-    If Not LogManager.IsEnabled(TraceLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("TickerAPI" & TraceLevel, TraceLevel)
-    End If
-    LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
-End Sub
-
-Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
-    If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
-    End If
-    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
-End Sub
-
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
     
     killAllTimers
@@ -316,6 +303,9 @@ End Sub
 Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional ByVal Source As String = "raiseInternalError")
       
     Select Case errorCode
+        Case InternalTimerError.CreateMessageWindowError
+            Err.Description = "Unable to obtain message window"
+            
         Case Else
             'rethrow error
     End Select
@@ -324,34 +314,22 @@ Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional B
 
 End Sub
 
-Private Sub raiseDllError(ByVal dllErrNumber As Long, Optional ByVal Source As String = "raiseDllError")
-    Err.Description = GetSystemErrorMessageText(dllErrNumber)
-    logError Source, dllErrNumber, Err.Description
-    Err.Raise dllErrNumber
-End Sub
-
-Private Function tryGetMessageWindow(ByRef outWindow As ModelessMessageWindow) As Boolean
+Private Function getMessageWindow() As ModelessMessageWindow
     If this.messageWindow Is Nothing Then
+        'make a new one
         If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
             MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
-            tryGetMessageWindow = True
+            Set getMessageWindow = this.messageWindow
         Else
-            tryGetMessageWindow = False
-            'log FatalLevel, "setupMessageWindow", "Unable to hook message window"
+            raiseInternalError CreateMessageWindowError, "getMessageWindow"
         End If
     Else
-        tryGetMessageWindow = True
+        Set getMessageWindow = this.messageWindow
     End If
-    Set outWindow = this.messageWindow
 End Function
 
 Private Function tryGetHandle() As LongPtr
-    Dim messageWindow As ModelessMessageWindow
-    If tryGetMessageWindow(messageWindow) Then
-        tryGetHandle = messageWindow.handle
-    Else
-        raiseInternalError 5 'TODO bubble message window error instead
-    End If
+    tryGetHandle = getMessageWindow.handle 'will bubble up any errors
 End Function
 
 Private Sub setupMessageWindow()

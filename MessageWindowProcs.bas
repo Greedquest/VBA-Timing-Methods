@@ -77,11 +77,3 @@ cleanFail:
     runTimerCallback = False
     
 End Function
-
-Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
-    If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("TickerAPI", ErrorLevel)
-    End If
-    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
-End Sub
-

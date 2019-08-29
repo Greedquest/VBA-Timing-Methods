@@ -122,20 +122,6 @@ Private Function tryGetTickerFromID(ByVal timerID As Long, ByRef outTicker As IM
     End If
 End Function
 
-Private Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
-    If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create(TypeName(Me), ErrorLevel)
-    End If
-    LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
-End Sub
-
-Private Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
-    If Not LogManager.IsEnabled(loggerLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create(TypeName(Me) & loggerLevel, loggerLevel)
-    End If
-    LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
-End Sub
-
 Private Sub Class_Terminate()
     TickerAPI.KillTimersByFunction AddressOf WaitableTimerCallbackProc
 End Sub
