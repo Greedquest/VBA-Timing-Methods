@@ -27,6 +27,9 @@ End Enum
 Private Enum InternalTimerError
     [_Start] = TimerError.[_End] 'just in case of clashes, let's offset the errors
     CreateMessageWindowError
+    KillTimerError
+    CastKeyToWrapperError
+    APIStartTimerError
 End Enum
 
 'Private Const Default_Lock As Boolean = True
@@ -53,7 +56,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     
     On Error GoTo getHandleFail
     Dim windowHandle As LongPtr
-    windowHandle = tryGetHandle
+    windowHandle = getHandle
         
     On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
@@ -92,7 +95,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     
     On Error GoTo getHandleFail
     Dim windowHandle As LongPtr
-    windowHandle = tryGetHandle
+    windowHandle = getHandle
         
     On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
@@ -135,7 +138,7 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     
         On Error GoTo getHandleFail
         Dim windowHandle As LongPtr
-        windowHandle = tryGetHandle
+        windowHandle = getHandle
         
         On Error GoTo killTimerFail
         killTimer windowHandle, timerID
@@ -226,9 +229,9 @@ End Function
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
 Private Function tryCreateTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
 Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
+    Const loggerSourceName As String = "createTimer"
     
-    On Error GoTo cleanFail
-   
+    On Error GoTo castWrapperFail
     'pass key as object since it's easy to downcast to ICallbackWrapper interface, but hard to up cast from ICallbackWrapper to every possible implementation
     Dim wrapper As ICallbackWrapper
     Set wrapper = key
@@ -236,43 +239,59 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
     
     'Create timer with ID of the key object; guaranteed to be unique
     'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
-
-    outTimerID = WinAPI.SetTimer(windowHandle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
-    If outTimerID = ObjPtr(key) Then 'confirm it has been made correctly
-        Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
-        tryCreateTimer = True
+    
+    On Error GoTo setTimerFail
+    
+    Dim newTimerID As LongPtr
+    newTimerID = WinAPI.SetTimer(windowHandle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
+    
+    If newTimerID = 0 Then
+        throwDllError Err.LastDllError
+    
+    ElseIf newTimerID <> ObjPtr(key) Then
+        Err.Raise 5, Description:="timerID does not have expected value"
+        
     Else
-        tryCreateTimer = False
+        Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
+        
     End If
-    'End If
     
 cleanExit:
     Exit Function
     
-cleanFail:
-    logError "tryCreateTimer", Err.Number, Err.Description
-    tryCreateTimer = False
-    killTimer windowHandle, outTimerID 'NOTE clear up after error here as the outTimerID shouldn't be relied upon in caller to help clear up
-    Resume cleanExit
+castWrapperFail:
+    logError "castWrapper", Err.Number, Err.Description
+    raiseInternalError CastKeyToWrapperError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+
+setTimerFail:
+    logError "WinAPI.SetTimer", Err.Number, Err.Description
+    killTimer windowHandle, newTimerID
+    raiseInternalError CastKeyToWrapperError, loggerSourceName
+    Resume 'for debugging - break above and jump to the error-raising statement
+    
     
 End Function
 
-Private Function killTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr) As Boolean
+Private Sub killTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr)
     'TODO: could clear messages for this timer
 
     On Error GoTo cleanFail
-    killTimer = WinAPI.killTimer(windowHandle, timerID) <> 0 'Kill timer returns non-zero for success
-    If timerExists(timerID) Then this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
-
+    
+    If WinAPI.killTimer(windowHandle, timerID) <> 0 Then
+        throwDllError Err.LastDllError
+    End If
+    
 cleanExit:
-    Exit Function
+    If timerExists(timerID) Then this.timerIDs.Remove timerID             'remove regardless of success, since it's either gone now, or was invalid anyway
+    Exit Sub
     
 cleanFail:
-    logError "killTimer", Err.Number, Err.Description
-    killTimer = False
+    logError "WinAPI.killTimer", Err.Number, Err.Description
+    raiseInternalError KillTimerError, "killTimer"
     Resume cleanExit
     
-End Function
+End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
     
@@ -305,11 +324,14 @@ Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional B
     Select Case errorCode
         Case InternalTimerError.CreateMessageWindowError
             Err.Description = "Unable to obtain message window"
+        
+        Case InternalTimerError.KillTimerError
+            Err.Description = "Error when calling API to destroy timer"
             
         Case Else
             'rethrow error
     End Select
-    logError Source, errorCode, Err.Description
+    'logError Source, errorCode, Err.Description
     Err.Raise errorCode
 
 End Sub
@@ -328,8 +350,8 @@ Private Function getMessageWindow() As ModelessMessageWindow
     End If
 End Function
 
-Private Function tryGetHandle() As LongPtr
-    tryGetHandle = getMessageWindow.handle 'will bubble up any errors
+Private Function getHandle() As LongPtr
+    getHandle = getMessageWindow.handle 'will bubble up any errors
 End Function
 
 Private Sub setupMessageWindow()
@@ -351,6 +373,7 @@ Private Sub terminateMessageWindow()
 End Sub
 
 Friend Function tryGetManagedWrapper(ByVal timerID As LongPtr, ByRef outWrapper As ManagedCallbackWrapper) As Boolean
+    'Pretty much the only valid use of checkedException handling
     If this.timerIDs.Exists(timerID) Then
         On Error Resume Next
         Set outWrapper = this.timerIDs.Item(timerID)

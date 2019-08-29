@@ -12,10 +12,12 @@ Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     End If
 End Sub
 
-Public Sub raiseDllError(ByVal ErrorNumber As Long, Optional ByVal Source As String = "raiseDllError")
-    Err.Description = GetSystemErrorMessageText(ErrorNumber)
-    logError Source, ErrorNumber, Err.Description
-    Err.Raise ErrorNumber
+Public Sub throwDllError(ByVal ErrorNumber As Long)
+    If ErrorNumber = 0 Then
+        Err.Raise 5, Description:="DLL error = 0, i.e. no error"
+    Else
+        Err.Raise ErrorNumber, Description:=GetSystemErrorMessageText(ErrorNumber)
+    End If
 End Sub
 
 Public Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
@@ -30,4 +32,9 @@ Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal mess
         LogManager.Register DebugLogger.Create("Timing" & TraceLevel, TraceLevel)
     End If
     LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
+End Sub
+
+Sub t()
+Debug.Print WinAPI.killTimer(Application.hWnd, 11)
+throwDllError Err.LastDllError
 End Sub
