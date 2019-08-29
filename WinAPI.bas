@@ -83,6 +83,9 @@ Public Enum WindowsMessage
     WM_NOTIFY = &H4E                             'arbitrary, sounds nice though
 End Enum
 
+Public Enum systemErrorCodes
+    ERROR_NOT_ENOUGH_QUOTA = 1816
+End Enum
 'Messages
 Public Declare Function GetQueueStatus Lib "user32" ( _
                         ByVal flags As QueueStatusFlag) As DWORD

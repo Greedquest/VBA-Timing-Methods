@@ -14,9 +14,9 @@ Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     End If
 End Sub
 
-Public Sub throwDllError(ByVal ErrorNumber As Long)
+Public Sub throwDllError(ByVal ErrorNumber As Long, Optional ByVal onZeroText As String = "DLL error = 0, i.e. no error")
     If ErrorNumber = 0 Then
-        Err.Raise 5, Description:="DLL error = 0, i.e. no error"
+        Err.Raise 5, Description:=onZeroText
     Else
         Err.Raise ErrorNumber, Description:=GetSystemErrorMessageText(ErrorNumber)
     End If

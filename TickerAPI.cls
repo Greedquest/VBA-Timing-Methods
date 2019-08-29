@@ -30,6 +30,7 @@ Private Enum InternalTimerError
     KillTimerError
     CastKeyToWrapperError
     APIStartTimerError
+    PostMessageError
 End Enum
 
 'Private Const Default_Lock As Boolean = True
@@ -66,7 +67,11 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     On Error GoTo scheduleProcFail
     If runImmediately Then
         'schedule immediate proc; requires callback for unmanaged timer
-        scheduleProc windowHandle, newTimerID, timerFunction
+        If Not tryScheduleProc(windowHandle, newTimerID, timerFunction) Then
+            'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
+            'could try flushing the queue instead
+            log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
+        End If
     End If
     
     log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", newTimerID)
@@ -105,7 +110,11 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     On Error GoTo scheduleProcFail
     If runImmediately Then
         'schedule immediate proc - No callback proc specified for managed timers
-        scheduleProc windowHandle, newTimerID
+        If Not tryScheduleProc(windowHandle, newTimerID, timerFunction) Then
+            'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
+            'could try flushing the queue instead
+            log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
+        End If
     End If
     
     log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", newTimerID)
@@ -150,6 +159,8 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
         raiseError TimerNotFoundError, loggerSourceName
     End If
     
+    Exit Sub
+    
 getHandleFail:
     logError "getHandle", Err.Number, Err.Description
     raiseError GetMessageWindowError, loggerSourceName
@@ -159,7 +170,6 @@ killTimerFail:
     logError "killTimer", Err.Number, Err.Description
     raiseError DestroyTimerError, loggerSourceName
     Resume 'for debugging - break above and jump to the error-raising statement
-    
     
 End Sub
 
@@ -175,7 +185,7 @@ Attribute KillTimersByFunction.VB_Description = "API kills windows timers regist
             Dim wrapper As ICallbackWrapper
             Set wrapper = this.timerIDs.Item(timerID)
             If wrapper.Callback = timerFunction Then
-                KillTimerByID timerID
+                KillTimerByID timerID 'just bubble errors
                 timerCount = timerCount + 1
             End If
         End If
@@ -187,6 +197,7 @@ End Sub
 Private Sub killAllTimers()
 Attribute killAllTimers.VB_Description = "Sub loops through all known timers and tries to kill them. If none exist, it tries killing them by ID until none are left. Should not raise errors. Clients should just re-initialise API"
     Const loggerSourceName As String = "killAllTimers"
+    
     'NOTE this procedure is called when raising errors so must not raise any itself
     On Error Resume Next
     log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", this.timerIDs.Count)
@@ -219,11 +230,31 @@ Friend Property Get timerExists(ByVal key As LongPtr) As Boolean
 End Property
 
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
-Private Function scheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
-       
-    'Post fake message to queue
-    scheduleProc = WinAPI.PostMessage(windowHandle, WM_TIMER, timerID, timerProc) <> 0
+Private Function tryScheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr, Optional ByVal timerProc As LongPtr = 0) As Boolean
+    Const loggerSourceName As String = "tryScheduleProc"
+    
+    On Error GoTo catchError
+    'Post fake message to queue to act as an already elapsed timer
+    If WinAPI.PostMessage(windowHandle, WM_TIMER, timerID, timerProc) = 0 Then
+        throwDllError Err.LastDllError
+    Else
+        tryScheduleProc = True
+    End If
+    
+cleanExit:
+    Exit Function
+    
+catchError:
+    If Err.Number = systemErrorCodes.ERROR_NOT_ENOUGH_QUOTA Then
+        tryScheduleProc = False
+        Resume cleanExit
         
+    Else
+        logError "killTimer", Err.Number, Err.Description
+        raiseInternalError PostMessageError, loggerSourceName
+        Resume 'for debugging - break above and jump to the error-raising statement
+        
+    End If
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
@@ -278,8 +309,9 @@ Private Sub killTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr)
 
     On Error GoTo cleanFail
     
-    If WinAPI.killTimer(windowHandle, timerID) <> 0 Then
-        throwDllError Err.LastDllError
+    '0 indicates some failure
+    If WinAPI.killTimer(windowHandle, timerID) = 0 Then
+        throwDllError Err.LastDllError, "Call returned zero, probably tried to kill non-existent timer"
     End If
     
 cleanExit:
@@ -294,6 +326,8 @@ cleanFail:
 End Sub
 
 Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
+    
+    log DebugLevel, "raiseError", "raiseError called; destroying timers and unsubclassing window"
     
     killAllTimers
     

@@ -121,10 +121,11 @@ Private Sub StartUnmanagedTimerRaisesNoError()
     
 
     'Act:
-    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False, INFINITE_DELAY
+    Dim id As LongPtr
+    id = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
     
     'Assert:
-    Assert.Succeed
+    Assert.AreNotEqual 0, id
 
 TestExit:
     Exit Sub
