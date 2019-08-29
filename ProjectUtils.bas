@@ -3,6 +3,8 @@ Attribute VB_Name = "ProjectUtils"
 Option Explicit
 Option Private Module
 
+Public Const INFINITE_DELAY As Long = &H7FFFFFFF
+
 '@Ignore ProcedureCanBeWrittenAsFunction
 Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
@@ -22,14 +24,14 @@ End Sub
 
 Public Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
     If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("Timing", ErrorLevel)
+        LogManager.Register DebugLogger.Create("Timing-E", ErrorLevel)
     End If
     LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
 End Sub
 
 Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
     If Not LogManager.IsEnabled(TraceLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("Timing" & TraceLevel, TraceLevel)
+        LogManager.Register DebugLogger.Create("Timing", TraceLevel)
     End If
     LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
 End Sub

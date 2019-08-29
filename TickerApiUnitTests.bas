@@ -90,13 +90,13 @@ End Sub
 
 '@TestMethod("Uncategorized")
 Private Sub KillNonExistentTimerRaisesDestroyTimerError()
-    Const ExpectedError As Long = DestroyTimerError
+    Const ExpectedError As Long = TimerError.DestroyTimerError
     On Error GoTo TestFail
     
     'Arrange:
-    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False, 100000000 'TODO infinite delay in unit tests
+    'TODO infinite delay
     Dim killSuccess As Boolean
-    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False)) <> 0
+    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)) <> 0
     
     'Act:
     TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone
@@ -115,4 +115,20 @@ TestFail:
     End If
 End Sub
 
+'@TestMethod("Uncategorized")
+Private Sub StartUnmanagedTimerRaisesNoError()
+    On Error GoTo TestFail
+    
+
+    'Act:
+    TickerAPI.StartUnmanagedTimer AddressOf QuietNoOpCallback, False, INFINITE_DELAY
+    
+    'Assert:
+    Assert.Succeed
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
 

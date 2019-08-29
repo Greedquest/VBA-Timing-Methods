@@ -60,7 +60,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
         
     On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
-    tryCreateTimer windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID
+    newTimerID = createTimer(windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis)
     StartUnmanagedTimer = newTimerID
     
     On Error GoTo scheduleProcFail
@@ -99,7 +99,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
         
     On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
-    tryCreateTimer windowHandle, ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, newTimerID
+    newTimerID = createTimer(windowHandle, ManagedCallbackWrapper.Create(timerFunction, data), delayMillis)
     StartManagedTimer = newTimerID
     
     On Error GoTo scheduleProcFail
@@ -227,8 +227,7 @@ Private Function scheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As Lo
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
-Private Function tryCreateTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
-Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes an object to use as key, "
+Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long) As LongPtr
     Const loggerSourceName As String = "createTimer"
     
     On Error GoTo castWrapperFail
@@ -252,11 +251,12 @@ Attribute tryCreateTimer.VB_Description = "Creates a timer with specified delay 
         Err.Raise 5, Description:="timerID does not have expected value"
         
     Else
-        Set this.timerIDs.Item(outTimerID) = key 'store copy of key object so it doesn't go out of scope
+        'store copy of key object so it doesn't go out of scope
+        Set this.timerIDs.Item(newTimerID) = key
         
     End If
     
-cleanExit:
+    createTimer = newTimerID
     Exit Function
     
 castWrapperFail:
@@ -397,13 +397,7 @@ End Sub
 
 'For Testing
 Friend Property Get messageWindowHandle() As LongPtr
-    messageWindowHandle = this.messageWindow.handle
-'    Dim messageWindow As ModelessMessageWindow
-'    If tryGetMessageWindow(messageWindow) Then
-'        messageWindowHandle = messageWindow.handle
-'    Else
-'        messageWindowHandle = 0
-'    End If
+    messageWindowHandle = getHandle
 End Property
 
 Friend Sub makeBadness()
