@@ -132,4 +132,23 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+'@TestMethod("UnmanagedTimerExperiments")
+Private Sub PassingDataSucceeds()                        'TODO Rename test
+    On Error GoTo TestFail
+    
+    'Arrange:
+    Dim someData As String
+    someData = "blah"
+    
+    
+    'Act:
+
+    'Assert:
+    Assert.Succeed
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
 

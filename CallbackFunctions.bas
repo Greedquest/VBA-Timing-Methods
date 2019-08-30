@@ -1,6 +1,6 @@
 Attribute VB_Name = "CallbackFunctions"
 Option Explicit
-'@Folder("Tests.Callbacks")
+'@Folder("Tests.Experiments.Callbacks")
 '@IgnoreModule ParameterNotUsed, ProcedureCanBeWrittenAsFunction
 
 'Public Type TCallbackSettings
@@ -14,7 +14,7 @@ Public Sub SafeCallbackProc(ByVal windowHandle As LongPtr, ByVal message As Wind
     
     Dim expectedData As String
     On Error Resume Next
-    expectedData = CStr(callbackParams.storedData)
+    expectedData = CStr(callbackParams.userData)
     On Error GoTo 0
     
     Debug.Print "Callback called " & time & " Data: '" & expectedData & "'"
@@ -65,7 +65,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     'Get & Log info
     Dim expectedData As String
     On Error Resume Next
-    expectedData = CStr(callbackParams.storedData) 'catch error in case of bad data
+    expectedData = CStr(callbackParams.userData) 'catch error in case of bad data
     On Error GoTo 0
     
     Debug.Print Toolbox.Strings.Format("Ticking - {0} ({3}-id:{1})\tData:'{4}'\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, callbackParams.debugName, expectedData)

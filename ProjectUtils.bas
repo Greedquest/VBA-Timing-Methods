@@ -37,6 +37,16 @@ Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal mess
 End Sub
 
 Sub t()
-Debug.Print WinAPI.killTimer(Application.hWnd, 11)
-throwDllError Err.LastDllError
+    Dim i As Long
+    For i = 1 To 10000
+        On Error Resume Next
+        Err.Raise i
+        If Err.Description <> "Application-defined or object-defined error" Then Debug.Print i, Err.Description
+    Next i
+    
+    For i = 1 To 10000
+        On Error Resume Next
+        Err.Raise vbObjectError + i
+        If Err.Description <> "Automation error" Then Debug.Print i, Replace(Replace(Err.Description, vbCrLf, vbNullString), vbLf, ": ")
+    Next i
 End Sub

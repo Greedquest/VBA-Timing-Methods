@@ -48,8 +48,8 @@ Public Sub storeData(ByVal data As Variant)
     LetSet this.data, data
 End Sub
 
-Public Property Get storedData() As Variant
-    LetSet storedData, this.data
+Public Property Get userData() As Variant
+    LetSet userData, this.data
 End Property
 
 Friend Property Let Callback(ByVal value As LongPtr)

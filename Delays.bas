@@ -1,8 +1,8 @@
 Attribute VB_Name = "Delays"
 '@Folder("Tests.Utils")
 Option Explicit
-Private Const defaultTimerDelay As Long = 1000
-Private Const MillisToSeconds As Double = 1 / 1000
+Public Const defaultTimerDelay As Long = 1000
+Public Const MillisToSeconds As Double = 1 / 1000
 Private Const defaultID As Long = 100
 
 Public Sub doEventsDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
