@@ -61,7 +61,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
         
     On Error GoTo createTimerFail
     Dim newTimerID As LongPtr
-    newTimerID = createTimer(windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis)
+    newTimerID = createTimer(windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, timerFunction)
     StartUnmanagedTimer = newTimerID
     
     On Error GoTo scheduleProcFail
@@ -258,22 +258,34 @@ catchError:
 End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
-Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long) As LongPtr
+Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long, Optional ByVal timerProc As LongPtr = 0) As LongPtr
     Const loggerSourceName As String = "createTimer"
     
-    On Error GoTo castWrapperFail
-    'pass key as object since it's easy to downcast to ICallbackWrapper interface, but hard to up cast from ICallbackWrapper to every possible implementation
-    Dim wrapper As ICallbackWrapper
-    Set wrapper = key
-    'key is either the TickerParams or the TimerProcWrapper so could upcast each
+'    On Error GoTo castWrapperFail
+'    'pass key as object since it's easy to downcast to ICallbackWrapper interface, but hard to up cast from ICallbackWrapper to every possible implementation
+'    Dim wrapper As ICallbackWrapper
+'    Set wrapper = key
+'    'key is either the TickerParams or the TimerProcWrapper so could upcast each
+'
+'    'Create timer with ID of the key object; guaranteed to be unique
+'    'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
+'
+
+    'Just bubble type mismatch errors as there's no cleanup to do
+    If timerProc = 0 Then
+        If TypeOf key Is ManagedCallbackWrapper Then
+            'managed timers use the default TIMERPROC
+            timerProc = VBA.CLngPtr(AddressOf ManagedTimerCallbackInvoker)
+        Else
+            'all others should specify one (i.e it shouldn't be zero)
+            Err.Raise 5, Description:="Only managed timers may set timerProc to zero"
+        End If
+    End If
     
-    'Create timer with ID of the key object; guaranteed to be unique
-    'passing 0 as timerFunction will result in message posted to messageWindow - managed timer
-    
-    On Error GoTo setTimerFail
+    On Error GoTo setTimerFail 'Custom handler so we can log precise dll errors and condense error messages + clear up any timer which may have been made
     
     Dim newTimerID As LongPtr
-    newTimerID = WinAPI.SetTimer(windowHandle, ObjPtr(key), delayMillis, IIf(wrapper.CallbackType = cbRawPointer, wrapper.Callback, 0))
+    newTimerID = WinAPI.SetTimer(windowHandle, ObjPtr(key), delayMillis, timerProc)
     
     If newTimerID = 0 Then
         throwDllError Err.LastDllError
@@ -290,10 +302,10 @@ Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object,
     createTimer = newTimerID
     Exit Function
     
-castWrapperFail:
-    logError "castWrapper", Err.Number, Err.Description
-    raiseInternalError CastKeyToWrapperError, loggerSourceName
-    Resume 'for debugging - break above and jump to the error-raising statement
+'castWrapperFail:
+'    logError "castWrapper", Err.Number, Err.Description
+'    raiseInternalError CastKeyToWrapperError, loggerSourceName
+'    Resume 'for debugging - break above and jump to the error-raising statement
 
 setTimerFail:
     logError "WinAPI.SetTimer", Err.Number, Err.Description

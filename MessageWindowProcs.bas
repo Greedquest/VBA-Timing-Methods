@@ -47,6 +47,10 @@ Public Function ManagedTimerMessageWindowSubclassProc(ByVal hWnd As LongPtr, ByV
     End Select
 End Function
 
+Public Sub ManagedTimerCallbackInvoker(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerParams As ManagedCallbackWrapper, ByVal tickCount As Long)
+    'do stuff
+End Sub
+
 'TODO this should't be here
 Private Function runTimerCallback(ByVal timerID As LongPtr) As LongPtr
 
