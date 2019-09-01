@@ -28,3 +28,17 @@ Public Sub testInterwovenTicking()
     TickerAPI.StartUnmanagedTimer AddressOf terminatingIndexedTickingProc, True, 1000, data:="Suzie"
 End Sub
 
+Public Sub testStopButton()
+    TickerAPI.StartUnmanagedTimer AddressOf SafeCallbackProc, True, data:="User data!!"
+    Debug.Print "Doing events"
+    Dim endTime As Single: endTime = timer + 1
+    Do While timer < endTime
+        DoEvents
+    Loop
+    Debug.Print "Stopping", VBA.CLngPtr(AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc)
+    End
+End Sub
+
+Sub t()
+
+End Sub

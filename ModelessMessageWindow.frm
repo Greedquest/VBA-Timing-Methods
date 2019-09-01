@@ -44,7 +44,7 @@ Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByV
         If windowProc = 0 Then
             tryCreate = True
         Else
-            tryCreate = .tryAddSubclass(windowProc, data)
+            tryCreate = True '.tryAddSubclass(windowProc, data)
         End If
         Set outWindow = .Self
     End With

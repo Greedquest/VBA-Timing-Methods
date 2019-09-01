@@ -12,7 +12,7 @@ End Sub
 
 Public Function ManagedTimerMessageWindowSubclassProc(ByVal hWnd As LongPtr, ByVal uMsg As WindowsMessage, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As LongPtr
 
-    'Debug.Print "MSG #"; uMsg, activated
+    Debug.Print "MSG #"; uMsg, activated
     Select Case uMsg
     
             'NOTE this will never receive timer messages where TIMERPROC is specified,

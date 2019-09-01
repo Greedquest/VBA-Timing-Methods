@@ -151,7 +151,7 @@ Public Declare Function DefSubclassProc Lib "comctl32.dll" Alias "#413" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal uMsg As WindowsMessage, _
                         ByVal wParam As LongPtr, _
-                        ByVal lParam As LongPtr) As Long
+                        ByVal lParam As LongPtr) As LongPtr
 
 Public Declare Function SetWindowSubclass Lib "comctl32.dll" Alias "#410" ( _
                         ByVal hWnd As LongPtr, _
