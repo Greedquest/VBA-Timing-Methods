@@ -412,36 +412,36 @@ End Sub
 
 Private Function getMessageWindow() As ModelessMessageWindow
     If this.messageWindow Is Nothing Then
-        'make a new one
-        If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
-            MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
-            Set getMessageWindow = this.messageWindow
-        Else
-            raiseInternalError CreateMessageWindowError, "getMessageWindow"
-        End If
-    Else
-        Set getMessageWindow = this.messageWindow
+        Set this.messageWindow = New ModelessMessageWindow
+'        'make a new one
+'        If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
+'            MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
+'            Set getMessageWindow = this.messageWindow
+'        Else
+'            raiseInternalError CreateMessageWindowError, "getMessageWindow"
+'        End If
     End If
+    Set getMessageWindow = this.messageWindow
 End Function
 
 Private Function getHandle() As LongPtr
     getHandle = getMessageWindow.handle 'will bubble up any errors
 End Function
 
-Private Sub setupMessageWindow()
-    If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
-        MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
-    Else
-        log FatalLevel, "setupMessageWindow", "Unable to hook message window"
-    End If
-End Sub
+'Private Sub setupMessageWindow()
+'    If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
+'        MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
+'    Else
+'        log FatalLevel, "setupMessageWindow", "Unable to hook message window"
+'    End If
+'End Sub
 
 Private Sub terminateMessageWindow()
     'NOTE following an error, messageWindow is terminated but not reset
     If this.messageWindow Is Nothing Then
         log WarnLevel, "terminateMessageWindow", "Message window is not set"
     Else
-        log DebugLevel, "terminateMessageWindow", "Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
+        log DebugLevel, "terminateMessageWindow", "Destroying message window" '"Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
         Set this.messageWindow = Nothing
     End If
 End Sub

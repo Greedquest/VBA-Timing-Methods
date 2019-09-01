@@ -17,10 +17,10 @@ Attribute VB_Exposed = False
 '@Folder("FirstLevelAPI")
 Option Explicit
 
-Private Type messageWindowData
-    subClassIDs As New Dictionary '{proc:id}
-End Type
-Private this As messageWindowData
+'Private Type messageWindowData
+'    subClassIDs As New Dictionary '{proc:id}
+'End Type
+'Private this As messageWindowData
 
 #If VBA7 Then
     Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByRef outHwnd As LongPtr) As Long
@@ -38,55 +38,55 @@ Private this As messageWindowData
     End Property
 #End If
 
-Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr = 0, Optional ByVal data As LongPtr) As Boolean
-    With New ModelessMessageWindow
-        .Init
-        If windowProc = 0 Then
-            tryCreate = True
-        Else
-            tryCreate = True '.tryAddSubclass(windowProc, data)
-        End If
-        Set outWindow = .Self
-    End With
-End Function
-
-Public Property Get Self() As ModelessMessageWindow
-    Set Self = Me
-End Property
-
-Public Sub Init()
-    'Need to run this for window to be able to receive messages
-    'Me.Show
-    'Me.Hide
-End Sub
-
-Public Function tryAddSubclass(ByVal subclassProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
-        
-    Dim instanceID As Long
-    'Only let one instance of each subclassProc per windowHandle
-
-    If this.subClassIDs.Exists(subclassProc) Then
-        instanceID = this.subClassIDs(subclassProc)
-    Else
-        instanceID = this.subClassIDs.Count
-        this.subClassIDs(subclassProc) = instanceID
-    End If
-    
-    If WinAPI.SetWindowSubclass(handle, subclassProc, instanceID, data) Then
-        tryAddSubclass = True
-    End If
-End Function
-
-'@Description("Remove any registered subclasses - returns True if all removed successfully")
-Public Function tryRemoveAllSubclasses() As Boolean
-    
-    Dim timerProc As Variant
-    Dim result As Boolean
-    result = True 'if no subclasses exist the we removed them nicely
-    For Each timerProc In this.subClassIDs.Keys
-        result = result And WinAPI.RemoveWindowSubclass(handle, timerProc, this.subClassIDs(timerProc)) <> 0
-    Next timerProc
-    this.subClassIDs.RemoveAll
-    tryRemoveAllSubclasses = result
-End Function
+'Public Function tryCreate(ByRef outWindow As ModelessMessageWindow, Optional ByVal windowProc As LongPtr = 0, Optional ByVal data As LongPtr) As Boolean
+'    With New ModelessMessageWindow
+'        .Init
+'        If windowProc = 0 Then
+'            tryCreate = True
+'        Else
+'            tryCreate = True '.tryAddSubclass(windowProc, data)
+'        End If
+'        Set outWindow = .Self
+'    End With
+'End Function
+'
+'Public Property Get Self() As ModelessMessageWindow
+'    Set Self = Me
+'End Property
+'
+'Public Sub Init()
+'    'Need to run this for window to be able to receive messages
+'    'Me.Show
+'    'Me.Hide
+'End Sub
+'
+'Public Function tryAddSubclass(ByVal subclassProc As LongPtr, Optional ByVal data As LongPtr) As Boolean
+'
+'    Dim instanceID As Long
+'    'Only let one instance of each subclassProc per windowHandle
+'
+'    If this.subClassIDs.Exists(subclassProc) Then
+'        instanceID = this.subClassIDs(subclassProc)
+'    Else
+'        instanceID = this.subClassIDs.Count
+'        this.subClassIDs(subclassProc) = instanceID
+'    End If
+'
+'    If WinAPI.SetWindowSubclass(handle, subclassProc, instanceID, data) Then
+'        tryAddSubclass = True
+'    End If
+'End Function
+'
+''@Description("Remove any registered subclasses - returns True if all removed successfully")
+'Public Function tryRemoveAllSubclasses() As Boolean
+'
+'    Dim timerProc As Variant
+'    Dim result As Boolean
+'    result = True 'if no subclasses exist the we removed them nicely
+'    For Each timerProc In this.subClassIDs.Keys
+'        result = result And WinAPI.RemoveWindowSubclass(handle, timerProc, this.subClassIDs(timerProc)) <> 0
+'    Next timerProc
+'    this.subClassIDs.RemoveAll
+'    tryRemoveAllSubclasses = result
+'End Function
 
