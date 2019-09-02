@@ -15,10 +15,13 @@ Private Type testLogData
     errorLog As New Scripting.Dictionary '{callerID:[(errNum1,errInfo1), (errNum2,errInfo2),...]}
 End Type
 
-Private this As testLogData
+Public Enum loggerEventType
+    loggerErrorEvent = 2 ^ 0
+    loggerLogEvent = 2 ^ 1
+    loggerAllEvents = -1
+End Enum
 
-Public Event afterLog()
-Public Event afterError()
+Private this As testLogData
 
 Public Sub logError(ByVal callerID As LongPtr, ByVal errNum As Long, ByVal errDescription As String, Optional ByVal Source As String = "TimerProc")
     If Not this.errorLog.Exists(callerID) Then
@@ -75,3 +78,34 @@ Public Property Get callCount(Optional ByVal callerID As LongPtr = 0) As Long
         On Error GoTo 0
     End If
 End Property
+
+Public Function waitUntilTrigger(Optional ByVal callerID As LongPtr = 0, Optional ByVal maxDelayMillis As Long = defaultTimerDelay, Optional ByVal trigger As loggerEventType = loggerAllEvents) As Boolean
+    
+    Dim endTime As Single
+    endTime = timer + maxDelayMillis * MillisToSeconds
+    
+    Dim lastErrCount As Long
+    Dim lastCallCount As Long
+    
+    Dim hasBeenTriggered As Boolean
+    
+    Do While timer < endTime
+        updateCounts lastErrCount, lastCallCount, callerID
+        DoEvents
+        'see what constitutes a trigger
+        If trigger And loggerLogEvent Then
+            hasBeenTriggered = callCount(callerID) > lastCallCount Or hasBeenTriggered
+        End If
+        If trigger And loggerErrorEvent Then
+            hasBeenTriggered = errorCount(callerID) > lastErrCount Or hasBeenTriggered
+        End If
+        If hasBeenTriggered Then Exit Do
+    Loop
+    
+    waitUntilTrigger = hasBeenTriggered
+End Function
+
+Private Sub updateCounts(ByRef outErrCount As Long, ByRef outCallCount As Long, ByVal callerID As LongPtr)
+    outErrCount = errorCount(callerID)
+    outCallCount = callCount(callerID)
+End Sub

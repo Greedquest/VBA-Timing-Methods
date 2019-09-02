@@ -32,16 +32,15 @@ End Sub
 Sub t()
     clearLog
     
-    Dim runner As New scheduler
-    runner.doEventsWait this.testLog
+    Debug.Assert testLog.waitUntilTrigger = False
     Debug.Print printf("callCount: {0} errCount: {1}", this.testLog.callCount, this.testLog.errorCount)
     
     Dim timerID As LongPtr
     timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, True)
     
-    'Dim runner As New scheduler
-    runner.doEventsWait this.testLog
+    Debug.Assert testLog.waitUntilTrigger = True
     Debug.Print printf("callCount: {0} errCount: {1}", this.testLog.callCount, this.testLog.errorCount)
     
     TickerAPI.KillTimerByID timerID
 End Sub
+
