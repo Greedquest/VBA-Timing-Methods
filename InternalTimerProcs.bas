@@ -13,6 +13,6 @@ cleanExit:
     Exit Sub
     
 cleanFail:
-     logError timerParams.CallbackWrapper.CallbackName & ".Exec", Err.Number, Err.Description
+     logError timerParams.CallbackWrapper.FunctionName & ".Exec", Err.Number, Err.Description
      Resume cleanExit
 End Sub

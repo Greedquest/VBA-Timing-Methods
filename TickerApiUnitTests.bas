@@ -95,11 +95,14 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     
     'Arrange:
     'TODO infinite delay
+    Dim timerID As LongPtr
+    timerID = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
+    
     Dim killSuccess As Boolean
-    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)) <> 0
+    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, timerID) <> 0
     
     'Act:
-    TickerAPI.KillTimersByFunction AddressOf QuietNoOpCallback 'kill before it returns, but is already gone
+    TickerAPI.KillTimerByID timerID
 
 Assert:
     Assert.IsTrue killSuccess, "Direct call did not kill the api"

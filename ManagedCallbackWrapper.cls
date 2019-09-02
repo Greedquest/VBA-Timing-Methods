@@ -13,16 +13,6 @@ Option Explicit
 
 Implements ICallbackWrapper
 
-'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
-''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
-'#If VBA7 Then
-'    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-'    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-'#Else
-'    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-'    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-'#End If
-
 Private Type tManagedWrapper
     callbackFunction As ITimerProc
     data As Variant
@@ -48,14 +38,6 @@ Public Function Self() As ManagedCallbackWrapper
     Set Self = Me
 End Function
 
-Public Sub storeData(ByVal data As Variant)
-    LetSet this.data, data
-End Sub
-
-Public Property Get storedData() As Variant
-    LetSet storedData, this.data
-End Property
-
 Public Property Set Callback(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj
 End Property
@@ -64,19 +46,26 @@ Public Property Get Callback() As ITimerProc
     Set Callback = this.callbackFunction
 End Property
 
-Public Property Get CallbackWrapper() As ICallbackWrapper
-    Set CallbackWrapper = Me
+Public Sub storeData(ByVal data As Variant)
+    LetSet this.data, data
+End Sub
+
+Public Property Get storedData() As Variant
+    LetSet storedData, this.data
 End Property
 
 Public Property Get timerID() As LongPtr
     timerID = ObjPtr(Me)
 End Property
 
-Private Property Get ICallbackWrapper_CallbackID() As LongPtr
-    ICallbackWrapper_CallbackID = ObjPtr(this.callbackFunction)
+Private Property Get ICallbackWrapper_FunctionID() As LongPtr
+    ICallbackWrapper_FunctionID = ObjPtr(this.callbackFunction)
 End Property
 
-Private Property Get ICallbackWrapper_CallbackName() As String
-    ICallbackWrapper_CallbackName = TypeName(this.callbackFunction)
+Private Property Get ICallbackWrapper_FunctionName() As String
+    ICallbackWrapper_FunctionName = TypeName(this.callbackFunction)
 End Property
 
+Public Property Get CallbackWrapper() As ICallbackWrapper 'just return the interface; makes it easier to work with
+    Set CallbackWrapper = Me
+End Property

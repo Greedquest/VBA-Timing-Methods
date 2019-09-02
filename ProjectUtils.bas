@@ -5,6 +5,25 @@ Option Private Module
 
 Public Const INFINITE_DELAY As Long = &H7FFFFFFF
 
+#If VBA7 Then
+    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+#Else
+    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+#End If
+
+#If VBA7 Then
+    Public Function FromPtr(ByVal pData As LongPtr) As Object
+#Else
+    Public Function FromPtr(ByVal pData As Long) As Object
+#End If
+        Dim result As Object
+        CopyMemory result, pData, LenB(pData)
+        Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+        ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+    End Function
+
 '@Ignore ProcedureCanBeWrittenAsFunction
 Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
@@ -36,17 +55,3 @@ Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal mess
     LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
 End Sub
 
-Sub t()
-    Dim i As Long
-    For i = 1 To 10000
-        On Error Resume Next
-        Err.Raise i
-        If Err.Description <> "Application-defined or object-defined error" Then Debug.Print i, Err.Description
-    Next i
-    
-    For i = 1 To 10000
-        On Error Resume Next
-        Err.Raise vbObjectError + i
-        If Err.Description <> "Automation error" Then Debug.Print i, Replace(Replace(Err.Description, vbCrLf, vbNullString), vbLf, ": ")
-    Next i
-End Sub

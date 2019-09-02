@@ -25,6 +25,7 @@ Private this As tUnmanagedWrapper
 Private Sub Class_Initialize()
     Set this.data = Nothing
     this.callbackFunction = 0
+    'TODO allow custom name
     this.name = WinAPI.GetGUID 'something unique to the function; could be the ptr but that might be reallocated
 End Sub
 
@@ -41,6 +42,10 @@ Friend Function Self() As UnmanagedCallbackWrapper
     Set Self = Me
 End Function
 
+Friend Property Let Callback(ByVal value As LongPtr)
+    this.callbackFunction = value
+End Property
+
 Public Sub storeData(ByVal data As Variant)
     LetSet this.data, data
 End Sub
@@ -49,23 +54,19 @@ Public Property Get userData() As Variant
     LetSet userData, this.data
 End Property
 
-Friend Property Let Callback(ByVal value As LongPtr)
-    this.callbackFunction = value
-End Property
-
-Friend Static Property Get debugName() As String
-    debugName = this.name
-End Property
-
 Public Property Get timerID() As LongPtr
     timerID = ObjPtr(Me)
 End Property
 
-Private Property Get ICallbackWrapper_CallbackID() As LongPtr
-    ICallbackWrapper_CallbackID = this.callbackFunction
+Private Property Get ICallbackWrapper_FunctionID() As LongPtr
+    ICallbackWrapper_FunctionID = this.callbackFunction
 End Property
 
-Private Property Get ICallbackWrapper_CallbackName() As String
-    ICallbackWrapper_CallbackName = this.name
+Private Property Get ICallbackWrapper_FunctionName() As String
+    ICallbackWrapper_FunctionName = this.name
 End Property
 
+'for testing
+Friend Property Get debugName() As String
+    debugName = this.name
+End Property

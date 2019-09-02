@@ -11,8 +11,8 @@ Attribute VB_Exposed = True
 '@Exposed
 Option Explicit
 
-Public Property Get CallbackID() As LongPtr
+Public Property Get FunctionID() As LongPtr
 End Property
 
-Public Property Get CallbackName() As String
+Public Property Get FunctionName() As String
 End Property
