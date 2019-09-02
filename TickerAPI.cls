@@ -21,6 +21,7 @@ Public Enum TimerError
     SynchronousCallError
     TimerApiLockedError
     GetMessageWindowError
+    InvalidTimerFunctionError
     [_End]
 End Enum
 
@@ -142,6 +143,7 @@ End Function
 Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     Const loggerSourceName As String = "KillTimerByID"
+
     
     If timerExists(timerID) Then
     
@@ -175,27 +177,35 @@ End Sub
 '@Description("Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName")
 Public Sub KillTimersByFunction(ByVal timerFunction As Variant)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
-    
+        
+    On Error GoTo safeThrow
     If IsNumeric(timerFunction) Then
         If Int(timerFunction) = timerFunction Then 'not a decimal
             KillTimersByFunctionID timerFunction
         Else
-            Err.Raise 5
+            Err.Raise InvalidTimerFunctionError
         End If
     ElseIf IsObject(timerFunction) Then
         If TypeOf timerFunction Is ITimerProc Then
             KillTimersByFunctionID ObjPtr(timerFunction)
         Else
-            Err.Raise 5
+            Err.Raise InvalidTimerFunctionError
         End If
+    ElseIf TypeName(timerFunction) = "String" Then
+        KillTimersByFunctionName timerFunction
     Else
-        KillTimersByFunctionName CStr(timerFunction)
+        Err.Raise InvalidTimerFunctionError
     End If
     
-    'log InfoLevel, loggerSourceName, printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
+safeThrow:
+    raiseError Err.Number, "KillTimersByFunction"
+    Resume
+    
 End Sub
 
 Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
+
+    On Error GoTo safeThrow
     Dim timerWrapper As ICallbackWrapper
     Dim timerID As Variant
     Dim killCount As Long
@@ -206,9 +216,15 @@ Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
             killCount = killCount + 1
         End If
     Next timerID
+    Exit Sub
+    
+safeThrow:
+    raiseError Err.Number, "KillTimersByFunctionID"
+    Resume 'for debugging
 End Sub
 
 Public Sub KillTimersByFunctionName(ByVal timerFunctionName As String)
+    On Error GoTo safeThrow
     Dim timerWrapper As ICallbackWrapper
     Dim timerID As Variant
     Dim killCount As Long
@@ -219,6 +235,13 @@ Public Sub KillTimersByFunctionName(ByVal timerFunctionName As String)
             killCount = killCount + 1
         End If
     Next timerID
+    
+    Exit Sub
+    
+safeThrow:
+
+    raiseError Err.Number, "KillTimersByFunctionName"
+    Resume 'for debugging
 End Sub
 
 '@Description("Terminates message window and removes stored timer references")
@@ -376,10 +399,9 @@ Private Sub raiseError(ByVal errorCode As TimerError, Optional ByVal Source As S
             
     End Select
     
-    logError Source, errorCode, Err.Description
+    logError Source, errorCode, Err.Description 'possibly overkill
     
     Err.Raise errorCode
-
 
     
 End Sub
