@@ -68,7 +68,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     expectedData = CStr(callbackParams.userData) 'catch error in case of bad data
     On Error GoTo 0
     
-    Debug.Print Toolbox.Strings.Format("Ticking - {0} ({3}-id:{1})\tData:'{4}'\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, callbackParams.debugName, expectedData)
+    Debug.Print Toolbox.Strings.Format("Ticking - {0} (id:{1})\tData:'{3}'\t{2}", timerSet(callbackParams.timerID), callbackParams.timerID, time$, expectedData)
     
     'Terminate timers which reach the max count
     If timerSet(callbackParams.timerID) >= 10 Then
