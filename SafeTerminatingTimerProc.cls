@@ -12,8 +12,7 @@ Option Explicit
 
 Implements ITimerProc
 
-Private Function ITimerProc_Exec(ByVal timerID As LongPtr, ByVal userData As Variant) As Boolean
+Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
     Debug.Print "Callback called", time$, userData
     TickerAPI.KillTimerByID timerID
-End Function
-
+End Sub

@@ -15,13 +15,13 @@ Implements ICallbackWrapper
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
 ''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
-#If VBA7 Then
-    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-#Else
-    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-#End If
+'#If VBA7 Then
+'    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+'    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+'#Else
+'    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+'    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+'#End If
 
 Private Type tManagedWrapper
     callbackFunction As ITimerProc
@@ -30,10 +30,15 @@ End Type
 
 Private this As tManagedWrapper
 
-Friend Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data As Variant) As ManagedCallbackWrapper
+Private Sub Class_Initialize()
+    Set this.data = Nothing
+    Set this.callbackFunction = New ITimerProc
+End Sub
+
+Public Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data As Variant) As ManagedCallbackWrapper
     'NOTE only API needs to be able to create these so don't expose
     With New ManagedCallbackWrapper
-        .storeData IIf(IsMissing(data), Nothing, data)
+        .storeData data
         Set .Callback = callbackFunction
         Set Create = .Self
     End With
@@ -55,22 +60,23 @@ Public Property Set Callback(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj
 End Property
 
-Public Function FromPtr(ByVal pData As LongPtr) As ManagedCallbackWrapper
-    Dim result As Object
-    CopyMemory result, pData, LenB(pData)
-    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
-End Function
-
-Private Property Get ICallbackWrapper_Callback() As Variant
-    Set ICallbackWrapper_Callback = this.callbackFunction
+Public Property Get Callback() As ITimerProc
+    Set Callback = this.callbackFunction
 End Property
 
-Private Property Get ICallbackWrapper_CallbackType() As CallbackType
-    ICallbackWrapper_CallbackType = cbCommandObject
+Public Property Get CallbackWrapper() As ICallbackWrapper
+    Set CallbackWrapper = Me
 End Property
 
-Private Sub Class_Initialize()
-    Set this.data = Nothing
-    Set this.callbackFunction = New ITimerProc
-End Sub
+Public Property Get timerID() As LongPtr
+    timerID = ObjPtr(Me)
+End Property
+
+Private Property Get ICallbackWrapper_CallbackID() As LongPtr
+    ICallbackWrapper_CallbackID = ObjPtr(this.callbackFunction)
+End Property
+
+Private Property Get ICallbackWrapper_CallbackName() As String
+    ICallbackWrapper_CallbackName = TypeName(this.callbackFunction)
+End Property
+

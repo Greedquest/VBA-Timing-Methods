@@ -11,17 +11,8 @@ Attribute VB_Exposed = True
 '@Exposed
 Option Explicit
 
-Public Enum CallbackType
-    cbRawPointer
-    cbCommandObject
-End Enum
-
-Public Property Get Callback() As Variant
+Public Property Get CallbackID() As LongPtr
 End Property
 
-'Public Sub setCallback(ByVal value As Variant)
-'End Sub
-
-Public Property Get CallbackType() As CallbackType
+Public Property Get CallbackName() As String
 End Property
-

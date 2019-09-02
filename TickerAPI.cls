@@ -174,23 +174,32 @@ killTimerFail:
 End Sub
 
 '@Description("API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError")
-Public Sub KillTimersByFunction(ByVal timerFunction As LongPtr)
+Public Sub KillTimersByFunction(ByVal timerFunction As Variant)
 Attribute KillTimersByFunction.VB_Description = "API kills windows timers registered to a certain callback. No error is raised if none are found,failure to destroy a registered ID raises DestroyTimerError"
     Const loggerSourceName As String = "KillTimersByFunction"
-    
-    Dim timerID As Variant 'key should be timerID
-    Dim timerCount As Long
-    For Each timerID In this.timerIDs.Keys
-        If TypeOf this.timerIDs.Item(timerID) Is UnmanagedCallbackWrapper Then
-            Dim wrapper As ICallbackWrapper
-            Set wrapper = this.timerIDs.Item(timerID)
-            If wrapper.Callback = timerFunction Then
-                KillTimerByID timerID 'just bubble errors
-                timerCount = timerCount + 1
-            End If
-        End If
-    Next timerID
-    log InfoLevel, loggerSourceName, printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
+    Err.Raise 5, Description:="Not implemented"
+'
+'    Dim TimerID As Variant 'key should be timerID
+'    Dim timerCount As Long
+'    For Each TimerID In this.timerIDs.Keys
+'        If TypeOf this.timerIDs.Item(TimerID) Is UnmanagedCallbackWrapper Then
+'            Dim wrapper As ICallbackWrapper
+'            Set wrapper = this.timerIDs.Item(TimerID)
+'            If wrapper.Callback = timerFunction Then
+'                KillTimerByID TimerID 'just bubble errors
+'                timerCount = timerCount + 1
+'            End If
+'        End If
+'    Next TimerID
+'    log InfoLevel, loggerSourceName, printf("{0} timer{1} with function id {2} {3}", timerCount, IIf(timerCount = 1, vbNullString, "s"), timerFunction, IIf(timerCount = 0, "found", "destroyed"))
+End Sub
+
+Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
+    Err.Raise 5, Description:="Not implemented"
+End Sub
+
+Public Sub KillTimersByFunctionName(ByVal timerFunctionName As String)
+    Err.Raise 5, Description:="Not implemented"
 End Sub
 
 '@Description("Terminates message window and removes stored timer references")
@@ -275,7 +284,7 @@ Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object,
     If timerProc = 0 Then
         If TypeOf key Is ManagedCallbackWrapper Then
             'managed timers use the default TIMERPROC
-            timerProc = VBA.CLngPtr(AddressOf ManagedTimerCallbackInvoker)
+            timerProc = VBA.CLngPtr(AddressOf InternalTimerProcs.ManagedTimerCallbackInvoker)
         Else
             'all others should specify one (i.e it shouldn't be zero)
             Err.Raise 5, Description:="Only managed timers may set timerProc to zero"

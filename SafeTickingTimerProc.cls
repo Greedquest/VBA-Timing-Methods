@@ -12,12 +12,11 @@ Option Explicit
 
 Implements ITimerProc
 
-Private Function ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant) As Boolean
+
+Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
     Static i As Long
     i = i + 1
-    
-    ITimerProc_Exec = True
-    
+       
     Dim expectedData As String
     On Error Resume Next
     expectedData = CStr(userData) 'catch error in case of bad data
@@ -28,5 +27,4 @@ Private Function ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Varian
     If i >= 10 Then
         TickerAPI.KillTimerByID timerID
     End If
-    
-End Function
+End Sub

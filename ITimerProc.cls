@@ -15,23 +15,23 @@ Option Explicit
 
 'NOTE RtlCopyMemory would be faster (as source and dest won't overlap) but is not exposed to VBA
 ''@Description("API: Destination and Source can be byVal pointers or byRef variables, length is LenB(dataType)")
-#If VBA7 Then
-    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-#Else
-    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
-    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
-#End If
-
-Friend Function FromPtr(ByVal pData As LongPtr) As ITimerProc
-    Dim result As Object
-    CopyMemory result, pData, LenB(pData)
-    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
-End Function
+'#If VBA7 Then
+'    Private Declare PtrSafe Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+'    Private Declare PtrSafe Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+'#Else
+'    Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef Source As Any, ByVal length As Long)
+'    Private Declare Sub ZeroMemory Lib "kernel32.dll" Alias "RtlZeroMemory" (ByRef destination As Any, ByVal length As Long)
+'#End If
+'
+'Friend Function FromPtr(ByVal pData As LongPtr) As ITimerProc
+'    Dim result As Object
+'    CopyMemory result, pData, LenB(pData)
+'    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+'    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+'End Function
 
 'Interface
-Public Function Exec(ByVal timerID As LongPtr, ByVal userData As Variant) As Boolean
+Public Sub Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
     Err.Raise 5                                  'not implemented
-End Function
+End Sub
 

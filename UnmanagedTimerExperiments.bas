@@ -35,10 +35,6 @@ Public Sub testStopButton()
     Do While timer < endTime
         DoEvents
     Loop
-    Debug.Print "Stopping", VBA.CLngPtr(AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc)
+    Debug.Print "Stopping" ', VBA.CLngPtr(AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc)
     End
-End Sub
-
-Sub t()
-
 End Sub
