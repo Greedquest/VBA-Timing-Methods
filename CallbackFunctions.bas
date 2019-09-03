@@ -40,7 +40,6 @@ End Sub
 
 '@Description("Ticks with automatic termination")
 Public Sub SafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
-Attribute SafeTickingProc.VB_Description = "Ticks with automatic termination"
     Static i As Long
     Debug.Print "Ticking "; i
     i = i + 1
@@ -54,7 +53,7 @@ End Sub
 Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
 
     'Initialise dict {id:counter} with count of zero
-    Static timerSet As New Dictionary 'should persist between callbacks but not over state change
+    Static timerSet As New Dictionary            'should persist between callbacks but not over state change
    
     'Increment counter stuff
     If Not timerSet.Exists(callbackParams.timerID) Then
@@ -73,7 +72,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     'Terminate timers which reach the max count
     If timerSet(callbackParams.timerID) >= 10 Then
         On Error Resume Next
-        TickerAPI.KillTimerByID callbackParams.timerID          'stop timer
+        TickerAPI.KillTimerByID callbackParams.timerID 'stop timer
         On Error GoTo 0
         timerSet.Remove callbackParams.timerID
     End If

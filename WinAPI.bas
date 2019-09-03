@@ -8,7 +8,7 @@ Public Type tagPOINT
     Y As Long
 End Type
 
-Public Type DWORD 'same size as Long, but intellisense on members is nice
+Public Type DWORD                                'same size as Long, but intellisense on members is nice
     LoWord As Integer
     HiWord As Integer
 End Type
@@ -86,9 +86,11 @@ End Enum
 Public Enum systemErrorCodes
     ERROR_NOT_ENOUGH_QUOTA = 1816
 End Enum
+
 'Messages
 Public Declare Function GetQueueStatus Lib "user32" ( _
                         ByVal flags As QueueStatusFlag) As DWORD
+
 
 Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByRef lpMsg As tagMSG, _
@@ -97,12 +99,12 @@ Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByVal wMsgFilterMax As WindowsMessage, _
                         ByVal wRemoveMsg As PeekMessageFlag) As Long
                         
-Public Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
-                        ByRef outMessage As timerMessage, _
-                        ByVal hWnd As LongPtr, _
-                        Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
-                        Optional ByVal wMsgFilterMax As WindowsMessage = WM_TIMER, _
-                        Optional ByVal wRemoveMsg As PeekMessageFlag = PM_REMOVE) As Long
+Private Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
+                         ByRef outMessage As timerMessage, _
+                         ByVal hWnd As LongPtr, _
+                         Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
+                         Optional ByVal wMsgFilterMax As WindowsMessage = WM_TIMER, _
+                         Optional ByVal wRemoveMsg As PeekMessageFlag = PM_REMOVE) As Long
 
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal hWnd As LongPtr, _
@@ -173,7 +175,7 @@ Public Declare Function SetTimer Lib "user32" ( _
 
 Public Declare Function killTimer Lib "user32" Alias _
                         "KillTimer" (ByVal hWnd As _
-                        LongPtr, ByVal nIDEvent As LongPtr) As Long
+                                     LongPtr, ByVal nIDEvent As LongPtr) As Long
                          
 Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
                         ByVal lpPrevWndFunc As LongPtr, _
@@ -191,24 +193,24 @@ End Type
 Private Declare Function CoCreateGuid Lib "OLE32.DLL" (ByRef pGuid As GUID) As Long
 
 Public Function GetGUID() As String
-'(c) 2000 Gus Molina
+    '(c) 2000 Gus Molina
 
     Dim udtGUID As GUID
 
     If (CoCreateGuid(udtGUID) = 0) Then
 
         GetGUID = _
-            String(8 - Len(Hex$(udtGUID.Data1)), "0") & Hex$(udtGUID.Data1) & _
-            String(4 - Len(Hex$(udtGUID.Data2)), "0") & Hex$(udtGUID.Data2) & _
-            String(4 - Len(Hex$(udtGUID.Data3)), "0") & Hex$(udtGUID.Data3) & _
-            IIf((udtGUID.Data4(0) < &H10), "0", "") & Hex$(udtGUID.Data4(0)) & _
-            IIf((udtGUID.Data4(1) < &H10), "0", "") & Hex$(udtGUID.Data4(1)) & _
-            IIf((udtGUID.Data4(2) < &H10), "0", "") & Hex$(udtGUID.Data4(2)) & _
-            IIf((udtGUID.Data4(3) < &H10), "0", "") & Hex$(udtGUID.Data4(3)) & _
-            IIf((udtGUID.Data4(4) < &H10), "0", "") & Hex$(udtGUID.Data4(4)) & _
-            IIf((udtGUID.Data4(5) < &H10), "0", "") & Hex$(udtGUID.Data4(5)) & _
-            IIf((udtGUID.Data4(6) < &H10), "0", "") & Hex$(udtGUID.Data4(6)) & _
-            IIf((udtGUID.Data4(7) < &H10), "0", "") & Hex$(udtGUID.Data4(7))
+                String(8 - Len(Hex$(udtGUID.Data1)), "0") & Hex$(udtGUID.Data1) _
+                & String(4 - Len(Hex$(udtGUID.Data2)), "0") & Hex$(udtGUID.Data2) _
+                & String(4 - Len(Hex$(udtGUID.Data3)), "0") & Hex$(udtGUID.Data3) _
+                & IIf((udtGUID.Data4(0) < &H10), "0", "") & Hex$(udtGUID.Data4(0)) _
+                & IIf((udtGUID.Data4(1) < &H10), "0", "") & Hex$(udtGUID.Data4(1)) _
+                & IIf((udtGUID.Data4(2) < &H10), "0", "") & Hex$(udtGUID.Data4(2)) _
+                & IIf((udtGUID.Data4(3) < &H10), "0", "") & Hex$(udtGUID.Data4(3)) _
+                & IIf((udtGUID.Data4(4) < &H10), "0", "") & Hex$(udtGUID.Data4(4)) _
+                & IIf((udtGUID.Data4(5) < &H10), "0", "") & Hex$(udtGUID.Data4(5)) _
+                & IIf((udtGUID.Data4(6) < &H10), "0", "") & Hex$(udtGUID.Data4(6)) _
+                & IIf((udtGUID.Data4(7) < &H10), "0", "") & Hex$(udtGUID.Data4(7))
     End If
 
 End Function
@@ -233,5 +235,3 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
-
-

@@ -17,4 +17,3 @@ Option Explicit
 Public Sub Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
     Err.Raise 5                                  'not implemented
 End Sub
-

@@ -35,4 +35,3 @@ End Sub
 Private Sub ticker2_Tick()
     Application.Speech.Speak "Chaa", True
 End Sub
-

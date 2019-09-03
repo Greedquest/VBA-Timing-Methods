@@ -13,5 +13,5 @@ Option Explicit
 Implements ITimerProc
 
 Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
-    Err.Raise 5 'Debug.Print "Hey there matey"
+    Err.Raise 5                                  'Debug.Print "Hey there matey"
 End Sub

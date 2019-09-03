@@ -6,7 +6,7 @@ Option Private Module
 '@IgnoreModule UseMeaningfulName, ProcedureNotUsed, LineLabelNotUsed
 '@Folder("Tests")
                          
-Private tempIDs As Collection 'holds ids of all timers so they can be killed manually
+Private tempIDs As Collection                    'holds ids of all timers so they can be killed manually
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -28,7 +28,7 @@ Private Sub ModuleCleanup()
     For Each id In tempIDs
         WinAPI.killTimer TickerAPI.messageWindowHandle, id
     Next id
-    Set TickerAPI = New TickerAPI 'the authentic way of killing stuff is just to reset the API
+    Set TickerAPI = New TickerAPI                'the authentic way of killing stuff is just to reset the API
 End Sub
 
 '@TestInitialize
@@ -135,8 +135,9 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
 '@TestMethod("UnmanagedTimerExperiments")
-Private Sub PassingDataSucceeds()                        'TODO Rename test
+Private Sub PassingDataSucceeds()                'TODO Rename test
     On Error GoTo TestFail
     
     'Arrange:
@@ -154,4 +155,3 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
-

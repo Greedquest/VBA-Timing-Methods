@@ -85,4 +85,3 @@ End Property
 Private Sub IMetronomeControls_Tick()
     RaiseEvent Tick
 End Sub
-

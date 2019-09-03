@@ -11,8 +11,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Type testLogData
-    callLog As New Scripting.Dictionary '{callerID:[data1,data2...]}
-    errorLog As New Scripting.Dictionary '{callerID:[(errNum1,errInfo1), (errNum2,errInfo2),...]}
+    callLog As New Scripting.Dictionary          '{callerID:[data1,data2...]}
+    errorLog As New Scripting.Dictionary         '{callerID:[(errNum1,errInfo1), (errNum2,errInfo2),...]}
 End Type
 
 Public Enum loggerEventType
@@ -51,7 +51,7 @@ End Property
 
 Public Property Get errorCount(Optional ByVal callerID As LongPtr = 0) As Long
     Dim errCount As Long
-    If callerID = 0 Then 'total
+    If callerID = 0 Then                         'total
         Dim errorSet As Variant
         For Each errorSet In this.errorLog.Items
             errCount = errCount + errorSet.Count
@@ -65,7 +65,7 @@ Public Property Get errorCount(Optional ByVal callerID As LongPtr = 0) As Long
 End Property
 
 Public Property Get callCount(Optional ByVal callerID As LongPtr = 0) As Long
-    If callerID = 0 Then 'total
+    If callerID = 0 Then                         'total
         Dim runningTot As Long
         Dim callSet As Variant
         For Each callSet In this.callLog.Items

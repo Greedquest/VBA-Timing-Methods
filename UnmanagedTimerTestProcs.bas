@@ -43,4 +43,3 @@ Sub t()
     
     TickerAPI.KillTimerByID timerID
 End Sub
-

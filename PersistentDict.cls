@@ -31,4 +31,3 @@ End Sub
 Public Property Get data() As Scripting.Dictionary
     Set data = dict
 End Property
-

@@ -19,7 +19,7 @@ Public Function tryPeekMessgageDelay(outMsg As WinAPI.timerMessage, Optional ByV
     Do While timer < endTime
         If PeekTimerMessage(outMsg, TickerAPI.messageWindowHandle, WM_TIMER, WM_TIMER, flags) <> 0 Then
             'Debug.Print printf("lParam: {0}, wParam: {1}", outMsg.lParam, outMsg.wParam)
-            If outMsg.timerID = timerID Then      ' Or outMsg.lParam = 0 Then
+            If outMsg.timerID = timerID Then     ' Or outMsg.lParam = 0 Then
                 tryPeekMessgageDelay = True
                 Exit Do
             End If

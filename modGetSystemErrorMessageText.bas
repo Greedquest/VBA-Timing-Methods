@@ -37,8 +37,6 @@ Private Declare Function FormatMessage Lib "kernel32" _
                          ByVal lpBuffer As String, _
                          ByVal nSize As Long, _
                          ByRef Arguments As Long) As Long
-                         
-
 
 Public Function GetSystemErrorMessageText(ByVal ErrorNumber As Long) As String
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -126,5 +124,3 @@ Public Function GetSystemErrorMessageText(ByVal ErrorNumber As Long) As String
     GetSystemErrorMessageText = ErrorText
 
 End Function
-
-

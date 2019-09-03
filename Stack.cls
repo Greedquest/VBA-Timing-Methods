@@ -34,4 +34,3 @@ End Function
 Public Property Get Count() As Long
     Count = col.Count
 End Property
-

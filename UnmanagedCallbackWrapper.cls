@@ -26,7 +26,7 @@ Private Sub Class_Initialize()
     Set this.data = Nothing
     this.callbackFunction = 0
     'TODO allow custom name
-    this.name = WinAPI.GetGUID 'something unique to the function; could be the ptr but that might be reallocated
+    this.name = WinAPI.GetGUID                   'something unique to the function; could be the ptr but that might be reallocated
 End Sub
 
 Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As UnmanagedCallbackWrapper
