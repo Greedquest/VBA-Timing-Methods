@@ -28,18 +28,3 @@ End Property
 Public Sub clearLog()
     Set this.testLog = Nothing
 End Sub
-
-Sub t()
-    clearLog
-    
-    Debug.Assert testLog.waitUntilTrigger = False
-    Debug.Print printf("callCount: {0} errCount: {1}", this.testLog.callCount, this.testLog.errorCount)
-    
-    Dim timerID As LongPtr
-    timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, True)
-    
-    Debug.Assert testLog.waitUntilTrigger = True
-    Debug.Print printf("callCount: {0} errCount: {1}", this.testLog.callCount, this.testLog.errorCount)
-    
-    TickerAPI.KillTimerByID timerID
-End Sub

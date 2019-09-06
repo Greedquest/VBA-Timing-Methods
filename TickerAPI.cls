@@ -19,7 +19,7 @@ Public Enum TimerError
     DestroyTimerError
     TimerNotFoundError
     SynchronousCallError
-    TimerApiLockedError
+    'TimerApiLockedError
     GetMessageWindowError
     InvalidTimerFunctionError
     [_End]
@@ -53,6 +53,7 @@ Private this As tCallback
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
+Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
     
     On Error GoTo getHandleFail
@@ -140,6 +141,7 @@ End Function
 
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")
 Public Sub KillTimerByID(ByVal timerID As LongPtr)
+Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     Const loggerSourceName As String = "KillTimerByID"
     
     If timerExists(timerID) Then
@@ -173,6 +175,7 @@ End Sub
 
 '@Description("Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName")
 Public Sub KillTimersByFunction(ByVal timerFunction As Variant)
+Attribute KillTimersByFunction.VB_Description = "Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName"
         
     On Error GoTo safeThrow
     If IsNumeric(timerFunction) Then
@@ -193,6 +196,8 @@ Public Sub KillTimersByFunction(ByVal timerFunction As Variant)
         Err.Raise InvalidTimerFunctionError
     End If
     
+    Exit Sub
+    
 safeThrow:
     raisePublicError Err.Number, "KillTimersByFunction"
     Resume
@@ -212,6 +217,7 @@ Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
             killCount = killCount + 1
         End If
     Next timerID
+    
     Exit Sub
     
 safeThrow:
@@ -242,6 +248,7 @@ End Sub
 
 '@Description("Terminates message window and removes stored timer references")
 Private Sub killAllTimers()
+Attribute killAllTimers.VB_Description = "Terminates message window and removes stored timer references"
     Const loggerSourceName As String = "killAllTimers"
     
     'NOTE this procedure is called when raising errors so must not raise any itself
@@ -283,6 +290,7 @@ End Property
 
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
 Private Function tryScheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr, ByVal timerProc As LongPtr) As Boolean
+Attribute tryScheduleProc.VB_Description = "Posts a fake message to the message queue - timerProc should be 0 for managed timers"
     Const loggerSourceName As String = "tryScheduleProc"
     
     On Error GoTo catchError
@@ -311,6 +319,7 @@ End Function
 
 '@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
 Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long, ByVal timerProc As LongPtr) As LongPtr
+Attribute createTimer.VB_Description = "Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key"
     Const loggerSourceName As String = "createTimer"
    
     On Error GoTo setTimerFail                   'Custom handler so we can log precise dll errors and condense error messages + clear up any timer which may have been made

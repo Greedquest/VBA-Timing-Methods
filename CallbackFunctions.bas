@@ -40,6 +40,7 @@ End Sub
 
 '@Description("Ticks with automatic termination")
 Public Sub SafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+Attribute SafeTickingProc.VB_Description = "Ticks with automatic termination"
     Static i As Long
     Debug.Print "Ticking "; i
     i = i + 1

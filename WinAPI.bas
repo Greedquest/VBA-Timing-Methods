@@ -2,14 +2,19 @@ Attribute VB_Name = "WinAPI"
 '@Folder("WinAPI")
 Option Explicit
 Option Private Module
+'@IgnoreModule HungarianNotation; For consistency with the docs
 
 Public Type tagPOINT
     X As Long
     Y As Long
 End Type
 
-Public Type DWORD                                'same size as Long, but intellisense on members is nice
+
+Public Type DWORD 'same size as Long, but intellisense on members is nice
+    'REVIEW this is correct isn't it?
+    '@Ignore IntegerDataType
     LoWord As Integer
+    '@Ignore IntegerDataType
     HiWord As Integer
 End Type
 
@@ -99,7 +104,7 @@ Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByVal wMsgFilterMax As WindowsMessage, _
                         ByVal wRemoveMsg As PeekMessageFlag) As Long
                         
-Private Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
+Public Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
                          ByRef outMessage As timerMessage, _
                          ByVal hWnd As LongPtr, _
                          Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
@@ -174,8 +179,7 @@ Public Declare Function SetTimer Lib "user32" ( _
                         ByVal lpTimerFunc As LongPtr) As LongPtr
 
 Public Declare Function killTimer Lib "user32" Alias _
-                        "KillTimer" (ByVal hWnd As _
-                                     LongPtr, ByVal nIDEvent As LongPtr) As Long
+                        "KillTimer" (ByVal hWnd As LongPtr, ByVal nIDEvent As LongPtr) As Long
                          
 Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" ( _
                         ByVal lpPrevWndFunc As LongPtr, _
@@ -192,6 +196,7 @@ End Type
 
 Private Declare Function CoCreateGuid Lib "OLE32.DLL" (ByRef pGuid As GUID) As Long
 
+'@IgnoreModule EmptyStringLiteral
 Public Function GetGUID() As String
     '(c) 2000 Gus Molina
 
@@ -235,3 +240,6 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
+
+
+

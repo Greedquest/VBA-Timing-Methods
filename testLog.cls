@@ -79,7 +79,9 @@ Public Property Get callCount(Optional ByVal callerID As LongPtr = 0) As Long
     End If
 End Property
 
-Public Function waitUntilTrigger(Optional ByVal callerID As LongPtr = 0, Optional ByVal maxDelayMillis As Long = defaultTimerDelay, Optional ByVal trigger As loggerEventType = loggerAllEvents) As Boolean
+'@Description("Waits until next instance of the events given by trigger, up to a maximum delay. Returns False if never triggered")
+Public Function waitUntilTrigger(Optional ByVal maxDelayMillis As Long = defaultTimerDelay, Optional ByVal callerID As LongPtr = 0, Optional ByVal trigger As loggerEventType = loggerAllEvents) As Boolean
+Attribute waitUntilTrigger.VB_Description = "Waits until next instance of the events given by trigger, up to a maximum delay. Returns False if never triggered"
     
     Dim endTime As Single
     endTime = timer + maxDelayMillis * MillisToSeconds

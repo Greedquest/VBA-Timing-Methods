@@ -7,6 +7,7 @@ Option Private Module
 '@Folder("Tests")
                          
 Private tempIDs As Collection                    'holds ids of all timers so they can be killed manually
+Private log As testLog
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -17,11 +18,13 @@ Private Sub ModuleInitialize()
     Set Assert = New Rubberduck.PermissiveAssertClass
     Set Fakes = New Rubberduck.FakesProvider
     Set tempIDs = New Collection
+
 End Sub
 
 '@ModuleCleanup
 Private Sub ModuleCleanup()
     'this method runs once per module.
+    Debug.Print String(50, "-")
     Set Assert = Nothing
     Set Fakes = Nothing
     Dim id As Variant
@@ -35,6 +38,7 @@ End Sub
 Private Sub TestInitialize()
     Debug.Print String(50, "-")
     Set TickerAPI = New TickerAPI
+    UnmanagedTimerTestProcs.clearLog
 End Sub
 
 '@TestCleanup
@@ -137,18 +141,23 @@ TestFail:
 End Sub
 
 '@TestMethod("UnmanagedTimerExperiments")
-Private Sub PassingDataSucceeds()                'TODO Rename test
+Private Sub UnmanagedTimerImmediateCall()                'TODO Rename test
     On Error GoTo TestFail
     
     'Arrange:
     Dim someData As String
     someData = "blah"
     
-    
     'Act:
-
+    Dim timerID As LongPtr
+    timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, data:=someData)
+    testLog.waitUntilTrigger
+    TickerAPI.KillTimerByID timerID
+    
     'Assert:
-    Assert.Succeed
+    Assert.AreEqual CLng(1), testLog.callCount(timerID), "Wrong number of calls"
+    Assert.AreEqual CLng(0), testLog.errorCount(timerID), "Wrong number of errors"
+    Assert.AreEqual someData, testLog.callLog(timerID)(1), "Data not right"
 
 TestExit:
     Exit Sub
