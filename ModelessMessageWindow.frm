@@ -14,6 +14,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 '@Folder("FirstLevelAPI")
 '@ModuleDescription("Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it")
 Option Explicit
