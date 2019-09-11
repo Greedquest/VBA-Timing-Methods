@@ -1,5 +1,6 @@
 Attribute VB_Name = "WaitableCallback"
 '@Folder("SecondLevelAPI")
+'@IgnoreModule
 Option Explicit
 
 Public Const InfiniteTicks As Long = -1

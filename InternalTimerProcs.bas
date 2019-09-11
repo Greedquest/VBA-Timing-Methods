@@ -3,7 +3,7 @@ Attribute VB_Name = "InternalTimerProcs"
 Option Explicit
 Option Private Module
 
-Private Const killTimerOnExecError As Boolean = True      'TODO make this configurable
+Private Const killTimerOnExecError As Boolean = True      'TODO make these configurable
 Private Const terminateOnUnhandledError As Boolean = True
 
 '@Description("TIMERPROC callback for ManagedCallbacks which executes the callback function within error guards")
@@ -36,6 +36,6 @@ cleanExit:
     
 cleanFail:
     logError loggerSourceName, Err.Number, Err.Description
-    Set TickerAPI = Nothing 'kill all timers
+    If terminateOnUnhandledError Then Set TickerAPI = Nothing 'kill all timers
     Resume cleanExit
 End Sub

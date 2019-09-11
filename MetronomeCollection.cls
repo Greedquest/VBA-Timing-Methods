@@ -9,6 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 '@Exposed
 '@Folder("SecondLevelAPI")
+'@IgnoreModule
 
 Option Explicit
 '@PredeclaredId

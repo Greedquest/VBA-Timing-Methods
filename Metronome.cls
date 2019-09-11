@@ -9,6 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 '@Exposed
 '@Folder("SecondLevelAPI")
+'@IgnoreModule
 Option Explicit
 Implements IMetronomeControls
 
