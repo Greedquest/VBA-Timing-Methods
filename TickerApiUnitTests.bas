@@ -98,7 +98,6 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     On Error GoTo TestFail
     
     'Arrange:
-    'TODO infinite delay
     Dim timerID As LongPtr
     timerID = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
     
@@ -141,7 +140,7 @@ TestFail:
 End Sub
 
 '@TestMethod("UnmanagedTimerExperiments")
-Private Sub UnmanagedTimerImmediateCall()                'TODO Rename test
+Private Sub UnmanagedTimerImmediateCall()
     On Error GoTo TestFail
     
     'Arrange:

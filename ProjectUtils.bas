@@ -25,7 +25,7 @@ Set FromPtr = result                             'don't copy directly as then re
 ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
-'@Ignore ProcedureCanBeWrittenAsFunction; this should become redundant at some point once RD can understand byRef
+'@Ignore ProcedureCanBeWrittenAsFunction
 Public Sub LetSet(ByRef variable As Variant, ByVal value As Variant)
     If IsObject(value) Then
         Set variable = value

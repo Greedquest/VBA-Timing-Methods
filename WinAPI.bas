@@ -2,19 +2,14 @@ Attribute VB_Name = "WinAPI"
 '@Folder("WinAPI")
 Option Explicit
 Option Private Module
-'@IgnoreModule HungarianNotation; For consistency with the docs
 
 Public Type tagPOINT
     X As Long
     Y As Long
 End Type
 
-
-Public Type DWORD 'same size as Long, but intellisense on members is nice
-    'REVIEW this is correct isn't it?
-    '@Ignore IntegerDataType
+Public Type DWORD                                'same size as Long, but intellisense on members is nice
     LoWord As Integer
-    '@Ignore IntegerDataType
     HiWord As Integer
 End Type
 
@@ -240,6 +235,4 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
-
-
 
