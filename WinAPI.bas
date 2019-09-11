@@ -2,7 +2,8 @@ Attribute VB_Name = "WinAPI"
 '@Folder("WinAPI")
 Option Explicit
 Option Private Module
-'@IgnoreModule HungarianNotation; For consistency with the docs
+'@IgnoreModule HungarianNotation: For consistency with the docs
+
 
 Public Type tagPOINT
     X As Long
@@ -11,8 +12,7 @@ End Type
 
 
 Public Type DWORD 'same size as Long, but intellisense on members is nice
-    'REVIEW this is correct isn't it?
-    '@Ignore IntegerDataType
+    '@Ignore IntegerDataType: https://stackoverflow.com/q/57891281/6609896
     LoWord As Integer
     '@Ignore IntegerDataType
     HiWord As Integer
@@ -187,9 +187,12 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
                         Optional ByVal message As WindowsMessage = WM_NOTIFY, _
                         Optional ByVal timerID As Long = 0, _
                         Optional ByVal unused3 As Long) As LongPtr
+
 Private Type GUID
     Data1 As Long
+    '@Ignore IntegerDataType
     Data2 As Integer
+    '@Ignore IntegerDataType
     Data3 As Integer
     Data4(7) As Byte
 End Type

@@ -8,6 +8,7 @@ End Type
 
 Private this As tTestData
 
+'@Ignore ParameterNotUsed: callbacks need to have this signature regardless
 Public Sub UnmanagedTimerTestProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
     Const loggerSourceName As String = "timerProc"
     On Error GoTo cleanFail

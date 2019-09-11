@@ -12,6 +12,7 @@ Option Explicit
 
 Implements ITimerProc
 
+'@Ignore ParameterNotUsed: callbacks need to have this signature regardless
 Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
     Static i As Long
     i = i + 1

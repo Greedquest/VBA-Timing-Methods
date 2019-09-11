@@ -46,7 +46,7 @@ Private Type tCallback
     '    recursionStack As New Stack
     '    isLocked As Boolean
     maxTimerCount As Long
-    messageWindow As ModelessMessageWindow
+    messageWindow As New ModelessMessageWindow
 End Type
 
 Private this As tCallback
@@ -259,6 +259,7 @@ Attribute killAllTimers.VB_Description = "Terminates message window and removes 
     terminateMessageWindow
 
     If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
+    On Error GoTo 0
 End Sub
 
 Private Sub killTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr)
@@ -424,36 +425,22 @@ Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional B
             Err.Description = errDescription
             
     End Select
-    'logError Source, errorCode, Err.Description
-    Err.Raise errorCode
+    'NOTE only log external errors as you can't rely on external loggers
+    Err.Raise errorCode, Source
 
 End Sub
 
-Private Function getMessageWindow() As ModelessMessageWindow
-    If this.messageWindow Is Nothing Then
-        Set this.messageWindow = New ModelessMessageWindow
-        '        'make a new one
-        '        If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
-        '            MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
-        '            Set getMessageWindow = this.messageWindow
-        '        Else
-        '            raiseInternalError CreateMessageWindowError, "getMessageWindow"
-        '        End If
-    End If
-    Set getMessageWindow = this.messageWindow
-End Function
+'Private Function getMessageWindow() As ModelessMessageWindow
+'    If this.messageWindow Is Nothing Then
+'        Set this.messageWindow = New ModelessMessageWindow
+'    End If
+'    Set getMessageWindow = this.messageWindow
+'End Function
 
 Private Function getHandle() As LongPtr
-    getHandle = getMessageWindow.handle          'will bubble up any errors
+    getHandle = this.messageWindow.handle 'getMessageWindow.handle          'will bubble up any errors
 End Function
 
-'Private Sub setupMessageWindow()
-'    If ModelessMessageWindow.tryCreate(this.messageWindow, AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc) Then
-'        MessageWindowProcs.Activate 'otherwise WM_TIMER messages are ignored by the window
-'    Else
-'        log FatalLevel, "setupMessageWindow", "Unable to hook message window"
-'    End If
-'End Sub
 
 Private Sub terminateMessageWindow()
     'NOTE following an error, messageWindow is terminated but not reset
@@ -481,6 +468,6 @@ Friend Property Get messageWindowHandle() As LongPtr
     messageWindowHandle = getHandle
 End Property
 
-Friend Sub makeBadness()
-    raisePublicError 5
-End Sub
+'Friend Sub makeBadness()
+'    raisePublicError 5
+'End Sub

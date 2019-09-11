@@ -7,7 +7,6 @@ Option Private Module
 '@Folder("Tests")
                          
 Private tempIDs As Collection                    'holds ids of all timers so they can be killed manually
-Private log As testLog
 
 Private Assert As Rubberduck.PermissiveAssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -150,7 +149,32 @@ Private Sub UnmanagedTimerImmediateCall()
     
     'Act:
     Dim timerID As LongPtr
-    timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, data:=someData)
+    timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, True, data:=someData)
+    testLog.waitUntilTrigger
+    TickerAPI.KillTimerByID timerID
+    
+    'Assert:
+    Assert.AreEqual CLng(1), testLog.callCount(timerID), "Wrong number of calls"
+    Assert.AreEqual CLng(0), testLog.errorCount(timerID), "Wrong number of errors"
+    Assert.AreEqual someData, testLog.callLog(timerID)(1), "Data not right"
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("UnmanagedTimerExperiments")
+Private Sub UnmanagedTimerDelayedCall()
+    On Error GoTo TestFail
+    
+    'Arrange:
+    Dim someData As String
+    someData = "blah"
+    
+    'Act:
+    Dim timerID As LongPtr
+    timerID = TickerAPI.StartUnmanagedTimer(AddressOf UnmanagedTimerTestProc, False, data:=someData)
     testLog.waitUntilTrigger
     TickerAPI.KillTimerByID timerID
     

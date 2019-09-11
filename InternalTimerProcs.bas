@@ -7,7 +7,7 @@ Private Const killTimerOnExecError As Boolean = True      'TODO make these confi
 Private Const terminateOnUnhandledError As Boolean = True
 
 '@Description("TIMERPROC callback for ManagedCallbacks which executes the callback function within error guards")
-'@Ignore ParameterNotUsed; callbacks need to have this signature regardless
+'@Ignore ParameterNotUsed: callbacks need to have this signature regardless
 Public Sub ManagedTimerCallbackInvoker(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerParams As ManagedCallbackWrapper, ByVal tickCount As Long)
 Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for ManagedCallbacks which executes the callback function within error guards"
     Const loggerSourceName As String = "ManagedTimerCallbackInvoker"

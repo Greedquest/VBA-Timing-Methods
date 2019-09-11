@@ -14,11 +14,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Attribute VB_Description = "Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it"
 
 '@Folder("FirstLevelAPI")
 '@ModuleDescription("Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it")
 Option Explicit
 
+'See https://www.mrexcel.com/forum/excel-questions/967334-much-simpler-alternative-findwindow-api-retrieving-hwnd-userforms.html
 #If VBA7 Then
     Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByRef outHwnd As LongPtr) As Long
 #Else
