@@ -14,7 +14,7 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
     
     'NOTE could check message and ObjPtr(timerparams) to ensure this is a valid managedTimer caller
     On Error Resume Next
-    timerParams.Callback.Exec timerParams.timerID, timerParams.storedData, tickCount
+    timerParams.callBack.Exec timerParams.timerID, timerParams.storedData, tickCount
     
     Dim errNum As Long
     Dim errDescription As String
@@ -24,7 +24,7 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
     'Log any error the callback may have raised, kill it if necessary
     On Error GoTo cleanFail                      'this procedure cannot raise errors or we'll crash
     If errNum <> 0 Then
-        logError timerParams.CallbackWrapper.FunctionName & ".Exec", errNum, errDescription
+        logError timerParams.callbackWrapper.FunctionName & ".Exec", errNum, errDescription
         If killTimerOnExecError Then
             On Error GoTo cleanFail
             TickerAPI.KillTimerByID timerParams.timerID

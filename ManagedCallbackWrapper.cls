@@ -29,7 +29,7 @@ Public Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data
     'NOTE only API needs to be able to create these so don't expose
     With New ManagedCallbackWrapper
         .storeData data
-        Set .Callback = callbackFunction
+        Set .callBack = callbackFunction
         Set Create = .Self
     End With
 End Function
@@ -38,12 +38,12 @@ Public Function Self() As ManagedCallbackWrapper
     Set Self = Me
 End Function
 
-Public Property Set Callback(ByVal obj As ITimerProc)
+Public Property Set callBack(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj
 End Property
 
-Public Property Get Callback() As ITimerProc
-    Set Callback = this.callbackFunction
+Public Property Get callBack() As ITimerProc
+    Set callBack = this.callbackFunction
 End Property
 
 Public Sub storeData(ByVal data As Variant)
@@ -66,6 +66,6 @@ Private Property Get ICallbackWrapper_FunctionName() As String
     ICallbackWrapper_FunctionName = TypeName(this.callbackFunction)
 End Property
 
-Public Property Get CallbackWrapper() As ICallbackWrapper 'just return the interface; makes it easier to work with
-    Set CallbackWrapper = Me
+Public Property Get callbackWrapper() As ICallbackWrapper 'just return the interface; makes it easier to work with
+    Set callbackWrapper = Me
 End Property

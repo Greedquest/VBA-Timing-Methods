@@ -35,7 +35,7 @@ End Sub
 
 Public Sub RawSelfKillingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Debug.Print "Tick"
-    WinAPI.killTimer windowHandle, timerID
+    WinAPI.KillTimer windowHandle, timerID
 End Sub
 
 '@Description("Ticks with automatic termination")
@@ -98,6 +98,6 @@ Public Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As Wi
     
     If i >= 10 Then
         Debug.Print "Terminating"
-        WinAPI.killTimer windowHandle, timerID
+        WinAPI.KillTimer windowHandle, timerID
     End If
 End Sub

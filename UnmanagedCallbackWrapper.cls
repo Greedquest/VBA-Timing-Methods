@@ -33,7 +33,7 @@ Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As
     'NOTE only API needs to be able to create these so don't expose
     With New UnmanagedCallbackWrapper
         .storeData IIf(IsMissing(data), Nothing, data)
-        .Callback = callbackFunction
+        .callBack = callbackFunction
         Set Create = .Self
     End With
 End Function
@@ -42,7 +42,7 @@ Friend Function Self() As UnmanagedCallbackWrapper
     Set Self = Me
 End Function
 
-Friend Property Let Callback(ByVal value As LongPtr)
+Friend Property Let callBack(ByVal value As LongPtr)
     this.callbackFunction = value
 End Property
 

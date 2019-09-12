@@ -26,10 +26,10 @@ Private Sub ModuleCleanup()
     Debug.Print String(50, "-")
     Set Assert = Nothing
     Set Fakes = Nothing
-    Dim id As Variant
-    For Each id In tempIDs
-        WinAPI.killTimer TickerAPI.messageWindowHandle, id
-    Next id
+    Dim ID As Variant
+    For Each ID In tempIDs
+        WinAPI.KillTimer TickerAPI.messageWindowHandle, ID
+    Next ID
     Set TickerAPI = New TickerAPI                'the authentic way of killing stuff is just to reset the API
 End Sub
 
@@ -102,7 +102,7 @@ Private Sub KillNonExistentTimerRaisesDestroyTimerError()
     timerID = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
     
     Dim killSuccess As Boolean
-    killSuccess = WinAPI.killTimer(TickerAPI.messageWindowHandle, timerID) <> 0
+    killSuccess = WinAPI.KillTimer(TickerAPI.messageWindowHandle, timerID) <> 0
     
     'Act:
     TickerAPI.KillTimerByID timerID
@@ -127,11 +127,11 @@ Private Sub StartUnmanagedTimerRaisesNoError()
     
 
     'Act:
-    Dim id As LongPtr
-    id = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
+    Dim ID As LongPtr
+    ID = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
     
     'Assert:
-    Assert.AreNotEqual 0, id
+    Assert.AreNotEqual 0, ID
 
 TestExit:
     Exit Sub

@@ -11,17 +11,26 @@ Attribute VB_Exposed = False
 '@Interface
 Option Explicit
 
+Public Enum InternalTimerError
+    [_Start] = vbObjectError + 11 'TimerError.[_End]                 'just in case of clashes, let's offset the errors
+    CreateMessageWindowError
+    APIKillTimerError
+    CastKeyToWrapperError
+    APIStartTimerError
+    APIPostMessageError
+End Enum
+
 Public Sub KillTimer(ByVal data As TimerData)
 End Sub
 
-Public Sub StartTimer(ByVal data As TimerData)
+Public Sub StartTimer(ByVal data As TimerData, ByVal delayMillis As Long)
 End Sub
 
-Public Sub UpdateTimer(ByVal data As TimerData)
+Public Sub UpdateTimer(ByVal data As TimerData, ByVal delayMillis As Long)
 End Sub
 
-Public Sub TriggerTimer(ByVal data As TimerData)
-End Sub
+Public Function tryTriggerTimer(ByVal data As TimerData) As Boolean
+End Function
 
 Public Sub KillAllTimers(ByRef dataArray() As TimerData)
 End Sub
