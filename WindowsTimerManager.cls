@@ -23,7 +23,7 @@ Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
     On Error GoTo cleanFail
     
     '0 indicates some failure
-    If WinAPI.KillTimer(this.messageWindow.handle, data.ID) = 0 Then
+    If WinAPI.KillTimer(this.messageWindow.handle, data.id) = 0 Then
         throwDllError Err.LastDllError, "Call returned zero, probably tried to kill non-existent timer"
     End If
     
@@ -53,7 +53,7 @@ Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis 
         
     End If
     
-    data.ID = newTimerID
+    data.id = newTimerID
     Exit Sub
     
 setTimerFail:
@@ -73,7 +73,7 @@ Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boole
     
     On Error GoTo catchError
     'Post fake message to queue to act as an already elapsed timer
-    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.ID, data.timerProc) = 0 Then
+    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.id, data.timerProc) = 0 Then
         throwDllError Err.LastDllError
     Else
         ITimerManager_tryTriggerTimer = True
@@ -102,20 +102,16 @@ Private Sub ITimerManager_KillAllTimers(ByRef dataArray() As TimerData)
     On Error Resume Next
     log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", UBound(dataArray) - LBound(dataArray)) 'TODO move this elswhere
     
-    terminateMessageWindow
+    Set this.messageWindow = Nothing 'terminateMessageWindow - it's autoinstantiated so no tests
 
     If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
     On Error GoTo 0
 End Sub
 
+
 '@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
 Private Function tryScheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr, ByVal timerProc As LongPtr) As Boolean
 
-End Function
-
-'@Description("Creates a timer with specified delay and returns its ID. Takes a uniqie object which wraps data to pass to timers and also to use as a key")
-Private Function createTimer(ByVal windowHandle As LongPtr, ByVal key As Object, ByVal delayMillis As Long, ByVal timerProc As LongPtr) As LongPtr
-        
 End Function
 
 Private Sub KillTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr)

@@ -48,31 +48,29 @@ Private this As tCallback
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
-    
-    On Error GoTo getHandleFail
-    Dim windowHandle As LongPtr
-    windowHandle = getHandle
+   
+    On Error GoTo getDataFail
+    Dim timerInfo As TimerData
+    Set timerInfo = this.timerSet.Add(UnmanagedCallbackWrapper.Create(timerFunction, data))
         
     On Error GoTo createTimerFail
-    Dim newTimerID As LongPtr
-    newTimerID = createTimer(windowHandle, UnmanagedCallbackWrapper.Create(timerFunction, data), delayMillis, timerFunction)
-    StartUnmanagedTimer = newTimerID
+    this.timerManager.StartTimer timerInfo, delayMillis
+    StartUnmanagedTimer = timerInfo.id
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
-        'schedule immediate proc; requires callback for unmanaged timer
-        If Not tryScheduleProc(windowHandle, newTimerID, timerFunction) Then
+        If Not this.timerManager.tryTriggerTimer(timerInfo) Then
             'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
             'could try flushing the queue instead
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         End If
     End If
     
-    log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", newTimerID)
+    log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.id)
     Exit Function
     
-getHandleFail:
-    logError "getHandle", Err.Number, Err.Description
+getDataFail: 'TODO fix this
+    logError "getData", Err.Number, Err.Description
     raisePublicError GetMessageWindowError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
     
@@ -83,7 +81,7 @@ createTimerFail:
     
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID newTimerID                     'NOTE may raise an error
+    KillTimerByID timerInfo.id                     'NOTE may raise an error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     
@@ -92,30 +90,28 @@ End Function
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     
-    On Error GoTo getHandleFail
-    Dim windowHandle As LongPtr
-    windowHandle = getHandle
+    On Error GoTo getDataFail
+    Dim timerInfo As TimerData
+    Set timerInfo = this.timerSet.Add(ManagedCallbackWrapper.Create(timerFunction, data))
         
     On Error GoTo createTimerFail
-    Dim newTimerID As LongPtr
-    newTimerID = createTimer(windowHandle, ManagedCallbackWrapper.Create(timerFunction, data), delayMillis, AddressOf InternalTimerProcs.ManagedTimerCallbackInvoker)
-    StartManagedTimer = newTimerID
+    this.timerManager.StartTimer timerInfo, delayMillis
+    StartManagedTimer = timerInfo.id
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
-        'schedule immediate proc - No callback proc specified for managed timers
-        If Not tryScheduleProc(windowHandle, newTimerID, AddressOf InternalTimerProcs.ManagedTimerCallbackInvoker) Then
+        If Not this.timerManager.tryTriggerTimer(timerInfo) Then
             'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
             'could try flushing the queue instead
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         End If
     End If
     
-    log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", newTimerID)
+    log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", timerInfo.id)
     Exit Function
     
-getHandleFail:
-    logError "getHandle", Err.Number, Err.Description
+getDataFail: 'TODO fix this
+    logError "getData", Err.Number, Err.Description
     raisePublicError GetMessageWindowError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
     
@@ -126,7 +122,7 @@ createTimerFail:
     
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID newTimerID                     'NOTE may raise an error
+    KillTimerByID timerInfo.id                     'NOTE may raise an error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     
@@ -137,16 +133,16 @@ Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     Const loggerSourceName As String = "KillTimerByID"
     
-    If timerExists(timerID) Then
+    If this.timerSet.Exists(timerID) Then
     
-        On Error GoTo getHandleFail
-        Dim windowHandle As LongPtr
-        windowHandle = getHandle
+        On Error GoTo getDataFail
+        Dim timerInfo As TimerData
+        Set timerInfo = this.timerSet.getTimerByID(timerID)
         
         On Error GoTo killTimerFail
-        KillTimer windowHandle, timerID
+        this.timerManager.KillTimer timerInfo
             
-        log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerID)
+        log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerInfo.id)
 
     Else
         raisePublicError TimerNotFoundError, loggerSourceName
@@ -154,7 +150,7 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     
     Exit Sub
     
-getHandleFail:
+getDataFail: 'TODO fix this
     logError "getHandle", Err.Number, Err.Description
     raisePublicError GetMessageWindowError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
@@ -285,15 +281,6 @@ Public Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Source
     
 End Sub
 
-Private Sub terminateMessageWindow()
-    'NOTE following an error, messageWindow is terminated but not reset
-    If this.messageWindow Is Nothing Then
-        log WarnLevel, "terminateMessageWindow", "Message window is not set"
-    Else
-        log DebugLevel, "terminateMessageWindow", "Destroying message window" '"Removing SUBCLASSPROCs: " & IIf(this.messageWindow.tryRemoveAllSubclasses, "successful", "unsuccessful")
-        Set this.messageWindow = Nothing
-    End If
-End Sub
 
 Private Sub Class_Initialize()
     'Set up defaults
