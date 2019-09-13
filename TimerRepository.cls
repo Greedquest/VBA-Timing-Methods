@@ -18,6 +18,7 @@ Private this As repositoryData
 
 '@DefaultMember
 Public Function Item(ByVal timerID As LongPtr) As TimerData
+Attribute Item.VB_UserMemId = 0
     Set Item = this.TimerData.Item(timerID)
 End Function
 

@@ -33,13 +33,13 @@ Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
     End If
     
 cleanExit:
-    'TODO If timerExists(data.ID) Then this.timerIDs.Remove da 'remove regardless of success, since it's either gone now, or was invalid anyway
     Exit Sub
     
 cleanFail:
     logError "WinAPI.KillTimer", Err.Number, Err.Description
     raiseInternalError APIKillTimerError, "KillTimer"
     Resume cleanExit
+    
 End Sub
 
 Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis As Long)
@@ -69,8 +69,10 @@ setTimerFail:
 
 End Sub
 
+'TODO never used
 Private Sub ITimerManager_UpdateTimer(ByVal data As TimerData, ByVal delayMillis As Long)
-    Err.Raise 5 'TODO implement interface member
+    'NOTE just an alias for windows timers, maybe not for others
+    ITimerManager_StartTimer data, delayMillis
 End Sub
 
 Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boolean
@@ -113,21 +115,6 @@ Private Sub ITimerManager_KillAllTimers(ByVal dataArray As Variant)
     On Error GoTo 0
 End Sub
 
-
-'@Description("Posts a fake message to the message queue - timerProc should be 0 for managed timers")
-Private Function tryScheduleProc(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr, ByVal timerProc As LongPtr) As Boolean
-
-End Function
-
-Private Sub KillTimer(ByVal windowHandle As LongPtr, ByVal timerID As LongPtr)
-       
-End Sub
-
-'@Description("Terminates message window and removes stored timer references")
-Private Sub KillAllTimers()
-
-End Sub
-
 Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional ByVal Source As String = "raiseInternalError")
       
     Select Case errorCode
@@ -147,7 +134,7 @@ Private Sub raiseInternalError(ByVal errorCode As InternalTimerError, Optional B
             Err.Description = "Failed to manually post a message to the queue"
             
         Case Else
-            'rethrow error
+            'Rethrow error
             On Error Resume Next
             Err.Raise errorCode                  'fake raise to grab text for logging
             Dim errDescription As String

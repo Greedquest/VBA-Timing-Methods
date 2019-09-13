@@ -236,10 +236,19 @@ safeThrow:
     Resume                                       'for debugging
 End Sub
 
+Public Sub KillAll()
+    'NOTE this is called when raising errors so must not generate any itself
+    On Error Resume Next
+    this.timerManager.KillAllTimers this.timerDataRepo.ToArray
+    this.timerDataRepo.Clear
+    If Err.Number <> 0 Then logError "KillAll", Err.Number, Err.Description
+    On Error GoTo 0
+End Sub
+
 Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
 
-    log TraceLevel, "raiseError", "Destroying timers and unsubclassing window so error can be raised"
-    this.timerManager.KillAllTimers this.timerDataRepo.ToArray                                'cleanly un subclasses message window as this prevents errors being raised
+    log TraceLevel, "raiseError", "Destroying timers so error can be raised"
+    Me.KillAll
     
     Select Case errorCode
         Case TimerError.CreateTimerError
@@ -291,7 +300,3 @@ Friend Property Get messageWindowHandle()
     Set timerManager = this.timerManager
     messageWindowHandle = timerManager.messageWindowHandle
 End Property
-
-
-
-
