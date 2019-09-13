@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Type repositoryData
-    TimerData As New Scripting.Dictionary '{id:TimerData}
+    TimerData As New Scripting.Dictionary        '{id:TimerData}
 End Type
 
 Private this As repositoryData
@@ -68,4 +68,3 @@ Public Function FilterByFunctionName(ByVal funcName As String) As Collection
     Next data
     Set FilterByFunctionName = matches
 End Function
-

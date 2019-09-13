@@ -28,11 +28,14 @@ Option Explicit
 #End If
 
 #If VBA7 Then
-    Public Property Get handle() As LongPtr
-        IUnknown_GetWindow Me, handle
-    End Property
+
+Public Property Get handle() As LongPtr
+    IUnknown_GetWindow Me, handle
+End Property
+
 #Else
-    Public Property Get handle() As Long
-        IUnknown_GetWindow Me, handle
-    End Property
+Public Property Get handle() As Long
+    IUnknown_GetWindow Me, handle
+End Property
+
 #End If

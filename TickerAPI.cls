@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "API for setting up timers to callback functions, wraps Windows Timers"
 '@Exposed
 '@Folder("FirstLevelAPI")
-'@PredeclaredID
+'@PredeclaredID: To ensure it's a singleton in other projects and avoid async nulling
 '@ModuleDescription("API for setting up timers to callback functions, wraps Windows Timers")
 Option Explicit
 
@@ -26,7 +26,6 @@ Public Enum TimerError
     GenerateTimerDataError
     [_End]
 End Enum
-
 
 'Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
@@ -84,7 +83,7 @@ createTimerFail:
     
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID timerInfo.ID                     'NOTE may raise its own public error
+    KillTimerByID timerInfo.ID                   'NOTE may raise its own public error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     
@@ -125,7 +124,7 @@ createTimerFail:
     
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID timerInfo.ID                     'NOTE may raise an error
+    KillTimerByID timerInfo.ID                   'NOTE may raise an error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     

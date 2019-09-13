@@ -104,7 +104,7 @@ Private Sub ITimerManager_KillAllTimers(ByVal dataArray As Variant)
     On Error Resume Next
     log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", UBound(dataArray) - LBound(dataArray)) 'TODO move this elswhere
     
-    Set this.messageWindow = Nothing 'terminateMessageWindow - it's autoinstantiated so no tests
+    Set this.messageWindow = Nothing             'terminateMessageWindow - it's autoinstantiated so no tests
 
     If Err.Number <> 0 Then logError loggerSourceName, Err.Number, Err.Description
     On Error GoTo 0

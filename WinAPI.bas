@@ -10,8 +10,7 @@ Public Type tagPOINT
     Y As Long
 End Type
 
-
-Public Type DWORD 'same size as Long, but intellisense on members is nice
+Public Type DWORD                                'same size as Long, but intellisense on members is nice
     '@Ignore IntegerDataType: https://stackoverflow.com/q/57891281/6609896
     LoWord As Integer
     '@Ignore IntegerDataType
@@ -105,11 +104,11 @@ Public Declare Function PeekMessage Lib "user32" Alias "PeekMessageA" ( _
                         ByVal wRemoveMsg As PeekMessageFlag) As Long
                         
 Public Declare Function PeekTimerMessage Lib "user32" Alias "PeekMessageA" ( _
-                         ByRef outMessage As timerMessage, _
-                         ByVal hWnd As LongPtr, _
-                         Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
-                         Optional ByVal wMsgFilterMax As WindowsMessage = WM_TIMER, _
-                         Optional ByVal wRemoveMsg As PeekMessageFlag = PM_REMOVE) As Long
+                        ByRef outMessage As timerMessage, _
+                        ByVal hWnd As LongPtr, _
+                        Optional ByVal wMsgFilterMin As WindowsMessage = WM_TIMER, _
+                        Optional ByVal wMsgFilterMax As WindowsMessage = WM_TIMER, _
+                        Optional ByVal wRemoveMsg As PeekMessageFlag = PM_REMOVE) As Long
 
 Public Declare Function PostMessage Lib "user32" Alias "PostMessageA" ( _
                         ByVal hWnd As LongPtr, _
@@ -243,6 +242,3 @@ Public Sub PrintMessageQueue(ByVal windowHandle As LongPtr, Optional ByVal filte
         Next key
     End If
 End Sub
-
-
-

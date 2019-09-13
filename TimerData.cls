@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 '@Folder("FirstLevelAPI")
 
 Option Explicit
-'@PredeclaredId
+'@PredeclaredId: For factory method
 
 Private Type tTimerData
     callbackWrapper As Object
@@ -47,7 +47,7 @@ Public Property Set callbackWrapper(ByVal value As Object)
     Set this.callbackWrapper = value
 End Property
 
-Public Property Get ID() As LongPtr 'alias
+Public Property Get ID() As LongPtr              'alias
     ID = Me.callbackWrapperPointer
 End Property
 
@@ -58,4 +58,3 @@ End Property
 Friend Property Let timerProc(ByVal value As LongPtr)
     this.timerProc = value
 End Property
-
