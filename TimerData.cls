@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Ext_KEY = "Rubberduck" ,"Predeclared Class Module"
 '@Folder("FirstLevelAPI")
 
 Option Explicit
@@ -48,8 +47,8 @@ Public Property Set callbackWrapper(ByVal value As Object)
     Set this.callbackWrapper = value
 End Property
 
-Public Property Get id() As LongPtr 'alias
-    id = Me.callbackWrapperPointer
+Public Property Get ID() As LongPtr 'alias
+    ID = Me.callbackWrapperPointer
 End Property
 
 Public Property Get timerProc() As LongPtr

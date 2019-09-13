@@ -32,5 +32,5 @@ End Sub
 Public Function tryTriggerTimer(ByVal data As TimerData) As Boolean
 End Function
 
-Public Sub KillAllTimers(ByRef dataArray() As TimerData)
+Public Sub KillAllTimers(ByVal dataArray As Variant)
 End Sub

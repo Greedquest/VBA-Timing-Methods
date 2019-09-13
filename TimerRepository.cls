@@ -16,33 +16,55 @@ End Type
 
 Private this As repositoryData
 
-Private Property Get timerExists(ByVal key As LongPtr) As Boolean
-    On Error Resume Next                         'if there's a problem then the timerID is as good as unregistered anyway
-    timerExists = this.timerIDs.Exists(key)
-    On Error GoTo 0
-End Property
-
-Public Function getTimerByID(ByVal id As LongPtr) As TimerData
-    
+Public Function dataFromID(ByVal timerID As LongPtr) As TimerData
+    Set dataFromID = this.TimerData.Item(timerID)
 End Function
 
-Public Function getTimerArrayByFunctionID(ByVal FunctionID As LongPtr) As TimerData()
-    
+Public Function arrayFromFunctionID(ByVal funcID As LongPtr) As Collection
+    Dim matches As New Collection
+    Dim data As TimerData
+    For Each data In this.TimerData
+        If data.callbackWrapperInterface.FunctionID = funcID Then
+            matches.Add data
+        End If
+    Next data
+    Set arrayFromFunctionID = matches
 End Function
 
-Public Function getTimerArrayByFunctionName(ByVal FunctionName As String) As TimerData()
-
+Public Function arrayFromFunctionName(ByVal funcName As String) As Collection
+    Dim matches As New Collection
+    Dim data As TimerData
+    For Each data In this.TimerData
+        If data.callbackWrapperInterface.FunctionName = funcName Then
+            matches.Add data
+        End If
+    Next data
+    Set arrayFromFunctionName = matches
 End Function
 
 Public Function Add(ByVal callbackWrapper As Object) As TimerData
 'TODO log error
     Dim newData As TimerData
     Set newData = TimerData.Create(callbackWrapper)
-    this.TimerData.Add data.id, data
+    this.TimerData.Add newData.ID, newData
     Set Add = newData
     
 End Function
 
-Public Function Exists(ByVal timerID As LongPtr) As Boolean
-    Exists = this.TimerData.Exists(timerID)
+Public Sub Remove(ByVal timerID As LongPtr)
+    this.TimerData.Remove timerID
+End Sub
+
+Public Sub Clear()
+    this.TimerData.RemoveAll
+End Sub
+
+Public Function toArray() As Variant
+    toArray = this.TimerData.Items
 End Function
+
+Public Property Get Exists(ByVal timerID As LongPtr) As Boolean
+    On Error Resume Next                         'if there's a problem then the timerID is as good as unregistered anyway
+    Exists = this.TimerData.Exists(timerID)
+    On Error GoTo 0
+End Property

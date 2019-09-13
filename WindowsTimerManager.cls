@@ -14,16 +14,21 @@ Implements ITimerManager
 
 Private Type windowsTimerManagerData
     messageWindow As New ModelessMessageWindow
+    managerInterface As ITimerManager
 End Type
 
 Private this As windowsTimerManagerData
+
+Private Sub Class_Initialize()
+    Set this.managerInterface = Me
+End Sub
 
 Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
     'NOTE no need to clear messages as killing the timer invalidates any which have a TIMERPROC argument (which they all do)
     On Error GoTo cleanFail
     
     '0 indicates some failure
-    If WinAPI.KillTimer(this.messageWindow.handle, data.id) = 0 Then
+    If WinAPI.KillTimer(this.messageWindow.handle, data.ID) = 0 Then
         throwDllError Err.LastDllError, "Call returned zero, probably tried to kill non-existent timer"
     End If
     
@@ -39,8 +44,9 @@ End Sub
 
 Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis As Long)
     Const loggerSourceName As String = "StartTimer"
-   
-    On Error GoTo setTimerFail                   'Custom handler so we can log precise dll errors and condense error messages + clear up any timer which may have been made
+    
+    'Custom handler so we can log precise dll errors and condense error messages + clear up any timer which may have been made
+    On Error GoTo setTimerFail
     
     Dim newTimerID As LongPtr
     newTimerID = WinAPI.SetTimer(this.messageWindow.handle, data.callbackWrapperPointer, delayMillis, data.timerProc)
@@ -48,18 +54,17 @@ Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis 
     If newTimerID = 0 Then
         throwDllError Err.LastDllError
     
-    ElseIf newTimerID <> data.callbackWrapperPointer Then
+    ElseIf newTimerID <> data.ID Then
         Err.Raise 5, Description:="timerID does not have expected value" 'REVIEW is there a better assertion error to raise?
         
     End If
     
-    data.id = newTimerID
     Exit Sub
     
 setTimerFail:
     logError "WinAPI.SetTimer", Err.Number, Err.Description
-    KillTimer windowHandle, newTimerID
-    raiseInternalError CastKeyToWrapperError, loggerSourceName
+    this.managerInterface.KillTimer data
+    raiseInternalError APIStartTimerError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
 
 End Sub
@@ -73,7 +78,7 @@ Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boole
     
     On Error GoTo catchError
     'Post fake message to queue to act as an already elapsed timer
-    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.id, data.timerProc) = 0 Then
+    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.ID, data.timerProc) = 0 Then
         throwDllError Err.LastDllError
     Else
         ITimerManager_tryTriggerTimer = True
@@ -95,7 +100,7 @@ catchError:
     End If
 End Function
 
-Private Sub ITimerManager_KillAllTimers(ByRef dataArray() As TimerData)
+Private Sub ITimerManager_KillAllTimers(ByVal dataArray As Variant)
     Const loggerSourceName As String = "KillAllTimers"
     
     'NOTE this procedure is called when raising errors so must not raise any itself

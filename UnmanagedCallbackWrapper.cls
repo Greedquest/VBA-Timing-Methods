@@ -17,7 +17,7 @@ Implements ICallbackWrapper
 Private Type tUnmanagedWrapper
     callbackFunction As LongPtr
     data As Variant
-    name As String
+    Name As String
 End Type
 
 Private this As tUnmanagedWrapper
@@ -26,7 +26,7 @@ Private Sub Class_Initialize()
     Set this.data = Nothing
     this.callbackFunction = 0
     'TODO allow custom name
-    this.name = WinAPI.GetGUID                   'something unique to the function; could be the ptr but that might be reallocated
+    this.Name = WinAPI.GetGUID                   'something unique to the function; could be the ptr but that might be reallocated
 End Sub
 
 Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As Variant) As UnmanagedCallbackWrapper
@@ -63,10 +63,10 @@ Private Property Get ICallbackWrapper_FunctionID() As LongPtr
 End Property
 
 Private Property Get ICallbackWrapper_FunctionName() As String
-    ICallbackWrapper_FunctionName = this.name
+    ICallbackWrapper_FunctionName = this.Name
 End Property
 
 'for testing
 Friend Property Get debugName() As String
-    debugName = this.name
+    debugName = this.Name
 End Property

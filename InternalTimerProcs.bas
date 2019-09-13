@@ -14,7 +14,7 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
     
     'NOTE could check message and ObjPtr(timerparams) to ensure this is a valid managedTimer caller
     On Error Resume Next
-    timerParams.callBack.Exec timerParams.timerID, timerParams.storedData, tickCount
+    timerParams.callBack.Exec timerParams.timerID, timerParams.userData, tickCount
     
     Dim errNum As Long
     Dim errDescription As String
