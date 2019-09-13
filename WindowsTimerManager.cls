@@ -14,14 +14,9 @@ Implements ITimerManager
 
 Private Type windowsTimerManagerData
     messageWindow As New ModelessMessageWindow
-    managerInterface As ITimerManager
 End Type
 
 Private this As windowsTimerManagerData
-
-Private Sub Class_Initialize()
-    Set this.managerInterface = Me
-End Sub
 
 Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
     'NOTE no need to clear messages as killing the timer invalidates any which have a TIMERPROC argument (which they all do)
@@ -63,7 +58,7 @@ Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis 
     
 setTimerFail:
     logError "WinAPI.SetTimer", Err.Number, Err.Description
-    this.managerInterface.KillTimer data
+    ITimerManager_KillTimer data
     raiseInternalError APIStartTimerError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
 
