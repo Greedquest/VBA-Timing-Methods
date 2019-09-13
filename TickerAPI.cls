@@ -15,6 +15,7 @@ Attribute VB_Description = "API for setting up timers to callback functions, wra
 Option Explicit
 
 Public Enum TimerError
+    [_Start]
     CreateTimerError = vbObjectError + 1
     DestroyTimerError
     TimerNotFoundError
@@ -22,6 +23,7 @@ Public Enum TimerError
     'TimerApiLockedError
     GetMessageWindowError
     InvalidTimerFunctionError
+    GenerateTimerDataError
     [_End]
 End Enum
 
@@ -32,26 +34,27 @@ Private Const Default_Max_Timer_Count As Long = 100
 
 
 Private Type tCallback
-    
-    'timerIDs As New Scripting.Dictionary         '{timerID: keyObj}
-    'functionSet As New Dictionary
-    '    recursionStack As New Stack
-    '    isLocked As Boolean
     maxTimerCount As Long
     timerManager As ITimerManager
-    timerSet As New TimerRepository
+    timerDataRepo As New TimerRepository
 End Type
 
 Private this As tCallback
+
+Private Sub Class_Initialize()
+    'Set up defaults
+    this.maxTimerCount = Default_Max_Timer_Count
+    Set this.timerManager = New WindowsTimerManager
+End Sub
 
 '@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
    
-    On Error GoTo getDataFail
+    On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = this.timerSet.Add(UnmanagedCallbackWrapper.Create(timerFunction, data))
+    Set timerInfo = this.timerDataRepo.Add(UnmanagedCallbackWrapper.Create(timerFunction, data))
         
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
@@ -69,9 +72,9 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.ID)
     Exit Function
     
-getDataFail: 'TODO fix this
-    logError "getData", Err.Number, Err.Description
-    raisePublicError GetMessageWindowError, loggerSourceName
+generateTimerDataFail:
+    logError "timerSet.Add", Err.Number, Err.Description
+    raisePublicError GenerateTimerDataError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
     
 createTimerFail:
@@ -81,7 +84,7 @@ createTimerFail:
     
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID timerInfo.ID                     'NOTE may raise an error
+    KillTimerByID timerInfo.ID                     'NOTE may raise its own public error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     
@@ -90,9 +93,9 @@ End Function
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     
-    On Error GoTo getDataFail
+    On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = this.timerSet.Add(ManagedCallbackWrapper.Create(timerFunction, data))
+    Set timerInfo = this.timerDataRepo.Add(ManagedCallbackWrapper.Create(timerFunction, data))
         
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
@@ -110,9 +113,9 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", timerInfo.ID)
     Exit Function
     
-getDataFail: 'TODO fix this
-    logError "getData", Err.Number, Err.Description
-    raisePublicError GetMessageWindowError, loggerSourceName
+generateTimerDataFail:
+    logError "timerSet.Add", Err.Number, Err.Description
+    raisePublicError GenerateTimerDataError, loggerSourceName
     Resume                                       'for debugging - break above and jump to the error-raising statement
     
 createTimerFail:
@@ -133,14 +136,14 @@ Public Sub KillTimerByID(ByVal timerID As LongPtr)
 Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError"
     Const loggerSourceName As String = "KillTimerByID"
     
-    If this.timerSet.Exists(timerID) Then
-    
-        On Error GoTo getDataFail
-        Dim timerInfo As TimerData
-        Set timerInfo = this.timerSet.dataFromID(timerID)
-        
+    If this.timerDataRepo.Exists(timerID) Then
+          
         On Error GoTo killTimerFail
+        Dim timerInfo As TimerData
+        Set timerInfo = this.timerDataRepo.Item(timerID)
+        
         this.timerManager.KillTimer timerInfo
+        this.timerDataRepo.Remove timerInfo
             
         log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerInfo.ID)
 
@@ -150,11 +153,6 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     
     Exit Sub
     
-getDataFail: 'TODO fix this
-    logError "getHandle", Err.Number, Err.Description
-    raisePublicError GetMessageWindowError, loggerSourceName
-    Resume                                       'for debugging - break above and jump to the error-raising statement
-
 killTimerFail:
     logError "killTimer", Err.Number, Err.Description
     raisePublicError DestroyTimerError, loggerSourceName
@@ -165,30 +163,43 @@ End Sub
 '@Description("Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName")
 Public Sub KillTimersByFunction(ByVal timerFunction As Variant)
 Attribute KillTimersByFunction.VB_Description = "Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName"
-        
+    Const errorSourceName As String = "KillTimersByFunction"
+    
+    'REVIEW slightly nasty how this function calls public methods which may raise public errors :/
+    'Could just remove error guard and raise them itself, but that's risky as there might be unhandled internal errors
     On Error GoTo safeThrow
     If IsNumeric(timerFunction) Then
         If Int(timerFunction) = timerFunction Then 'not a decimal
-            KillTimersByFunctionID timerFunction
+            Me.KillTimersByFunctionID timerFunction
         Else
-            Err.Raise InvalidTimerFunctionError
+            raisePublicError InvalidTimerFunctionError, errorSourceName
         End If
+        
     ElseIf IsObject(timerFunction) Then
         If TypeOf timerFunction Is ITimerProc Then
-            KillTimersByFunctionID ObjPtr(timerFunction)
+            Me.KillTimersByFunctionID ObjPtr(timerFunction)
         Else
-            Err.Raise InvalidTimerFunctionError
+            raisePublicError InvalidTimerFunctionError, errorSourceName
         End If
+        
     ElseIf TypeName(timerFunction) = "String" Then
-        KillTimersByFunctionName timerFunction
+        Me.KillTimersByFunctionName timerFunction
     Else
-        Err.Raise InvalidTimerFunctionError
+        raisePublicError InvalidTimerFunctionError, errorSourceName
     End If
     
     Exit Sub
     
 safeThrow:
-    raisePublicError Err.Number, "KillTimersByFunction"
+    
+    'check if within custom error range; if so then don't rethrow as that would re-terminate and double log the error
+    If Err.Number > TimerError.[_End] Or Err.Number < TimerError.[_Start] Then
+        'Unexpected Errors: must throw them to public; no sense condensing as these are all unexpected
+        raisePublicError Err.Number, "KillTimersByFunction"
+    Else
+        'Public Errors: all the cleanup is done, safe to just re-throw
+        Err.Raise Err.Number
+    End If
     Resume
     
 End Sub
@@ -198,7 +209,7 @@ Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
     On Error GoTo safeThrow
 
     Dim timer As TimerData
-    For Each timer In this.timerSet.arrayFromFunctionID(timerFunctionID)
+    For Each timer In this.timerDataRepo.FilterByFunctionID(timerFunctionID)
         KillTimerByID timer.ID
     Next timer
     
@@ -214,14 +225,13 @@ Public Sub KillTimersByFunctionName(ByVal timerFunctionName As String)
     On Error GoTo safeThrow
 
     Dim timer As TimerData
-    For Each timer In this.timerSet.arrayFromFunctionName(timerFunctionName)
+    For Each timer In this.timerDataRepo.FilterByFunctionName(timerFunctionName)
         KillTimerByID timer.ID
     Next timer
     
     Exit Sub
     
 safeThrow:
-
     raisePublicError Err.Number, "KillTimersByFunctionName"
     Resume                                       'for debugging
 End Sub
@@ -229,7 +239,7 @@ End Sub
 Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
 
     log TraceLevel, "raiseError", "Destroying timers and unsubclassing window so error can be raised"
-    this.timerManager.KillAllTimers this.timerSet.toArray                                'cleanly un subclasses message window as this prevents errors being raised
+    this.timerManager.KillAllTimers this.timerDataRepo.ToArray                                'cleanly un subclasses message window as this prevents errors being raised
     
     Select Case errorCode
         Case TimerError.CreateTimerError
@@ -237,14 +247,17 @@ Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Sourc
             
         Case TimerError.DestroyTimerError
             Err.Description = "Uh Oh, can't kill the timer :("
-            
+           
+        Case TimerError.GenerateTimerDataError
+            Err.Description = "Unable to add/retrieve timer data from the repository"
+        
         Case TimerError.GetMessageWindowError
             Err.Description = "Couldn't obtain a handle to the message window"
             
         Case TimerError.InvalidTimerFunctionError
 
             Err.Description = "Invalid timer function supplied; timer functions must be one of:" & vbNewLine _
-                              & " - a TIMERPROC pointer" & vbNewLine _
+                              & " - a TIMERPROC or ITimerProc pointer" & vbNewLine _
                               & " - an ITimerProc instance" & vbNewLine _
                               & " - a class name String"
                   
@@ -269,14 +282,6 @@ Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Sourc
     
     Err.Raise errorCode
 
-    
-End Sub
-
-
-Private Sub Class_Initialize()
-    'Set up defaults
-    this.maxTimerCount = Default_Max_Timer_Count
-    Set this.timerManager = New WindowsTimerManager
 End Sub
 
 'For testing
@@ -286,3 +291,7 @@ Friend Property Get messageWindowHandle()
     Set timerManager = this.timerManager
     messageWindowHandle = timerManager.messageWindowHandle
 End Property
+
+
+
+

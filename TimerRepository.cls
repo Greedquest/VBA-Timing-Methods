@@ -16,51 +16,28 @@ End Type
 
 Private this As repositoryData
 
-Public Function dataFromID(ByVal timerID As LongPtr) As TimerData
-    Set dataFromID = this.TimerData.Item(timerID)
-End Function
-
-Public Function arrayFromFunctionID(ByVal funcID As LongPtr) As Collection
-    Dim matches As New Collection
-    Dim data As TimerData
-    For Each data In this.TimerData
-        If data.callbackWrapperInterface.FunctionID = funcID Then
-            matches.Add data
-        End If
-    Next data
-    Set arrayFromFunctionID = matches
-End Function
-
-Public Function arrayFromFunctionName(ByVal funcName As String) As Collection
-    Dim matches As New Collection
-    Dim data As TimerData
-    For Each data In this.TimerData
-        If data.callbackWrapperInterface.FunctionName = funcName Then
-            matches.Add data
-        End If
-    Next data
-    Set arrayFromFunctionName = matches
+'@DefaultMember
+Public Function Item(ByVal timerID As LongPtr) As TimerData
+    Set Item = this.TimerData.Item(timerID)
 End Function
 
 Public Function Add(ByVal callbackWrapper As Object) As TimerData
-'TODO log error
     Dim newData As TimerData
     Set newData = TimerData.Create(callbackWrapper)
     this.TimerData.Add newData.ID, newData
     Set Add = newData
-    
 End Function
 
-Public Sub Remove(ByVal timerID As LongPtr)
-    this.TimerData.Remove timerID
+Public Sub Remove(ByVal timerInfo As TimerData)
+    this.TimerData.Remove timerInfo.ID
 End Sub
 
 Public Sub Clear()
     this.TimerData.RemoveAll
 End Sub
 
-Public Function toArray() As Variant
-    toArray = this.TimerData.Items
+Public Function ToArray() As Variant
+    ToArray = this.TimerData.Items
 End Function
 
 Public Property Get Exists(ByVal timerID As LongPtr) As Boolean
@@ -68,3 +45,26 @@ Public Property Get Exists(ByVal timerID As LongPtr) As Boolean
     Exists = this.TimerData.Exists(timerID)
     On Error GoTo 0
 End Property
+
+Public Function FilterByFunctionID(ByVal funcID As LongPtr) As Collection
+    Dim matches As New Collection
+    Dim data As TimerData
+    For Each data In this.TimerData
+        If data.callbackWrapperInterface.FunctionID = funcID Then
+            matches.Add data
+        End If
+    Next data
+    Set FilterByFunctionID = matches
+End Function
+
+Public Function FilterByFunctionName(ByVal funcName As String) As Collection
+    Dim matches As New Collection
+    Dim data As TimerData
+    For Each data In this.TimerData
+        If data.callbackWrapperInterface.FunctionName = funcName Then
+            matches.Add data
+        End If
+    Next data
+    Set FilterByFunctionName = matches
+End Function
+
