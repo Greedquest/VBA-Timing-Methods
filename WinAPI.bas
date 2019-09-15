@@ -3,7 +3,7 @@ Attribute VB_Name = "WinAPI"
 Option Explicit
 Option Private Module
 '@IgnoreModule HungarianNotation: For consistency with the docs
-
+'@NoIndent: Indenter doesn't handle PtrSafe very well
 
 Public Type tagPOINT
     X As Long

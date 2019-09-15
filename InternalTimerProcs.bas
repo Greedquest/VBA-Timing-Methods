@@ -3,7 +3,7 @@ Attribute VB_Name = "InternalTimerProcs"
 Option Explicit
 Option Private Module
 
-Private Const killTimerOnExecError As Boolean = True 'TODO make these configurable
+Private Const killTimerOnExecError As Boolean = False 'TODO make these configurable
 Private Const terminateOnUnhandledError As Boolean = True
 
 '@Description("TIMERPROC callback for ManagedCallbacks which executes the callback function within error guards")
