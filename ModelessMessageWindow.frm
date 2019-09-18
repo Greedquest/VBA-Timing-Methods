@@ -15,6 +15,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it"
+
 '@Folder("FirstLevelAPI")
 '@ModuleDescription("Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it")
 '@NoIndent: Conditional compilation doesn't seem to work nicely
