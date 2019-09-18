@@ -20,17 +20,12 @@ Public Enum TimerError
     DestroyTimerError
     TimerNotFoundError
     SynchronousCallError
-    'TimerApiLockedError
-    GetMessageWindowError
     InvalidTimerFunctionError
     GenerateTimerDataError
     [_End]
 End Enum
 
-'Private Const Default_Lock As Boolean = True
 Private Const Default_Max_Timer_Count As Long = 100
-'Private Const Default_Message_Window_Suffix As String = "MessageWindow"
-
 
 Private Type tCallback
     maxTimerCount As Long
@@ -78,6 +73,7 @@ generateTimerDataFail:
     
 createTimerFail:
     logError "createTimer", Err.Number, Err.Description
+    this.timerDataRepo.Remove timerInfo
     raisePublicError CreateTimerError, loggerSourceName
     Resume
     
@@ -119,6 +115,7 @@ generateTimerDataFail:
     
 createTimerFail:
     logError "createTimer", Err.Number, Err.Description
+    this.timerDataRepo.Remove timerInfo
     raisePublicError CreateTimerError, loggerSourceName
     Resume
     
@@ -141,9 +138,9 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
         Dim timerInfo As TimerData
         Set timerInfo = this.timerDataRepo.Item(timerID)
         
-        this.timerManager.KillTimer timerInfo
         this.timerDataRepo.Remove timerInfo
-            
+        this.timerManager.KillTimer timerInfo
+          
         log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerInfo.ID)
 
     Else
@@ -258,9 +255,6 @@ Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Sourc
            
         Case TimerError.GenerateTimerDataError
             Err.Description = "Unable to add/retrieve timer data from the repository"
-        
-        Case TimerError.GetMessageWindowError
-            Err.Description = "Couldn't obtain a handle to the message window"
             
         Case TimerError.InvalidTimerFunctionError
 

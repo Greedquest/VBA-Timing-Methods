@@ -174,7 +174,7 @@ Public Declare Function RemoveWindowSubclass Lib "comctl32.dll" Alias "#412" ( _
 Public Declare Function SetTimer Lib "user32" ( _
                         ByVal hWnd As LongPtr, _
                         ByVal nIDEvent As LongPtr, _
-                        ByVal uElapse As TimerDelay, _
+                        ByVal uElapse As TiaddrmerDelay, _
                         ByVal lpTimerFunc As LongPtr) As LongPtr
 
 Public Declare Function KillTimer Lib "user32" ( _

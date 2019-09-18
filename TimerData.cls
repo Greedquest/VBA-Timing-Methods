@@ -8,9 +8,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '@Folder("FirstLevelAPI")
-
-Option Explicit
 '@PredeclaredId: For factory method
+Option Explicit
 
 Private Type tTimerData
     callbackWrapper As Object

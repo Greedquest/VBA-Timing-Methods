@@ -12,7 +12,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Public Enum InternalTimerError
-    [_Start] = vbObjectError + 11                'TimerError.[_End]                 'just in case of clashes, let's offset the errors
+    [_Start] = vbObjectError + 7                'TimerError.[_End]                 'just in case of clashes, let's offset the errors
     CreateMessageWindowError
     APIKillTimerError
     CastKeyToWrapperError

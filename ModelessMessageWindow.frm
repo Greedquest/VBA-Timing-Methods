@@ -15,9 +15,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Attribute VB_Description = "Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it"
-
 '@Folder("FirstLevelAPI")
 '@ModuleDescription("Lightweight window to provide an hWnd that will be destroyed after a state loss - disconnecting any timers and subclasses which may be attached to it")
+'@NoIndent: Conditional compilation doesn't seem to work nicely
 Option Explicit
 
 'See https://www.mrexcel.com/forum/excel-questions/967334-much-simpler-alternative-findwindow-api-retrieving-hwnd-userforms.html
@@ -28,14 +28,13 @@ Option Explicit
 #End If
 
 #If VBA7 Then
-
-Public Property Get handle() As LongPtr
-    IUnknown_GetWindow Me, handle
-End Property
-
+    Public Property Get handle() As LongPtr
+        IUnknown_GetWindow Me, handle
+    End Property
+    
 #Else
-Public Property Get handle() As Long
-    IUnknown_GetWindow Me, handle
-End Property
-
+    Public Property Get handle() As Long
+        IUnknown_GetWindow Me, handle
+    End Property
+    
 #End If
