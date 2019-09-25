@@ -1,5 +1,5 @@
 # By way of introduction...
-As anyone who's ever worked for any significant length of time with [WinAPI Timers][1] probably knows, they can be some of the most temperamental, unstable and crash-inducing elements of a project, and as such are very tricky to work with. Instances of random, unstoppable printing to the debug window, frequent screen freezes or outright crashes are commonplace.
+As anyone who's ever worked for any significant length of time with [WinAPI Timers][1] probably knows, they can be some of the most temperamental, unstable and crash-inducing elements of a project, and as such are very tricky to use. Instances of random, unstoppable printing to the debug window, frequent screen freezes or outright crashes are commonplace.
 
  The purpose of this project is to understand what causes these problems and to avoid them happening. Here I present the code which I've come up with to try and mitigate the issues and make working with the APIs a bit more straightforward.
 
