@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '@Folder("FirstLevelAPI")
-'@PredeclaredId: For constructor method
+'@PredeclaredId: For factory method
 Option Explicit
 
 Private Type tTimerData

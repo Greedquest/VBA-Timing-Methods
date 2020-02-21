@@ -131,7 +131,7 @@ Private Sub StartUnmanagedTimerRaisesNoError()
     ID = TickerAPI.StartUnmanagedTimer(AddressOf QuietNoOpCallback, False, INFINITE_DELAY)
     
     'Assert:
-    Assert.AreNotEqual 0, ID
+    Assert.AreNotEqual CLng(0), CLng(ID)
 
 TestExit:
     Exit Sub

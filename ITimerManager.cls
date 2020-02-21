@@ -12,7 +12,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Public Enum InternalTimerError
-    [_Start] = vbObjectError + 7                'TimerError.[_End]                 'just in case of clashes, let's offset the errors
+    [_ErrBase] = 6                          'just in case of clashes, let's offset the errors
+    [_Start] = vbObjectError + [_ErrBase]   'TimerError.[_End] - 1
     CreateMessageWindowError
     APIKillTimerError
     CastKeyToWrapperError
@@ -29,7 +30,7 @@ End Sub
 Public Sub UpdateTimer(ByVal data As TimerData, ByVal delayMillis As Long)
 End Sub
 
-Public Function tryTriggerTimer(ByVal data As TimerData) As Boolean
+Public Function TryTriggerTimer(ByVal data As TimerData) As Boolean
 End Function
 
 Public Sub KillAllTimers(ByVal dataArray As Variant)

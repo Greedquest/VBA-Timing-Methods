@@ -15,8 +15,9 @@ Attribute VB_Description = "API for setting up timers to callback functions, wra
 Option Explicit
 
 Public Enum TimerError
-    [_Start]
-    CreateTimerError = vbObjectError + 1
+    [_ErrBase] = 0
+    [_Start] = vbObjectError + [_ErrBase]
+    CreateTimerError
     DestroyTimerError
     TimerNotFoundError
     SynchronousCallError
@@ -56,7 +57,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
-        If Not this.timerManager.tryTriggerTimer(timerInfo) Then
+        If Not this.timerManager.TryTriggerTimer(timerInfo) Then
             'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
             'could try flushing the queue instead
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
@@ -98,7 +99,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
-        If Not this.timerManager.tryTriggerTimer(timerInfo) Then
+        If Not this.timerManager.TryTriggerTimer(timerInfo) Then
             'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
             'could try flushing the queue instead
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"

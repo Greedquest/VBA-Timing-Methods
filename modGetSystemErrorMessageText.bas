@@ -2,7 +2,7 @@ Attribute VB_Name = "modGetSystemErrorMessageText"
 Option Explicit
 Option Compare Text
 Option Private Module
-'@Folder("WinAPI.Utils")
+'@Folder("Common")
 '@IgnoreModule
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''
