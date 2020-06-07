@@ -189,7 +189,7 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
 
 Private Type GUID
     Data1 As Long
-    '@Ignore IntegerDataType
+    '@Ignore IntegerDataType:API
     Data2 As Integer
     '@Ignore IntegerDataType
     Data3 As Integer

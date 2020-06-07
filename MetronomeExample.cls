@@ -13,9 +13,9 @@ Attribute VB_Exposed = False
 Option Explicit
 '@PredeclaredId
 
-Private WithEvents ticker As Metronome
+Private WithEvents ticker As OLDMetronome
 Attribute ticker.VB_VarHelpID = -1
-Private WithEvents ticker2 As Metronome
+Private WithEvents ticker2 As OLDMetronome
 Attribute ticker2.VB_VarHelpID = -1
 
 Public Sub Init()
@@ -24,8 +24,8 @@ Public Sub Init()
 End Sub
 
 Private Sub Class_Initialize()
-    Set ticker = MetronomeCollection.Add(4000, True, -1)
-    Set ticker2 = MetronomeCollection.Add(1000, True, -1)
+    Set ticker = OLDMetronomeCollection.Add(4000, True, -1)
+    Set ticker2 = OLDMetronomeCollection.Add(1000, True, -1)
 End Sub
 
 Private Sub ticker_Tick()

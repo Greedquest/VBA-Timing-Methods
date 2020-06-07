@@ -30,9 +30,9 @@ Public Function Create(ByVal timerCallbackWrapper As Object) As TimerData
     End With
 End Function
 
-Friend Function Self() As TimerData
+Friend Property Get Self() As TimerData
     Set Self = Me
-End Function
+End Property
 
 Public Property Get callbackWrapperPointer() As LongPtr
     callbackWrapperPointer = ObjPtr(this.callbackWrapper)

@@ -34,9 +34,9 @@ Public Function Create(ByVal callbackFunction As ITimerProc, Optional ByVal data
     End With
 End Function
 
-Public Function Self() As ManagedCallbackWrapper
+Public Property Get Self() As ManagedCallbackWrapper
     Set Self = Me
-End Function
+End Property
 
 Public Property Set callBack(ByVal obj As ITimerProc)
     Set this.callbackFunction = obj

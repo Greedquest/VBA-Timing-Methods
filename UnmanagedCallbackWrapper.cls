@@ -38,9 +38,9 @@ Friend Function Create(ByVal callbackFunction As LongPtr, Optional ByVal data As
     End With
 End Function
 
-Friend Function Self() As UnmanagedCallbackWrapper
+Friend Property Get Self() As UnmanagedCallbackWrapper
     Set Self = Me
-End Function
+End Property
 
 Friend Property Let callBack(ByVal value As LongPtr)
     this.callbackFunction = value
