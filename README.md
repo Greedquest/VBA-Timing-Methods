@@ -5,7 +5,7 @@ As anyone who's ever worked for any significant length of time with [WinAPI Time
 
 First though, some background*...
 
-<sup>* You could skip/skim this if you're familiar with how message queues and especially `WM_TIMER` messages work. Also quick disclaimer; I've only freshly learnt this stuff, I've done my best to make sure it's correct, but do correct any errors/ add clarifications as you see fit. </sup>
+<sup>* You could skip/skim this if you're familiar with how message queues and especially `WM_TIMER` messages work. Also quick disclaimer; I've only freshly learnt this stuff, I've done my best to make sure it's correct, but do point out any errors/ add clarifications as you see fit. </sup>
 
 # Of Message Queues and Timers
 
