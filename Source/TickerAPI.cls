@@ -49,7 +49,8 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
    
     On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = this.timerDataRepo.Add(UnmanagedCallbackWrapper.Create(timerFunction, data))
+    Set timerInfo = TimerData.Create(UnmanagedCallbackWrapper.Create(timerFunction, data))
+    this.timerDataRepo.Add timerInfo
         
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
@@ -91,8 +92,9 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     
     On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = this.timerDataRepo.Add(ManagedCallbackWrapper.Create(timerFunction, data))
-        
+    Set timerInfo = TimerData.Create(ManagedCallbackWrapper.Create(timerFunction, data))
+    this.timerDataRepo.Add timerInfo
+     
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
     StartManagedTimer = timerInfo.ID
@@ -288,7 +290,7 @@ Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Sourc
 End Sub
 
 'For testing
-Friend Property Get messageWindowHandle()
+Friend Property Get messageWindowHandle() As LongPtr
     'only on windows
     Dim timerManager As WindowsTimerManager
     Set timerManager = this.timerManager

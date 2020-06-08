@@ -50,6 +50,7 @@ End Sub
 Public Sub tightLoopDelay(Optional ByVal delayMillis As Long = defaultTimerDelay)
     Dim endTime As Single
     endTime = timer + delayMillis * MillisToSeconds
+    '@Ignore EmptyDoWhileBlock: That's the point
     Do While timer < endTime
         'do nothing :(
     Loop

@@ -14,12 +14,12 @@ Public Sub UnmanagedTimerTestProc(ByVal windowHandle As LongPtr, ByVal message A
     On Error GoTo cleanFail
     this.testLog.logCall callbackParams.timerID, callbackParams.userData
     
-cleanExit:
+CleanExit:
     Exit Sub
     
 cleanFail:
     this.testLog.logError ObjPtr(callbackParams), Err.Number, Err.Description, loggerSourceName
-    Resume cleanExit
+    Resume CleanExit
 End Sub
 
 Public Property Get testLog() As testLog

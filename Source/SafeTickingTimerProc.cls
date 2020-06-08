@@ -14,17 +14,17 @@ Implements ITimerProc
 
 '@Ignore ParameterNotUsed: callbacks need to have this signature regardless
 Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
-    Static I As Long
-    I = I + 1
+    Static i As Long
+    i = i + 1
        
     Dim expectedData As String
     On Error Resume Next
     expectedData = CStr(userData)                'catch error in case of bad data
     On Error GoTo 0
     
-    Debug.Print printf("Ticking - {0} (id:{1})    Data:'{3}'    {2}", I, timerID, time$, expectedData)
+    Debug.Print printf("Ticking - {0} (id:{1})    Data:'{3}'    {2}", i, timerID, time$, expectedData)
 
-    If I >= 10 Then
+    If i >= 10 Then
         TickerAPI.KillTimerByID timerID
     End If
 End Sub

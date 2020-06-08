@@ -22,12 +22,9 @@ Attribute Item.VB_UserMemId = 0
     Set Item = this.TimerData.Item(timerID)
 End Function
 
-Public Function Add(ByVal callbackWrapper As Object) As TimerData
-    Dim newData As TimerData
-    Set newData = TimerData.Create(callbackWrapper)
-    this.TimerData.Add newData.ID, newData
-    Set Add = newData
-End Function
+Public Sub Add(ByVal timerInfo As TimerData)
+    this.TimerData.Add timerInfo.ID, timerInfo
+End Sub
 
 Public Sub Remove(ByVal timerInfo As TimerData)
     this.TimerData.Remove timerInfo.ID

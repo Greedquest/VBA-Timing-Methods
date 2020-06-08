@@ -31,11 +31,11 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
         End If
     End If
     
-cleanExit:
+CleanExit:
     Exit Sub
     
 cleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     If terminateOnUnhandledError Then Set TickerAPI = Nothing 'kill all timers
-    Resume cleanExit
+    Resume CleanExit
 End Sub

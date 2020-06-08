@@ -75,13 +75,13 @@ Friend Function tryInitialiseTimer(ByVal ticker As OLDIMetronomeControls) As Boo
     this.activeTickers.Add key:=ticker.timerID, Item:=ticker
     tryInitialiseTimer = True
         
-cleanExit:
+CleanExit:
     Exit Function
     
 cleanFail:
     logError "tryInitialiseTimer", Err.Number, Err.Description
     tryInitialiseTimer = False
-    Resume cleanExit
+    Resume CleanExit
     
 End Function
 
@@ -91,13 +91,13 @@ Friend Function tryTerminateTimer(ByVal ticker As OLDIMetronomeControls) As Bool
     this.activeTickers.Remove ticker.timerID
     tryTerminateTimer = True
     
-cleanExit:
+CleanExit:
     Exit Function
     
 cleanFail:
     logError "tryTerminateTimer", Err.Number, Err.Description
     tryTerminateTimer = False
-    Resume cleanExit
+    Resume CleanExit
     
 End Function
 

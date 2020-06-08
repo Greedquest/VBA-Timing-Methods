@@ -27,13 +27,13 @@ Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
         throwDllError Err.LastDllError, "Call returned zero, probably tried to kill non-existent timer"
     End If
     
-cleanExit:
+CleanExit:
     Exit Sub
     
 cleanFail:
     logError "WinAPI.KillTimer", Err.Number, Err.Description
     raiseInternalError APIKillTimerError, "KillTimer"
-    Resume cleanExit
+    Resume CleanExit
     
 End Sub
 
@@ -81,13 +81,13 @@ Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boole
         ITimerManager_tryTriggerTimer = True
     End If
     
-cleanExit:
+CleanExit:
     Exit Function
     
 catchError:
     If Err.Number = systemErrorCodes.ERROR_NOT_ENOUGH_QUOTA Then
         ITimerManager_tryTriggerTimer = False
-        Resume cleanExit
+        Resume CleanExit
         
     Else
         logError "WinAPI.PostMessage", Err.Number, Err.Description
