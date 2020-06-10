@@ -20,7 +20,7 @@ Private this As windowsTimerManagerData
 
 Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
     'NOTE no need to clear messages as killing the timer invalidates any which have a TIMERPROC argument (which they all do)
-    On Error GoTo cleanFail
+    On Error GoTo CleanFail
     
     '0 indicates some failure
     If WinAPI.KillTimer(this.messageWindow.handle, data.ID) = 0 Then
@@ -30,7 +30,7 @@ Private Sub ITimerManager_KillTimer(ByVal data As TimerData)
 CleanExit:
     Exit Sub
     
-cleanFail:
+CleanFail:
     logError "WinAPI.KillTimer", Err.Number, Err.Description
     raiseInternalError APIKillTimerError, "KillTimer"
     Resume CleanExit

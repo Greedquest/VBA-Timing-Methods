@@ -29,6 +29,7 @@ Option Explicit
 #End If
 
 #If VBA7 Then
+    '@Ignore NonReturningFunction: Assigned ByRef
     Public Property Get handle() As LongPtr
         IUnknown_GetWindow Me, handle
     End Property

@@ -4,6 +4,8 @@ Attribute VB_Name = "ProjectUtils"
 Option Explicit
 Option Private Module
 
+'@IgnoreModule UnassignedVariableUsage: Assigned ByRef
+
 Public Const INFINITE_DELAY As Long = &H7FFFFFFF
 
 #If VBA7 Then
@@ -22,7 +24,7 @@ Public Function FromPtr(ByVal pData As Long) As Object
     Dim result As Object
     CopyMemory result, pData, LenB(pData)
     Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-    ZeroMemory result, LenB(pData)                   ' free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+    ZeroMemory result, LenB(pData)                   'free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 '@Ignore ProcedureCanBeWrittenAsFunction: this should become redundant at some point once RD can understand byRef

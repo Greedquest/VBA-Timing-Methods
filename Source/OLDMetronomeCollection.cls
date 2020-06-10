@@ -70,7 +70,7 @@ Friend Function tryInitialiseTimer(ByVal ticker As OLDIMetronomeControls) As Boo
         this.synchronousTickers.Push ticker
     End If
     
-    On Error GoTo cleanFail
+    On Error GoTo CleanFail
     ticker.timerID = TickerAPI.StartUnmanagedTimer(AddressOf WaitableTimerCallbackProc, ticker.isFirstTickSynchronous, ticker.tickIntervalMillis)
     this.activeTickers.Add key:=ticker.timerID, Item:=ticker
     tryInitialiseTimer = True
@@ -78,7 +78,7 @@ Friend Function tryInitialiseTimer(ByVal ticker As OLDIMetronomeControls) As Boo
 CleanExit:
     Exit Function
     
-cleanFail:
+CleanFail:
     logError "tryInitialiseTimer", Err.Number, Err.Description
     tryInitialiseTimer = False
     Resume CleanExit
@@ -86,7 +86,7 @@ cleanFail:
 End Function
 
 Friend Function tryTerminateTimer(ByVal ticker As OLDIMetronomeControls) As Boolean
-    On Error GoTo cleanFail
+    On Error GoTo CleanFail
     TickerAPI.KillTimerByID ticker.timerID
     this.activeTickers.Remove ticker.timerID
     tryTerminateTimer = True
@@ -94,7 +94,7 @@ Friend Function tryTerminateTimer(ByVal ticker As OLDIMetronomeControls) As Bool
 CleanExit:
     Exit Function
     
-cleanFail:
+CleanFail:
     logError "tryTerminateTimer", Err.Number, Err.Description
     tryTerminateTimer = False
     Resume CleanExit

@@ -22,11 +22,11 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
     errDescription = Err.Description
     
     'Log any error the callback may have raised, kill it if necessary
-    On Error GoTo cleanFail                      'this procedure cannot raise errors or we'll crash
+    On Error GoTo CleanFail                      'this procedure cannot raise errors or we'll crash
     If errNum <> 0 Then
         logError timerParams.callbackWrapper.FunctionName & ".Exec", errNum, errDescription
         If killTimerOnExecError Then
-            On Error GoTo cleanFail
+            On Error GoTo CleanFail
             TickerAPI.KillTimerByID timerParams.timerID
         End If
     End If
@@ -34,7 +34,7 @@ Attribute ManagedTimerCallbackInvoker.VB_Description = "TIMERPROC callback for M
 CleanExit:
     Exit Sub
     
-cleanFail:
+CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     If terminateOnUnhandledError Then Set TickerAPI = Nothing 'kill all timers
     Resume CleanExit

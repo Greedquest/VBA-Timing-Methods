@@ -4,6 +4,7 @@ Attribute VB_Name = "WinAPI"
 '@NoIndent: Indenter doesn't handle PtrSafe very well
 Option Explicit
 Option Private Module
+Option Base 1
 
 Public Type tagPOINT
     X As Long
@@ -195,6 +196,12 @@ Private Type GUID
     Data3 As Integer
     Data4(7) As Byte
 End Type
+
+#If Win64 Then
+    Public Const vbLongPtr As Long = vbLongLong
+#Else
+    Public Const vbLongPtr As Long = vbLong
+#End If
 
 Private Declare Function CoCreateGuid Lib "OLE32.DLL" (ByRef pGuid As GUID) As Long
 

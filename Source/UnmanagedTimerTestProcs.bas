@@ -11,13 +11,13 @@ Private this As tTestData
 '@Ignore ParameterNotUsed: callbacks need to have this signature regardless
 Public Sub UnmanagedTimerTestProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal callbackParams As UnmanagedCallbackWrapper, ByVal tickCount As Long)
     Const loggerSourceName As String = "timerProc"
-    On Error GoTo cleanFail
+    On Error GoTo CleanFail
     this.testLog.logCall callbackParams.timerID, callbackParams.userData
     
 CleanExit:
     Exit Sub
     
-cleanFail:
+CleanFail:
     this.testLog.logError ObjPtr(callbackParams), Err.Number, Err.Description, loggerSourceName
     Resume CleanExit
 End Sub

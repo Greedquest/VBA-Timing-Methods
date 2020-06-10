@@ -47,10 +47,9 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
    
-    On Error GoTo generateTimerDataFail
+    'On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = TimerData.Create(UnmanagedCallbackWrapper.Create(timerFunction, data))
-    this.timerDataRepo.Add timerInfo
+    If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
         
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
@@ -86,14 +85,37 @@ scheduleProcFail:
     Resume
     
 End Function
+Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
+    Const loggerSourceName As String = "TryGenerateTimerData"
+    
+    On Error GoTo CleanFail
+    If IsObject(timerFunction) Then
+        Set outTimerInfo = TimerData.Create(ManagedCallbackWrapper.Create(timerFunction, data))
+    ElseIf VarType(timerFunction) = vbLongPtr Then
+        Set outTimerInfo = TimerData.Create(UnmanagedCallbackWrapper.Create(timerFunction, data))
+    Else
+        Err.Description = "Unreachable: invalid timerFunctionType"
+        Err.Raise 13
+    End If
+    this.timerDataRepo.Add outTimerInfo
+    TryGenerateTimerData = True
+    
+CleanExit:
+    Exit Function
+    
+CleanFail:
+    logError loggerSourceName, Err.Number, Err.Description
+    TryGenerateTimerData = False
+    Resume CleanExit ' DEBUG: comment-out this statement
+    Stop
+    Resume
+End Function
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     
-    On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
-    Set timerInfo = TimerData.Create(ManagedCallbackWrapper.Create(timerFunction, data))
-    this.timerDataRepo.Add timerInfo
+    If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
      
     On Error GoTo createTimerFail
     this.timerManager.StartTimer timerInfo, delayMillis
@@ -283,7 +305,7 @@ Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Sourc
             
     End Select
     
-    logError Source, errorCode, Err.Description  'possibly overkill
+    logError Source, errorCode, Err.Description  'REVIEW possibly overkill
     
     Err.Raise errorCode
 
