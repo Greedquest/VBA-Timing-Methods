@@ -17,7 +17,7 @@ Private Sub ModuleInitialize()
     Set Assert = New Rubberduck.PermissiveAssertClass
     Set Fakes = New Rubberduck.FakesProvider
     Set tempIDs = New Collection
-
+    
 End Sub
 
 '@ModuleCleanup

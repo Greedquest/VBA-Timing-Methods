@@ -1,10 +1,9 @@
 Attribute VB_Name = "WinAPI"
 '@Folder("WinAPI")
 '@IgnoreModule HungarianNotation: For consistency with the docs
-'@NoIndent: Indenter doesn't handle PtrSafe very well
-Option Explicit
-Option Private Module
-Option Base 1
+    '@NoIndent: Indenter doesn't handle PtrSafe very well
+    Option Explicit
+    Option Private Module
 
 Public Type tagPOINT
     X As Long
@@ -188,6 +187,7 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
                         Optional ByVal timerID As Long = 0, _
                         Optional ByVal unused3 As Long) As LongPtr
 
+'@IgnoreModule UseMeaningfulName
 Private Type GUID
     Data1 As Long
     '@Ignore IntegerDataType:API

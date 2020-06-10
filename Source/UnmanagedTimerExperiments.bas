@@ -38,3 +38,4 @@ Public Sub testStopButton()
     Debug.Print "Stopping"                       ', VBA.CLngPtr(AddressOf MessageWindowProcs.ManagedTimerMessageWindowSubclassProc)
     End
 End Sub
+

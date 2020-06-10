@@ -47,13 +47,9 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
    
-    'On Error GoTo generateTimerDataFail
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
-        
-    On Error GoTo createTimerFail
-    this.timerManager.StartTimer timerInfo, delayMillis
-    StartUnmanagedTimer = timerInfo.ID
+    If Not TryCreateTimer(timerInfo, delayMillis, StartUnmanagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
@@ -66,18 +62,7 @@ Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with o
     
     log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.ID)
     Exit Function
-    
-generateTimerDataFail:
-    logError "timerSet.Add", Err.Number, Err.Description
-    raisePublicError GenerateTimerDataError, loggerSourceName
-    Resume                                       'for debugging - break above and jump to the error-raising statement
-    
-createTimerFail:
-    logError "createTimer", Err.Number, Err.Description
-    this.timerDataRepo.Remove timerInfo
-    raisePublicError CreateTimerError, loggerSourceName
-    Resume
-    
+        
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
     KillTimerByID timerInfo.ID                   'NOTE may raise its own public error
@@ -85,41 +70,13 @@ scheduleProcFail:
     Resume
     
 End Function
-Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
-    Const loggerSourceName As String = "TryGenerateTimerData"
-    
-    On Error GoTo CleanFail
-    If IsObject(timerFunction) Then
-        Set outTimerInfo = TimerData.Create(ManagedCallbackWrapper.Create(timerFunction, data))
-    ElseIf VarType(timerFunction) = vbLongPtr Then
-        Set outTimerInfo = TimerData.Create(UnmanagedCallbackWrapper.Create(timerFunction, data))
-    Else
-        Err.Description = "Unreachable: invalid timerFunctionType"
-        Err.Raise 13
-    End If
-    this.timerDataRepo.Add outTimerInfo
-    TryGenerateTimerData = True
-    
-CleanExit:
-    Exit Function
-    
-CleanFail:
-    logError loggerSourceName, Err.Number, Err.Description
-    TryGenerateTimerData = False
-    Resume CleanExit ' DEBUG: comment-out this statement
-    Stop
-    Resume
-End Function
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
-     
-    On Error GoTo createTimerFail
-    this.timerManager.StartTimer timerInfo, delayMillis
-    StartManagedTimer = timerInfo.ID
+    If Not TryCreateTimer(timerInfo, delayMillis, StartManagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
     
     On Error GoTo scheduleProcFail
     If runImmediately Then
@@ -132,24 +89,59 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     
     log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", timerInfo.ID)
     Exit Function
-    
-generateTimerDataFail:
-    logError "timerSet.Add", Err.Number, Err.Description
-    raisePublicError GenerateTimerDataError, loggerSourceName
-    Resume                                       'for debugging - break above and jump to the error-raising statement
-    
-createTimerFail:
-    logError "createTimer", Err.Number, Err.Description
-    this.timerDataRepo.Remove timerInfo
-    raisePublicError CreateTimerError, loggerSourceName
-    Resume
-    
+        
 scheduleProcFail:
     logError "scheduleProc", Err.Number, Err.Description
     KillTimerByID timerInfo.ID                   'NOTE may raise an error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
     
+End Function
+
+Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
+    Const loggerSourceName As String = "TryGenerateTimerData"
+    
+    On Error GoTo CleanFail
+    If IsObject(timerFunction) Then
+        Set outTimerInfo = TimerData.Create(ManagedCallbackWrapper.Create(timerFunction, data))
+    ElseIf VarType(timerFunction) = vbLongPtr Then
+        Set outTimerInfo = TimerData.Create(UnmanagedCallbackWrapper.Create(timerFunction, data))
+    Else                                         'NOTE: Unreachable since timerFunction is strongly typed in the parent procedures
+        Err.Description = "Invalid timerFunctionType"
+        Err.Raise 13
+    End If
+    this.timerDataRepo.Add outTimerInfo
+    TryGenerateTimerData = True
+    
+CleanExit:
+    Exit Function
+    
+CleanFail:
+    logError loggerSourceName, Err.Number, Err.Description
+    TryGenerateTimerData = False
+    Resume CleanExit                             ' DEBUG: comment-out this statement
+Stop
+    Resume
+End Function
+
+Private Function TryCreateTimer(ByVal timerInfo As TimerData, ByVal delayMillis As Long, ByRef outTimerID As LongPtr) As Boolean
+    Const loggerSourceName As String = "TryCreateTimer"
+    
+    On Error GoTo CleanFail
+    this.timerManager.StartTimer timerInfo, delayMillis
+    outTimerID = timerInfo.ID
+    TryCreateTimer = True
+    
+CleanExit:
+    Exit Function
+    
+CleanFail:
+    logError loggerSourceName, Err.Number, Err.Description
+    this.timerDataRepo.Remove timerInfo
+    TryCreateTimer = False
+    Resume CleanExit                             ' DEBUG: comment-out this statement
+Stop
+    Resume
 End Function
 
 '@Description("API kills windows timer on this handle by ID. Unregistered ID raises TimerNotFoundError, failure to destroy a registered ID raises DestroyTimerError")

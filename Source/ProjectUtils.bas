@@ -17,14 +17,15 @@ Public Const INFINITE_DELAY As Long = &H7FFFFFFF
 #End If
 
 #If VBA7 Then
+
 Public Function FromPtr(ByVal pData As LongPtr) As Object
 #Else
 Public Function FromPtr(ByVal pData As Long) As Object
 #End If
-    Dim result As Object
-    CopyMemory result, pData, LenB(pData)
-    Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
-    ZeroMemory result, LenB(pData)                   'free up memory, equiv: CopyMemory result, 0&, LenB(pData)
+Dim result As Object
+CopyMemory result, pData, LenB(pData)
+Set FromPtr = result                             'don't copy directly as then reference count won't be managed (I think)
+ZeroMemory result, LenB(pData)                   'free up memory, equiv: CopyMemory result, 0&, LenB(pData)
 End Function
 
 '@Ignore ProcedureCanBeWrittenAsFunction: this should become redundant at some point once RD can understand byRef
