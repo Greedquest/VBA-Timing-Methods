@@ -42,35 +42,28 @@ Private Sub Class_Initialize()
     Set this.timerManager = New WindowsTimerManager
 End Sub
 
-'@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
-Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
-    
-    Dim timerInfo As TimerData
-    If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
-    If Not TryCreateTimer(timerInfo, delayMillis, StartUnmanagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
-    If runImmediately Then
-        If Not AttemptToTriggerTimer(timerInfo) Then raisePublicError SynchronousCallError, loggerSourceName
-    End If
-    
-    log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.ID)
-    
+    StartUnmanagedTimer = StartTimer(loggerSourceName, timerFunction, runImmediately, delayMillis, data)
 End Function
-
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
+    StartManagedTimer = StartTimer(loggerSourceName, timerFunction, runImmediately, delayMillis, data)
+End Function
+
+'@Description("Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error")
+Private Function StartTimer(ByVal loggerSourceName As String, ByVal timerFunction As Variant, ByVal runImmediately As Boolean, ByVal delayMillis As Long, ByVal data As Variant) As LongPtr
+Attribute StartTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
-    If Not TryCreateTimer(timerInfo, delayMillis, StartManagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
+    If Not TryCreateTimer(timerInfo, delayMillis, StartTimer) Then raisePublicError CreateTimerError, loggerSourceName
     If runImmediately Then
         If Not AttemptToTriggerTimer(timerInfo) Then raisePublicError SynchronousCallError, loggerSourceName
     End If
     
-    log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", timerInfo.ID)
-
+    log InfoLevel, loggerSourceName, printf("Timer with id {0} created", timerInfo.ID)
 End Function
 
 Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
