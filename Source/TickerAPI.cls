@@ -47,27 +47,17 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
     
-
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
     If Not TryCreateTimer(timerInfo, delayMillis, StartUnmanagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
-
     If runImmediately Then
-        If Not this.timerManager.TryTriggerTimer(timerInfo) Then
-        End If
+        If Not AttemptToTriggerTimer(timerInfo) Then raisePublicError SynchronousCallError, loggerSourceName
     End If
     
     log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.ID)
     
-CleanExit:
-    Exit Function
-        
-SafeRaise:
-    KillTimerByID timerInfo.ID                   'NOTE may raise its own public error
-    raisePublicError SynchronousCallError, loggerSourceName
-    Resume
-    
 End Function
+
 
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
@@ -75,24 +65,12 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
     If Not TryCreateTimer(timerInfo, delayMillis, StartManagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
-    
-    On Error GoTo scheduleProcFail
     If runImmediately Then
-        If Not this.timerManager.TryTriggerTimer(timerInfo) Then
-
-            log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
-        End If
+        If Not AttemptToTriggerTimer(timerInfo) Then raisePublicError SynchronousCallError, loggerSourceName
     End If
     
     log InfoLevel, loggerSourceName, printf("ManagedTimer with id {0} created", timerInfo.ID)
-    Exit Function
-        
-scheduleProcFail:
-    logError "scheduleProc", Err.Number, Err.Description
-    KillTimerByID timerInfo.ID                   'NOTE may raise an error
-    raisePublicError SynchronousCallError, loggerSourceName
-    Resume
-    
+
 End Function
 
 Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
@@ -116,7 +94,7 @@ CleanExit:
 CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     TryGenerateTimerData = False
-    Resume CleanExit                             ' DEBUG: comment-out this statement
+    Resume CleanExit                             'DEBUG: comment-out this statement
     Stop
     Resume
 End Function
@@ -136,7 +114,26 @@ CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     this.timerDataRepo.Remove timerInfo
     TryCreateTimer = False
-    Resume CleanExit                             ' DEBUG: comment-out this statement
+    Resume CleanExit                             'DEBUG: comment-out this statement
+    Stop
+    Resume
+End Function
+
+Private Function AttemptToTriggerTimer(ByVal timerInfo As TimerData) As Boolean
+    Const loggerSourceName As String = "AttemptToTriggerTimer"
+    
+    On Error GoTo CleanFail
+    this.timerManager.TryTriggerTimer timerInfo
+    AttemptToTriggerTimer = True
+    
+CleanExit:
+    Exit Function
+    
+CleanFail:
+    KillTimerByID timerInfo.ID
+    logError "scheduleProc", Err.Number, Err.Description
+    AttemptToTriggerTimer = False
+    Resume CleanExit                             'DEBUG: comment-out this statement
     Stop
     Resume
 End Function
