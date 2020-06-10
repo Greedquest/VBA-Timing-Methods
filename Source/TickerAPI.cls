@@ -46,25 +46,23 @@ End Sub
 Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
 Attribute StartUnmanagedTimer.VB_Description = "Create new timer instance with optional synchronous first call. Returns the ID of the newly created windows timer. Can raise SynchronousCallError if timerFunction fails (and is trapped - unlikely). Raises CreateTimerError if there is an API error"
     Const loggerSourceName As String = "StartUnmanagedTimer"
-   
+    
+
     Dim timerInfo As TimerData
     If Not TryGenerateTimerData(timerFunction, data, timerInfo) Then raisePublicError GenerateTimerDataError, loggerSourceName
     If Not TryCreateTimer(timerInfo, delayMillis, StartUnmanagedTimer) Then raisePublicError CreateTimerError, loggerSourceName
-    
-    On Error GoTo scheduleProcFail
+
     If runImmediately Then
         If Not this.timerManager.TryTriggerTimer(timerInfo) Then
-            'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
-            'could try flushing the queue instead
-            log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         End If
     End If
     
     log InfoLevel, loggerSourceName, printf("UnmanagedTimer with id {0} created", timerInfo.ID)
+    
+CleanExit:
     Exit Function
         
-scheduleProcFail:
-    logError "scheduleProc", Err.Number, Err.Description
+SafeRaise:
     KillTimerByID timerInfo.ID                   'NOTE may raise its own public error
     raisePublicError SynchronousCallError, loggerSourceName
     Resume
@@ -81,8 +79,7 @@ Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional By
     On Error GoTo scheduleProcFail
     If runImmediately Then
         If Not this.timerManager.TryTriggerTimer(timerInfo) Then
-            'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
-            'could try flushing the queue instead
+
             log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         End If
     End If
@@ -120,7 +117,7 @@ CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     TryGenerateTimerData = False
     Resume CleanExit                             ' DEBUG: comment-out this statement
-Stop
+    Stop
     Resume
 End Function
 
@@ -140,7 +137,7 @@ CleanFail:
     this.timerDataRepo.Remove timerInfo
     TryCreateTimer = False
     Resume CleanExit                             ' DEBUG: comment-out this statement
-Stop
+    Stop
     Resume
 End Function
 

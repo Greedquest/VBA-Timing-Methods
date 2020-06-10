@@ -73,7 +73,7 @@ End Sub
 Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boolean
     Const loggerSourceName As String = "tryTriggerTimer"
     
-    On Error GoTo catchError
+    On Error GoTo CatchError
     'Post fake message to queue to act as an already elapsed timer
     If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.ID, data.timerProc) = 0 Then
         throwDllError Err.LastDllError
@@ -84,8 +84,11 @@ Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boole
 CleanExit:
     Exit Function
     
-catchError:
+CatchError:
     If Err.Number = systemErrorCodes.ERROR_NOT_ENOUGH_QUOTA Then
+        'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
+        'could try flushing the queue instead
+        log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         ITimerManager_tryTriggerTimer = False
         Resume CleanExit
         
