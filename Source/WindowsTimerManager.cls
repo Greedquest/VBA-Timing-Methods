@@ -147,3 +147,4 @@ End Sub
 Friend Property Get messageWindowHandle() As LongPtr
     messageWindowHandle = this.messageWindow.handle
 End Property
+

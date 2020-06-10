@@ -9,3 +9,4 @@ Public Sub WaitableTimerCallbackProc(ByVal createTimer As Long, ByVal message As
     'Process message and forward to parent
     OLDMetronomeCollection.CallbackNotify createTimer, message, timerID, tickCount
 End Sub
+

@@ -29,3 +29,4 @@ End Property
 Public Sub clearLog()
     Set this.testLog = Nothing
 End Sub
+

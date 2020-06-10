@@ -23,3 +23,4 @@ Public Sub testInterwovenTicking()
     doEventsDelay 500
     TickerAPI.StartManagedTimer New SafeTickingTimerProc, True, 1000, data:="Suzie"
 End Sub
+

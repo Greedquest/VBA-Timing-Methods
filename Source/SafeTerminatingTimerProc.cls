@@ -17,3 +17,4 @@ Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, By
     Debug.Print "Callback called", time$, userData
     TickerAPI.KillTimerByID timerID
 End Sub
+

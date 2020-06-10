@@ -63,3 +63,4 @@ End Sub
 Private Function futureTime(ByVal delayMillis As Long) As Variant
     futureTime = TimeSerial(Hour(Now), Minute(Now), Second(Now) + delayMillis * MillisToSeconds)
 End Function
+

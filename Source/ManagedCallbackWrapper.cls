@@ -69,3 +69,4 @@ End Property
 Public Property Get callbackWrapper() As ICallbackWrapper 'just return the interface; makes it easier to work with
     Set callbackWrapper = Me
 End Property
+

@@ -58,3 +58,4 @@ Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal mess
     End If
     LogManager.log loggerLevel, Toolbox.Strings.Format("{0} - {1}", Source, message)
 End Sub
+

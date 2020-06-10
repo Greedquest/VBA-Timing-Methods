@@ -57,3 +57,4 @@ End Property
 Friend Property Let timerProc(ByVal value As LongPtr)
     this.timerProc = value
 End Property
+

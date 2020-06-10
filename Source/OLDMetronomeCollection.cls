@@ -126,3 +126,4 @@ End Function
 Private Sub Class_Terminate()
     TickerAPI.KillTimersByFunction AddressOf WaitableTimerCallbackProc
 End Sub
+

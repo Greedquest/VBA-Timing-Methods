@@ -70,3 +70,4 @@ End Property
 Friend Property Get debugName() As String
     debugName = this.Name
 End Property
+

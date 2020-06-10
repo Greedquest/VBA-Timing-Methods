@@ -86,3 +86,4 @@ End Property
 Private Sub OLDIMetronomeControls_Tick()
     RaiseEvent Tick
 End Sub
+

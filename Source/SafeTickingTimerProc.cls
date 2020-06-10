@@ -28,3 +28,4 @@ Private Sub ITimerProc_Exec(ByVal timerID As Long, ByVal userData As Variant, By
         TickerAPI.KillTimerByID timerID
     End If
 End Sub
+

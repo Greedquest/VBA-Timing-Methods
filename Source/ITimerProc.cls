@@ -14,3 +14,4 @@ Option Explicit
 
 Public Sub Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
 End Sub
+
