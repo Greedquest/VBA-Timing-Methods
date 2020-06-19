@@ -249,7 +249,7 @@ End Sub
 
 Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
 
-    log TraceLevel, "raiseError", "Destroying timers so error can be raised"
+    log TraceLevel, "raiseError", "Destroying timers so error can be raised safely"
     Me.KillAll
     
     Select Case errorCode
