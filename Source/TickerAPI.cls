@@ -150,14 +150,16 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
     Else
         raisePublicError TimerNotFoundError, loggerSourceName
     End If
-    
+
+CleanExit:
     Exit Sub
     
 killTimerFail:
     logError "killTimer", Err.Number, Err.Description
     raisePublicError DestroyTimerError, loggerSourceName
-    Resume                                       'for debugging - break above and jump to the error-raising statement
-    
+    Resume CleanExit                                      'for debugging - break above and jump to the error-raising statement
+    Stop
+    Resume
 End Sub
 
 '@Description("Loops through all timers and kills those matching timerFunction - this can be a functionID, a functionObject(ITimerProc) or a functionName")
