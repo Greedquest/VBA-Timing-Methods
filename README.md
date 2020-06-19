@@ -90,7 +90,7 @@ With a better understanding of what's going on behind the scenes, it's possible 
     - A different `ITimerManager` could be created to get similar behaviour, not sure what it would look like yet (maybe just fall back to `Application.OnTime`, although that's Excel only...)
 
 
-
+;)
 
   [1]: https://docs.microsoft.com/en-gb/windows/win32/winmsg/timers
   [2]: https://docs.microsoft.com/en-gb/windows/win32/winmsg/using-messages-and-message-queues#creating-a-message-loop
