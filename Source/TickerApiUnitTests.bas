@@ -42,6 +42,7 @@ Private Sub TestInitialize()
 End Sub
 
 '@TestCleanup
+'@Ignore EmptyMethod: RD auto
 Private Sub TestCleanup()
     'this method runs after every test in the module.
 End Sub
@@ -87,10 +88,11 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'TODO write this test, it's a good one
 ''@TestMethod("Uncategorized")
-Private Sub StartExistingTimerNoError()
-    'TODO is there a way to test whether WinAPI.SetTimer on ObjPtr(callbackwrapper) *before* TickerAPI.Start[Un|Managed]Timer is bad?
-End Sub
+'Private Sub StartExistingTimerNoError()
+'    'TODO is there a way to test whether WinAPI.SetTimer on ObjPtr(callbackwrapper) *before* TickerAPI.Start[Un|Managed]Timer is bad?
+'End Sub
 
 '@TestMethod("Uncategorized")
 Private Sub KillNonExistentTimerRaisesDestroyTimerError()

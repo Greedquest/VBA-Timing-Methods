@@ -1,5 +1,5 @@
 Attribute VB_Name = "Delays"
-'@Folder("Tests.Utils")
+'@Folder("Tests.Common")
 Option Explicit
 Public Const defaultTimerDelay As Long = 1000
 Public Const MillisToSeconds As Double = 1 / 1000
