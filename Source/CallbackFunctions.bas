@@ -81,16 +81,17 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
     
 End Sub
 
-Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
-    'TODO no recursion anymore - what's this all about?
-    Static i As Long
-    i = i + 1
-    Debug.Print i; "Callback called " & time; timerID
-    If i < 3 Then TickerAPI.StartUnmanagedTimer AddressOf RecursiveProc, , True, 1000
-    Debug.Print i
-    i = i - 1
-    'createTimer.TickerIsRunning = i = 1
-End Sub
+'CHECK no recursion anymore - what's this all about?
+'Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
+'
+'    Static i As Long
+'    i = i + 1
+'    Debug.Print i; "Callback called " & time; timerID
+'    If i < 3 Then TickerAPI.StartUnmanagedTimer AddressOf RecursiveProc, , True, 1000
+'    Debug.Print i
+'    i = i - 1
+'    'createTimer.TickerIsRunning = i = 1
+'End Sub
 
 Public Sub RawSafeTickingProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
     Static i As Long

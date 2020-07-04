@@ -42,7 +42,7 @@ Friend Property Get callbackWrapperInterface() As ICallbackWrapper
     Set callbackWrapperInterface = this.callbackWrapper
 End Property
 
-Public Property Set callbackWrapper(ByVal value As Object)
+Friend Property Set callbackWrapper(ByVal value As Object)
     Set this.callbackWrapper = value
 End Property
 
