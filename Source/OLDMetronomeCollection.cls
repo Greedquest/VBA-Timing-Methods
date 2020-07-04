@@ -34,7 +34,7 @@ End Function
 
 Friend Sub CallbackNotify(ByVal createTimer As Long, ByVal message As WindowsMessage, ByVal timerID As Long, ByVal tickCount As Long)
     Dim ticker As OLDIMetronomeControls
-    log DebugLevel, "CallbackNotify", printf("Callback called with ID {0}", timerID)
+    logMessage DebugLevel, "CallbackNotify", printf("Callback called with ID {0}", timerID)
     If Not tryGetTickerFromID(timerID, ticker) Then
         'Rogue timerID shouldn't be messaging our private callback! Disable it
         If message = WM_NOTIFY Then

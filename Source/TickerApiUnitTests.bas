@@ -9,6 +9,7 @@ Option Private Module
 Private tempIDs As Collection                    'holds ids of all timers so they can be killed manually
 
 Private Assert As Rubberduck.PermissiveAssertClass
+'@Ignore VariableNotUsed: RD auto
 Private Fakes As Rubberduck.FakesProvider
 
 '@ModuleInitialize
@@ -88,7 +89,7 @@ End Sub
 
 ''@TestMethod("Uncategorized")
 Private Sub StartExistingTimerNoError()
-    'TODO is there a way to test whether WinAPI.SetTimer on ObjPtr(callbackwrapper) *before* TickerAPI.Start*Timer is bad?
+    'TODO is there a way to test whether WinAPI.SetTimer on ObjPtr(callbackwrapper) *before* TickerAPI.Start[Un|Managed]Timer is bad?
 End Sub
 
 '@TestMethod("Uncategorized")

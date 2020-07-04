@@ -187,7 +187,8 @@ Public Declare Function CallWindowProc Lib "user32.dll" Alias "CallWindowProcA" 
                         Optional ByVal timerID As Long = 0, _
                         Optional ByVal unused3 As Long) As LongPtr
 
-'@IgnoreModule UseMeaningfulName
+'@IgnoreModule UseMeaningfulName:These GUID members have implementation specific meanings that are not relevant here
+'@Ignore ShadowedDeclaration: False positive
 Private Type GUID
     Data1 As Long
     '@Ignore IntegerDataType:API

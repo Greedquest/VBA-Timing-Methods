@@ -47,12 +47,12 @@ End Sub
 
 Public Sub logError(ByVal Source As String, ByVal errNum As Long, ByVal errDescription As String)
     If Not LogManager.IsEnabled(ErrorLevel) Then 'check a logger is registered
-        LogManager.Register DebugLogger.Create("Timing-E", ErrorLevel)
+        LogManager.Register DebugLogger.Create("Timing-E", ErrorLevel) 'TODO conditional compilation for logger
     End If
     LogManager.log ErrorLevel, Toolbox.Strings.Format("{0} raised an error: #{1} - {2}", Source, errNum, errDescription)
 End Sub
 
-Public Sub log(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
+Public Sub logMessage(ByVal loggerLevel As LogLevel, ByVal Source As String, ByVal message As String)
     If Not LogManager.IsEnabled(TraceLevel) Then 'check a logger is registered
         LogManager.Register DebugLogger.Create("Timing", TraceLevel)
     End If

@@ -47,6 +47,7 @@ Public Function StartUnmanagedTimer(ByVal timerFunction As LongPtr, Optional ByV
     StartUnmanagedTimer = StartTimer(loggerSourceName, timerFunction, runImmediately, delayMillis, data)
 End Function
 
+'@Ignore FunctionReturnValueAlwaysDiscarded:API
 Public Function StartManagedTimer(ByVal timerFunction As ITimerProc, Optional ByVal runImmediately As Boolean = True, Optional ByVal delayMillis As Long = 500, Optional ByVal data As Variant) As LongPtr
     Const loggerSourceName As String = "StartManagedTimer"
     StartManagedTimer = StartTimer(loggerSourceName, timerFunction, runImmediately, delayMillis, data)
@@ -63,7 +64,7 @@ Attribute StartTimer.VB_Description = "Create new timer instance with optional s
         If Not AttemptToTriggerTimer(timerInfo) Then raisePublicError SynchronousCallError, loggerSourceName
     End If
     
-    log InfoLevel, loggerSourceName, printf("Timer with id {0} created", timerInfo.ID)
+    logMessage InfoLevel, loggerSourceName, printf("Timer with id {0} created", timerInfo.ID)
 End Function
 
 Private Function TryGenerateTimerData(ByVal timerFunction As Variant, ByVal data As Variant, ByRef outTimerInfo As TimerData) As Boolean
@@ -116,7 +117,9 @@ Private Function AttemptToTriggerTimer(ByVal timerInfo As TimerData) As Boolean
     Const loggerSourceName As String = "AttemptToTriggerTimer"
     
     On Error GoTo CleanFail
-    this.timerManager.TryTriggerTimer timerInfo
+    If Not this.timerManager.TryTriggerTimer(timerInfo) Then
+        logMessage WarnLevel, loggerSourceName, "Attempt failed with no error"
+    End If
     AttemptToTriggerTimer = True
     
 CleanExit:
@@ -124,7 +127,7 @@ CleanExit:
     
 CleanFail:
     KillTimerByID timerInfo.ID
-    logError "scheduleProc", Err.Number, Err.Description
+    logError loggerSourceName, Err.Number, Err.Description
     AttemptToTriggerTimer = False
     Resume CleanExit                             'DEBUG: comment-out this statement
     Stop
@@ -145,7 +148,7 @@ Attribute KillTimerByID.VB_Description = "API kills windows timer on this handle
         this.timerDataRepo.Remove timerInfo
         this.timerManager.KillTimer timerInfo
           
-        log InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerInfo.ID)
+        logMessage InfoLevel, loggerSourceName, printf("Timer with id {0} destroyed", timerInfo.ID)
 
     Else
         raisePublicError TimerNotFoundError, loggerSourceName
@@ -210,10 +213,10 @@ Public Sub KillTimersByFunctionID(ByVal timerFunctionID As LongPtr)
 
     On Error GoTo safeThrow
 
-    Dim timer As TimerData
-    For Each timer In this.timerDataRepo.FilterByFunctionID(timerFunctionID)
-        KillTimerByID timer.ID
-    Next timer
+    Dim matchingTimer As TimerData
+    For Each matchingTimer In this.timerDataRepo.FilterByFunctionID(timerFunctionID)
+        KillTimerByID matchingTimer.ID
+    Next matchingTimer
     
     Exit Sub
     
@@ -226,10 +229,10 @@ End Sub
 Public Sub KillTimersByFunctionName(ByVal timerFunctionName As String)
     On Error GoTo safeThrow
 
-    Dim timer As TimerData
-    For Each timer In this.timerDataRepo.FilterByFunctionName(timerFunctionName)
-        KillTimerByID timer.ID
-    Next timer
+    Dim matchingTimer As TimerData
+    For Each matchingTimer In this.timerDataRepo.FilterByFunctionName(timerFunctionName)
+        KillTimerByID matchingTimer.ID
+    Next matchingTimer
     
     Exit Sub
     
@@ -249,7 +252,7 @@ End Sub
 
 Private Sub raisePublicError(ByVal errorCode As TimerError, Optional ByVal Source As String = "raiseError")
 
-    log TraceLevel, "raiseError", "Destroying timers so error can be raised safely"
+    logMessage TraceLevel, "raiseError", "Destroying timers so error can be raised safely"
     Me.KillAll
     
     Select Case errorCode

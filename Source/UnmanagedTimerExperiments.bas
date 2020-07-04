@@ -1,5 +1,6 @@
 Attribute VB_Name = "UnmanagedTimerExperiments"
 '@Folder("Tests.Experiments")
+'@IgnoreModule:Experiments
 Option Explicit
 
 'Public Sub testSelfReplicating()

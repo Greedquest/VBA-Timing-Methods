@@ -1,5 +1,6 @@
 Attribute VB_Name = "ManagedTimerExperiments"
 '@Folder("Tests.Experiments")
+'@IgnoreModule: Experiments
 Option Explicit
 
 Public Sub testImmediateTerminating()

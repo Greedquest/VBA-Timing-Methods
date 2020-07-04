@@ -88,7 +88,7 @@ CatchError:
     If Err.Number = systemErrorCodes.ERROR_NOT_ENOUGH_QUOTA Then
         'queue is too full right now, no point scheduling as it wouldn't be evaluated in time anyway
         'could try flushing the queue instead
-        log WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
+        logMessage WarnLevel, loggerSourceName, "Message queue is too full to post to, so cannot runImmediately"
         ITimerManager_tryTriggerTimer = False
         Resume CleanExit
         
@@ -105,7 +105,7 @@ Private Sub ITimerManager_KillAllTimers(ByVal dataArray As Variant)
     
     'NOTE this procedure is called when raising errors so must not raise any itself
     On Error Resume Next
-    log InfoLevel, loggerSourceName, printf("{0} registered timer(s)", UBound(dataArray) - LBound(dataArray)) 'TODO move this elswhere
+    logMessage InfoLevel, loggerSourceName, printf("{0} registered timer(s)", UBound(dataArray) - LBound(dataArray)) 'TODO move this elswhere
     
     Set this.messageWindow = Nothing             'terminateMessageWindow - it's autoinstantiated so no tests
 

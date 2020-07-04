@@ -82,7 +82,7 @@ Public Sub terminatingIndexedTickingProc(ByVal windowHandle As LongPtr, ByVal me
 End Sub
 
 Public Sub RecursiveProc(ByVal windowHandle As LongPtr, ByVal message As WindowsMessage, ByVal timerID As LongPtr, ByVal tickCount As Long)
-    'NOTE no recursion anymore
+    'TODO no recursion anymore - what's this all about?
     Static i As Long
     i = i + 1
     Debug.Print i; "Callback called " & time; timerID
