@@ -89,7 +89,7 @@ CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     TryGenerateTimerData = False
     Resume CleanExit                             'DEBUG: comment-out this statement
-    Stop
+Stop
     Resume
 End Function
 
@@ -109,7 +109,7 @@ CleanFail:
     this.timerDataRepo.Remove timerInfo
     TryCreateTimer = False
     Resume CleanExit                             'DEBUG: comment-out this statement
-    Stop
+Stop
     Resume
 End Function
 
@@ -130,7 +130,7 @@ CleanFail:
     logError loggerSourceName, Err.Number, Err.Description
     AttemptToTriggerTimer = False
     Resume CleanExit                             'DEBUG: comment-out this statement
-    Stop
+Stop
     Resume
 End Function
 
@@ -160,8 +160,8 @@ CleanExit:
 killTimerFail:
     logError "killTimer", Err.Number, Err.Description
     raisePublicError DestroyTimerError, loggerSourceName
-    Resume CleanExit                                      'for debugging - break above and jump to the error-raising statement
-    Stop
+    Resume CleanExit                             'for debugging - break above and jump to the error-raising statement
+Stop
     Resume
 End Sub
 

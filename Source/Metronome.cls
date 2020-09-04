@@ -53,9 +53,8 @@ Public Property Let MinimumTickIntervalMillis(ByVal RHS As Long)
 End Property
 
 Public Sub Start()
-    'Should only call Start once, since there should only ever be one api timer per metronome
     Static hasBeenStarted As Boolean
-    If Not hasBeenStarted Then
+    If Not hasBeenStarted Then                   'Should only call Start once, since there should only ever be one api timer per metronome
         this.ID = TickerAPI.StartManagedTimer(Me, TickOnStart, MinimumTickIntervalMillis)
         hasBeenStarted = True
     End If
