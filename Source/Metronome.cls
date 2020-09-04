@@ -22,6 +22,7 @@ Private Type TMetronome
 End Type
 
 Private this As TMetronome
+'Private WithEvents ticker As TickSource
 
 Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal delayedStart As Boolean = False, Optional ByVal firstTickOnStart As Boolean = True) As Metronome
     With New Metronome
@@ -70,7 +71,7 @@ Public Property Get Paused() As Boolean
     Paused = this.isPaused
 End Property
 
-Private Sub Class_Terminate()
+Private Sub Class_Terminate() 'BUG never called since ticker API holds a strong reference to this object (for the calling stuff)
     TickerAPI.KillTimerByID this.ID
 End Sub
 
