@@ -23,7 +23,7 @@ End Type
 
 Private this As TMetronome
 
-Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal firstTickOnStart As Boolean = True, Optional ByVal delayedStart As Boolean = False) As Metronome
+Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal delayedStart As Boolean = False, Optional ByVal firstTickOnStart As Boolean = True) As Metronome
     With New Metronome
         Set Create = .Self
         .TickOnStart = firstTickOnStart
@@ -40,8 +40,8 @@ Public Property Get TickOnStart() As Boolean
     TickOnStart = this.TickOnStart
 End Property
 
-Public Property Let TickOnStart(ByVal RHS As Boolean)
-    this.TickOnStart = RHS
+Public Property Let TickOnStart(ByVal value As Boolean)
+    this.TickOnStart = value
 End Property
 
 Public Property Get MinimumTickIntervalMillis() As Long
