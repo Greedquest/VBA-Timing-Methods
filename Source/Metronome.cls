@@ -1,0 +1,74 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Metronome"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'@Folder("WinAPI")
+Option Explicit
+Implements ITimerProc
+
+Public Event Tick()
+
+Private Type TMetronome
+    ID As LongPtr
+    TickOnStart As Boolean
+    MinimumTickIntervalMillis As Long
+    isPaused As Boolean
+End Type
+
+Private this As TMetronome
+
+Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal firstTickOnStart As Boolean = True, Optional ByVal delayedStart As Boolean = False) As Metronome
+    With New Metronome
+        Set Create = .Self
+        .TickOnStart = firstTickOnStart
+        If Not delayedStart Then .Start
+    End With
+End Function
+
+Friend Property Get Self() As Metronome
+    Set Self = Me
+End Property
+
+Public Property Get TickOnStart() As Boolean
+    TickOnStart = this.TickOnStart
+End Property
+
+Public Property Let TickOnStart(ByVal RHS As Boolean)
+    this.TickOnStart = RHS
+End Property
+
+Public Property Get MinimumTickIntervalMillis() As Long
+    MinimumTickIntervalMillis = this.MinimumTickIntervalMillis
+End Property
+
+Public Property Let MinimumTickIntervalMillis(ByVal RHS As Long)
+    this.MinimumTickIntervalMillis = RHS
+End Property
+
+Public Sub Start()
+    'Should only call Start once, since there should only ever be one api timer per metronome
+    Static hasBeenStarted As Boolean
+    If Not hasBeenStarted Then
+        this.ID = TickerAPI.StartManagedTimer(Me, TickOnStart, MinimumTickIntervalMillis)
+        hasBeenStarted = True
+    End If
+End Sub
+
+'@Description("Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object")
+Public Property Let Paused(ByVal isPaused As Boolean)
+    this.isPaused = True
+End Property
+
+Public Property Get Paused() As Boolean
+    Paused = this.isPaused
+End Property
+
+Private Sub ITimerProc_Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
+    If Not Paused Then RaiseEvent Tick
+End Sub
+
