@@ -4,10 +4,13 @@ Option Explicit
 
 Private Sub Workbook_BeforeClose(ByRef Cancel As Boolean)
     If Me.Saved = False Then
-    Select Case MsgBox("Save before closing?", vbYesNoCancel, Me.Name & " contains unsaved work!")
-        Case vbYes
-            Me.Save
-        Case vbCancel
-            Cancel = True
-    End Select
+        Select Case MsgBox("Save before closing?", vbYesNoCancel, Me.Name & " contains unsaved work!")
+            Case vbYes
+                Me.Save
+                
+            Case vbCancel
+                Cancel = True
+                
+        End Select
+    End If
 End Sub
