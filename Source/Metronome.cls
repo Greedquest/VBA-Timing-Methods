@@ -5,9 +5,10 @@ END
 Attribute VB_Name = "Metronome"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
+Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '@Folder("WinAPI")
+'@PredeclaredID
 Option Explicit
 Implements ITimerProc
 
@@ -26,6 +27,7 @@ Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal firstTi
     With New Metronome
         Set Create = .Self
         .TickOnStart = firstTickOnStart
+        .MinimumTickIntervalMillis = tickFrequencyMillis
         If Not delayedStart Then .Start
     End With
 End Function
@@ -61,6 +63,7 @@ End Sub
 
 '@Description("Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object")
 Public Property Let Paused(ByVal isPaused As Boolean)
+Attribute Paused.VB_Description = "Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object"
     this.isPaused = True
 End Property
 
@@ -68,7 +71,10 @@ Public Property Get Paused() As Boolean
     Paused = this.isPaused
 End Property
 
+Private Sub Class_Terminate()
+    TickerAPI.KillTimerByID this.ID
+End Sub
+
 Private Sub ITimerProc_Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
     If Not Paused Then RaiseEvent Tick
 End Sub
-
