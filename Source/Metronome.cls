@@ -10,7 +10,6 @@ Attribute VB_Exposed = False
 '@Folder("SecondLevelAPI")
 '@PredeclaredID
 Option Explicit
-Implements ITimerProc
 
 Public Event Tick()
 
@@ -22,7 +21,8 @@ Private Type TMetronome
 End Type
 
 Private this As TMetronome
-'Private WithEvents ticker As TickSource
+Private WithEvents ticker As EventRaisingTimerProc
+Attribute ticker.VB_VarHelpID = -1
 
 Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal delayedStart As Boolean = False, Optional ByVal firstTickOnStart As Boolean = True) As Metronome
     With New Metronome
@@ -56,10 +56,15 @@ End Property
 Public Sub Start()
     Static hasBeenStarted As Boolean
     If Not hasBeenStarted Then                   'Should only call Start once, since there should only ever be one api timer per metronome
-        this.ID = TickerAPI.StartManagedTimer(Me, TickOnStart, MinimumTickIntervalMillis)
+        this.ID = TickerAPI.StartManagedTimer(TimerProc, TickOnStart, MinimumTickIntervalMillis)
         hasBeenStarted = True
     End If
 End Sub
+
+Private Property Get TimerProc() As ITimerProc
+    If ticker Is Nothing Then Set ticker = New EventRaisingTimerProc
+    Set TimerProc = ticker
+End Property
 
 '@Description("Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object")
 Public Property Let Paused(ByVal isPaused As Boolean)
@@ -75,6 +80,6 @@ Private Sub Class_Terminate() 'BUG never called since ticker API holds a strong 
     TickerAPI.KillTimerByID this.ID
 End Sub
 
-Private Sub ITimerProc_Exec(ByVal timerID As LongPtr, ByVal userData As Variant, ByVal tickCount As Long)
+Private Sub ticker_Tick(ByVal timerID As Long, ByVal userData As Variant, ByVal tickCount As Long)
     If Not Paused Then RaiseEvent Tick
 End Sub
