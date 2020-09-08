@@ -6,9 +6,12 @@ Attribute VB_Name = "Metronome"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
+Attribute VB_Description = "A simple ticking object with customisable tick interval that wraps a winapi timer. Automatically terminates timer when out of scope, however can be Paused and unPaused once created"
 '@Folder("SecondLevelAPI")
 '@PredeclaredID
+'@Exposed
+'@ModuleDescription("A simple ticking object with customisable tick interval that wraps a winapi timer. Automatically terminates timer when out of scope, however can be Paused and unPaused once created")
 Option Explicit
 
 Public Event Tick()
@@ -23,6 +26,7 @@ End Type
 Private this As TMetronome
 Private WithEvents ticker As EventRaisingTimerProc
 Attribute ticker.VB_VarHelpID = -1
+
 
 Public Function Create(ByVal tickFrequencyMillis As Long, Optional ByVal delayedStart As Boolean = False, Optional ByVal firstTickOnStart As Boolean = True) As Metronome
     With New Metronome
@@ -41,7 +45,7 @@ Public Property Get TickOnStart() As Boolean
     TickOnStart = this.TickOnStart
 End Property
 
-Public Property Let TickOnStart(ByVal value As Boolean)
+Friend Property Let TickOnStart(ByVal value As Boolean)
     this.TickOnStart = value
 End Property
 
@@ -49,8 +53,8 @@ Public Property Get MinimumTickIntervalMillis() As Long
     MinimumTickIntervalMillis = this.MinimumTickIntervalMillis
 End Property
 
-Public Property Let MinimumTickIntervalMillis(ByVal RHS As Long)
-    this.MinimumTickIntervalMillis = RHS
+Friend Property Let MinimumTickIntervalMillis(ByVal intervalMillis As Long)
+    this.MinimumTickIntervalMillis = intervalMillis
 End Property
 
 Public Sub Start()
