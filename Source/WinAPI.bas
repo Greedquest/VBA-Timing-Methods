@@ -33,7 +33,7 @@ Public Type timerMessage
     windowHandle As LongPtr
     messageEnum As WindowsMessage
     timerID As LongPtr
-    timerProc As LongPtr
+    TimerProc As LongPtr
     tickCountTime As Long
     cursor As tagPOINT
     #If Mac Then

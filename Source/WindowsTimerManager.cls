@@ -44,7 +44,7 @@ Private Sub ITimerManager_StartTimer(ByVal data As TimerData, ByVal delayMillis 
     On Error GoTo setTimerFail
     
     Dim newTimerID As LongPtr
-    newTimerID = WinAPI.SetTimer(this.messageWindow.handle, data.callbackWrapperPointer, delayMillis, data.timerProc)
+    newTimerID = WinAPI.SetTimer(this.messageWindow.handle, data.callbackWrapperPointer, delayMillis, data.TimerProc)
     
     If newTimerID = 0 Then
         throwDllError Err.LastDllError
@@ -75,7 +75,7 @@ Private Function ITimerManager_tryTriggerTimer(ByVal data As TimerData) As Boole
     
     On Error GoTo CatchError
     'Post fake message to queue to act as an already elapsed timer
-    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.ID, data.timerProc) = 0 Then
+    If WinAPI.PostMessage(this.messageWindow.handle, WM_TIMER, data.ID, data.TimerProc) = 0 Then
         throwDllError Err.LastDllError
     Else
         ITimerManager_tryTriggerTimer = True

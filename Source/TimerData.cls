@@ -13,7 +13,7 @@ Attribute VB_Exposed = False
 
 Private Type tTimerData
     callbackWrapper As Object
-    timerProc As LongPtr
+    TimerProc As LongPtr
 End Type
 
 Private this As tTimerData
@@ -22,9 +22,9 @@ Public Function Create(ByVal timerCallbackWrapper As Object) As TimerData
     With New TimerData
         Set .callbackWrapper = timerCallbackWrapper
         If TypeOf timerCallbackWrapper Is ManagedCallbackWrapper Then
-            .timerProc = VBA.CLngPtr(AddressOf InternalTimerProcs.ManagedTimerCallbackInvoker)
+            .TimerProc = VBA.CLngPtr(AddressOf InternalTimerProcs.ManagedTimerCallbackInvoker)
         Else
-            .timerProc = .callbackWrapperInterface.FunctionID
+            .TimerProc = .callbackWrapperInterface.FunctionID
         End If
         Set Create = .Self
     End With
@@ -50,11 +50,11 @@ Public Property Get ID() As LongPtr              'alias
     ID = Me.callbackWrapperPointer
 End Property
 
-Public Property Get timerProc() As LongPtr
-    timerProc = this.timerProc
+Public Property Get TimerProc() As LongPtr
+    TimerProc = this.TimerProc
 End Property
 
-Friend Property Let timerProc(ByVal value As LongPtr)
-    this.timerProc = value
+Friend Property Let TimerProc(ByVal value As LongPtr)
+    this.TimerProc = value
 End Property
 
