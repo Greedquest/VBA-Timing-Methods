@@ -73,7 +73,7 @@ End Property
 '@Description("Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object")
 Public Property Let Paused(ByVal isPaused As Boolean)
 Attribute Paused.VB_Description = "Temporarily pauses ticker by ignoring the messages. To kill the timer completely, just destroy the metronome object"
-    this.isPaused = True
+    this.isPaused = isPaused
 End Property
 
 Public Property Get Paused() As Boolean
