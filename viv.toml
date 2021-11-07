@@ -1,0 +1,12 @@
+[package]
+name = "VBA-Timing-Methods"
+description = """
+A lightweight wrapper around WinAPI timers to make them easier to use with VBA.
+"""
+ptrsafe = false # https://github.com/Greedquest/VBA-Timing-Methods/issues/3
+
+[dependencies.Toolbox]
+repo = "https://github.com/Greedquest/VBA-Toolbox"
+
+[references]
+"Dictionary" = '%WINDIR%\System32\scrrun.dll' 
