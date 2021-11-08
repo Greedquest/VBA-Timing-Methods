@@ -1,5 +1,6 @@
 [project]
 name = "VBA-Timing-Methods"
+vbname = "Timing"
 description = """
 A lightweight wrapper around WinAPI timers to make them easier to use with VBA.
 """
