@@ -1,3 +1,4 @@
+[![Code Review](http://www.zomis.net/codereview/shield/?qid=229656&mode=views)](http://codereview.stackexchange.com/q/229656/146810)
 # By way of introduction...
 As anyone who's ever worked for any significant length of time with [WinAPI Timers][1] probably knows, they can be some of the most temperamental, unstable and crash-inducing elements of a project, and as such are very tricky to use. Instances of random, unstoppable printing to the debug window, frequent screen freezes or outright crashes are commonplace.
 
